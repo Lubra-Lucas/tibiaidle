@@ -1,0 +1,2 @@
+/* gerado por ferramentas/gerar_roupas74.py */
+window.ROUPAS74={"knight":{"src":"tibia-assets/sprites/roupas74/knight.png","w":32,"h":32,"fases":3,"desl":8,"look":131},"paladin":{"src":"tibia-assets/sprites/roupas74/paladin.png","w":32,"h":32,"fases":3,"desl":8,"look":129},"sorcerer":{"src":"tibia-assets/sprites/roupas74/sorcerer.png","w":32,"h":32,"fases":3,"desl":8,"look":133},"druid":{"src":"tibia-assets/sprites/roupas74/druid.png","w":32,"h":32,"fases":3,"desl":8,"look":130}};
