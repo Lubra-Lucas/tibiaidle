@@ -632,7 +632,9 @@ const pick=a=>a[Math.floor(Math.random()*a.length)], clamp=(v,a,b)=>Math.max(a,M
 const expFor=L=>Math.round(50/3*(L**3-6*L*L+17*L-12));
 const cheb=(a,b)=>Math.max(Math.abs(a.x-b.x),Math.abs(a.y-b.y));
 const REDE_LOCAL=/[?&]rede=local(?=&|$)/.test(location.search);
-const KEY='tibiaIdle2d_v1'+(REDE_LOCAL?(m=>m&&+m[1]>1?'_perfil'+m[1]:'')(location.search.match(/[?&]perfil=(\d+)(?=&|$)/)):''), TS=32, STEP=100, H=3600e3, MIN=60e3;
+/* ?rede=rt&perfil=N: teste do Supabase Realtime real, sem login (save offline do perfil N, canais próprios de teste) */
+const REDE_RT=!REDE_LOCAL&&/[?&]rede=rt(?=&|$)/.test(location.search);
+const KEY='tibiaIdle2d_v1'+((REDE_LOCAL||REDE_RT)?(m=>m&&+m[1]>1?'_perfil'+m[1]:'')(location.search.match(/[?&]perfil=(\d+)(?=&|$)/)):''), TS=32, STEP=100, H=3600e3, MIN=60e3;
 function fmt(n){n=Math.round(n);const a=Math.abs(n);if(a>=1e6)return (n/1e6).toFixed(2).replace('.',',')+'kk';if(a>=1e5)return Math.round(n/1e3)+'k';return n.toLocaleString('pt-BR');}
 function hms(ms){const s=Math.max(0,Math.floor(ms/1000));return String(Math.floor(s/3600)).padStart(2,'0')+':'+String(Math.floor(s%3600/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
 function hm(ms){const m=Math.max(0,Math.floor(ms/60000));return Math.floor(m/60)+':'+String(m%60).padStart(2,'0')+'h';}
@@ -1764,6 +1766,7 @@ function cityLogic(){
     if(S.stamina<30*MIN){log('sys','Stamina baixa: descansando na cidade.','o');return;}
     if((S.rules.minHp>0&&countPots('hp')<S.rules.minHp)||(S.rules.minMp>0&&countPots('mp')<S.rules.minMp)){log('sys','Sem gold para reabastecer: ficando na cidade.','o');return;}
     let dest=S.lastHunt;if(S.rules.smart)dest=bestHunt();
+    if(PT.id&&ptSou()&&PT.mb.length>=2&&!PT.hunt&&HUNTS[dest]){ptIniciarCacada(dest);return;}   /* líder de party: a volta automática reinicia a caçada DA PARTY (antes ia sozinho e deixava a party na cidade) */
     travel(dest,null);}
 }
 function bestHunt(){let b=Object.keys(HUNTS)[0];for(const [k,h] of Object.entries(HUNTS))if(h.lv<=S.level)b=k;return b;}
@@ -2914,6 +2917,7 @@ function novoSave(nome,voc){const ant=S;S=personagemForte(newState(nome,voc));S.
 /* ---------- entrada: login → lista de personagens → jogar (ou jogar offline) ---------- */
 function entrada(){return new Promise(async res=>{
   ENT.fim=res;ENT.ativo=true;showLoading(false);
+  if(REDE_RT){ON.modo='offline';ENT.ativo=false;res('offline');return;}   /* ?rede=rt: teste do Realtime sem login */
   try{
     const h=new URLSearchParams(location.hash.slice(1));if(h.get('error_description')){ENT.aviso=h.get('error_description').replace(/\+/g,' ');try{history.replaceState(null,'',baseURL());}catch(_){}}
     if(!SB){openModal('login');return;}
@@ -3174,7 +3178,9 @@ function prOutfit(o){try{if(!o||typeof o!=='object')return null;const look=+o.lo
   const ad=+o.addons;if(!Number.isInteger(ad)||ad<0||ad>3)return null;return {look,cores,addons:OUTF15[look].addons?ad:0};}catch(e){return null;}}
 function prQuebrar(t,n){const out=[];let l='';for(const w of String(t).split(' ')){if((l+' '+w).trim().length>n&&l){out.push(l);l=w;}else l=(l+' '+w).trim();}if(l)out.push(l);return out.slice(0,4);}
 function prMeta(){const p=W&&W.p||{x:0,y:0,face:0};return {pid:PR.pid,nome:prTxt(S.name,20),voc:S.voc,level:S.level,outfit:S.outfit||null,x:p.x,y:p.y,dir:p.face||0};}
-function prModoRede(){return REDE_LOCAL?'local':(SB&&ON.modo==='online'&&!ON.parado&&ON.pid?'rt':null);}
+const prPidRt=()=>REDE_RT?(PR.pidT||(PR.pidT=(()=>{let sl='';try{sl=localStorage.getItem('tibiaRtSalt')||'';if(!sl){sl=Math.random().toString(36).slice(2,8);localStorage.setItem('tibiaRtSalt',sl);}}catch(e){sl=Math.random().toString(36).slice(2,8);}   /* pid fixo por perfil (como o do personagem real), para testar recarregar a página */
+  return 'T'+((location.search.match(/[?&]perfil=(\d+)/)||[])[1]||0)+sl;})())):String(ON.pid);
+function prModoRede(){return REDE_LOCAL?'local':REDE_RT?(SB&&ON.modo==='offline'?'rt':null):(SB&&ON.modo==='online'&&!ON.parado&&ON.pid?'rt':null);}
 /* ---- transportes: mesma interface (entrar, atualizar, enviar, sair); h = {sync, entrou, saiu, rec} ---- */
 function prTrLocal(chave){const bc=new BroadcastChannel('tibiaidle-'+chave);let h=null,meuMeta=null,vivo=true;
   const env=(m)=>{try{if(vivo)bc.postMessage(m);}catch(e){}};
@@ -3186,17 +3192,18 @@ function prTrLocal(chave){const bc=new BroadcastChannel('tibiaidle-'+chave);let 
 function prTrRealtime(chave){let ch=null,h=null,vivo=true,meuMeta=null,tim=null,n=0,ok=false;const fila=[];
   const envia=(t,pl)=>{try{if(ch)ch.send({type:'broadcast',event:t,payload:Object.assign({pid:PR.pid},pl)});}catch(e){}};
   const abrir=()=>{if(!vivo)return;try{
-    ch=SB.channel('cidade:'+chave,{config:{presence:{key:PR.pid},broadcast:{self:false}}});
+    const c=ch=SB.channel('cidade:'+chave,{config:{presence:{key:PR.pid},broadcast:{self:false}}});
     ch.on('presence',{event:'sync'},()=>{try{const st=ch.presenceState(),m=new Map();for(const k of Object.keys(st)){const a=st[k];if(a&&a.length)m.set(k,a[a.length-1]);}h.sync(m);}catch(e){}});
     ch.on('broadcast',{event:'pos'},m=>{try{h.rec('pos',m.payload);}catch(e){}});
     ch.on('broadcast',{event:'fala'},m=>{try{h.rec('fala',m.payload);}catch(e){}});
     ch.on('broadcast',{event:'convite'},m=>{try{h.rec('convite',m.payload);}catch(e){}});
     ch.on('broadcast',{event:'resposta'},m=>{try{h.rec('resposta',m.payload);}catch(e){}});
-    ch.subscribe(st=>{if(!vivo)return;
+    ch.subscribe(st=>{if(!vivo||c!==ch)return;   /* c!==ch: retorno de um canal antigo já descartado (não pode derrubar o novo) */
       if(st==='SUBSCRIBED'){n=0;PR.erro=null;ok=true;try{ch.track(meuMeta());}catch(e){}while(fila.length){const q=fila.shift();envia(q[0],q[1]);}}
       else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){PR.erro=st;ok=false;religar();}});
   }catch(e){PR.erro=String(e&&e.message||e);religar();}};
-  const religar=()=>{if(!vivo||tim)return;try{if(ch)SB.removeChannel(ch);}catch(e){}ch=null;const d=Math.min(30000,2000*Math.pow(2,n++));tim=setTimeout(()=>{tim=null;abrir();},d);};
+  /* o timer e o descarte do canal antigo vêm ANTES do removeChannel: ele dispara o callback 'CLOSED' na hora, e sem isso religar() entrava em recursão e derrubava o canal novo */
+  const religar=()=>{if(!vivo||tim)return;ok=false;const velho=ch;ch=null;const d=Math.min(30000,2000*Math.pow(2,n++));tim=setTimeout(()=>{tim=null;abrir();},d);try{if(velho)SB.removeChannel(velho);}catch(e){}};
   return {entrar(hh,mf){h=hh;meuMeta=mf;abrir();},atualizar(meta){try{if(ch)ch.track(meta);}catch(e){}},
     enviar(t,pl){if(!ok){if(t==='convite'||t==='resposta'){fila.push([t,pl]);if(fila.length>20)fila.shift();}return;}envia(t,pl);},
     sair(){vivo=false;if(tim)clearTimeout(tim);try{if(ch){ch.untrack();SB.removeChannel(ch);}}catch(e){}ch=null;}};}
@@ -3225,8 +3232,8 @@ function prRec(t,m){try{if(!m||typeof m!=='object'||typeof m.pid!=='string'||m.p
 }catch(e){}}
 const PR_H={sync:prSync,entrou:prEntrou,saiu:prSaiu,rec:(t,m)=>t==='convite'||t==='resposta'?ptRecCidade(t,m):prRec(t,m)};
 function prEntrar(){if(PR.ativo)return;const modo=prModoRede();if(!modo||!S)return;
-  try{PR.modo=modo;PR.pid=modo==='rt'?String(ON.pid):(PR.pidL||(PR.pidL='L'+Math.random().toString(36).slice(2,10)));
-    const chave=String(CITY&&CITY.n||'cidade').toLowerCase().replace(/[^a-z0-9]/g,'')||'cidade';
+  try{PR.modo=modo;PR.pid=modo==='rt'?prPidRt():(PR.pidL||(PR.pidL='L'+Math.random().toString(36).slice(2,10)));
+    const chave=(REDE_RT?'rt_':'')+(String(CITY&&CITY.n||'cidade').toLowerCase().replace(/[^a-z0-9]/g,'')||'cidade');
     PR.tr=modo==='local'?prTrLocal(chave):prTrRealtime(chave);PR.ativo=true;PR.ult=null;PR.sigPerfil=prSigPerfil();PR.remotos.clear();
     PR.tr.entrar(PR_H,prMeta);}catch(e){PR.ativo=false;PR.tr=null;}}
 function prSair(){if(!PR.ativo)return;PR.ativo=false;try{PR.tr.sair();}catch(e){}PR.tr=null;PR.remotos.clear();PR.falaRx={};}
@@ -3234,7 +3241,7 @@ const prSigPerfil=()=>S?S.level+'|'+JSON.stringify(S.outfit||null)+'|'+S.name:''
 function prTick(){try{
   const naCidade=!!(S&&W&&W.city&&S.loc==='city'&&!W.loading&&!ON.parado);
   if(W&&W.city)W.remotos=PR.remotos;
-  if(!naCidade||(PR.ativo&&PR.modo!==prModoRede())||(PR.ativo&&PR.modo==='rt'&&PR.pid!==String(ON.pid))){prSair();}
+  if(!naCidade||(PR.ativo&&PR.modo!==prModoRede())||(PR.ativo&&PR.modo==='rt'&&PR.pid!==prPidRt())){prSair();}
   if(naCidade&&!PR.ativo)prEntrar();
   const now=performance.now();
   if(PR.ativo){const p=W.p,sig=prSigPerfil();
@@ -3275,11 +3282,11 @@ setInterval(prTick,100);
 /* ======================= PARTY E HUNT COMPARTILHADA =======================
    Party de até 4 jogadores. O navegador do LÍDER simula a caçada inteira (monstros, IA, dano, loot e exp); os membros entram com uma "ficha" de lutador
    (o líder cria um lutador com a IA da arena) e só desenham o que o líder envia (4 Hz, num único broadcast com os eventos) e aplicam as recompensas.
-   Canal da party: party:<pid do fundador>, mesmo padrão da presença (Supabase Realtime, ou BroadcastChannel com ?rede=local).
+   Canal da party: party:<pid do fundador>, mesmo padrão da presença (Supabase Realtime, ou BroadcastChannel com ?rede=local; ?rede=rt&perfil=N = Realtime real sem login, para testar).
    Convites ficam no canal da cidade (convite/resposta). Modo solo: PT.hunt e W.pl ficam vazios e nada muda. */
-const PARTY_HZ=4,PT_MAX=4,PT_CONVITE=60000,PT_SUMIR=15000,PT_INATIVO=120000,PT_BONUS=[0,.2,.3,.6,1];
+const PARTY_HZ=4,PT_MAX=4,PT_CONVITE=60000,PT_SUMIR=15000,PT_INATIVO=120000,PT_BONUS=[0,.2,.3,.6,1],PT_VER='p3';
 const PT_EVS=['rost','sinal','entrar','sair','go','fim','ficha','estado','premio','kick','recusa'];
-Object.assign(PT,{id:null,me:null,lider:null,mb:[],expOn:true,tr:null,conv:[],sent:{},pend:null,fichas:new Map(),conf:false,tEnt:0,nEnt:0,tSin:0,tEst:0,tPre:0,tAn:0,tMe:0,sig:'',flag:'off',huntInfo:null,epAuto:null,fake:false,n:{env:0,rec:0}});
+Object.assign(PT,{id:null,me:null,lider:null,mb:[],expOn:true,tr:null,conv:[],sent:{},pend:null,fichas:new Map(),conf:false,tEnt:0,nEnt:0,tSin:0,tEst:0,tPre:0,tAn:0,tMe:0,sig:'',flag:'off',huntInfo:null,epAuto:null,seg:null,fim:{},pPend:null,st:'ok',verAv:{},fake:false,n:{env:0,rec:0,te:{},tr:{},res:{}}});
 const ptSou=()=>!!PT.id&&PT.lider===PR.pid;
 const ptM=pid=>PT.mb.find(x=>x.pid===pid);
 function ptEv(e){const a=PT.ev;if(a&&a.length<200)a.push(e);}
@@ -3290,22 +3297,22 @@ function ptTrLocal(chave){const bc=new BroadcastChannel('tibiaidle-party-'+chave
   bc.onmessage=ev=>{const m=ev.data;if(!m||typeof m!=='object'||typeof m.pid!=='string'||m.pid===PR.pid||!h||!PT_EVS.includes(m._e))return;h(m._e,m);};
   return {abrir(hh){h=hh;},enviar(t,pl){if(vivo)try{bc.postMessage(Object.assign({},pl,{_e:t,pid:PR.pid}));}catch(e){}},fechar(){vivo=false;try{bc.close();}catch(e){}}};}
 function ptTrRealtime(chave){let ch=null,h=null,vivo=true,tim=null,n=0,ok=false;const fila=[];
-  const envia=(t,pl)=>{try{if(ch)ch.send({type:'broadcast',event:t,payload:Object.assign({},pl,{pid:PR.pid})});}catch(e){}};
+  const envia=(t,pl)=>{try{if(ch){const r=ch.send({type:'broadcast',event:t,payload:Object.assign({},pl,{pid:PR.pid})});if(r&&r.then)r.then(v=>{PT.n.res[v]=(PT.n.res[v]||0)+1;},()=>{PT.n.res.erro=(PT.n.res.erro||0)+1;});}else PT.n.res.semcanal=(PT.n.res.semcanal||0)+1;}catch(e){PT.n.res.excecao=(PT.n.res.excecao||0)+1;}};
   const abrir=()=>{if(!vivo)return;try{
-    ch=SB.channel('party:'+chave,{config:{broadcast:{self:false}}});
+    const c=ch=SB.channel('party:'+chave,{config:{broadcast:{self:false}}});
     for(const e of PT_EVS)ch.on('broadcast',{event:e},m=>{try{const p=m.payload;if(p&&typeof p.pid==='string'&&p.pid!==PR.pid)h(e,p);}catch(x){}});
-    ch.subscribe(st=>{if(!vivo)return;if(st==='SUBSCRIBED'){n=0;ok=true;while(fila.length){const q=fila.shift();envia(q[0],q[1]);}}else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){ok=false;religar();}});
+    ch.subscribe(st=>{if(!vivo||c!==ch)return;if(st==='SUBSCRIBED'){n=0;ok=true;PT.st='ok';while(fila.length){const q=fila.shift();envia(q[0],q[1]);}}else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){ok=false;PT.st=st;PT.n.res['canal_'+st]=(PT.n.res['canal_'+st]||0)+1;religar();}});
   }catch(e){religar();}};
-  const religar=()=>{if(!vivo||tim)return;ok=false;try{if(ch)SB.removeChannel(ch);}catch(e){}ch=null;const d=Math.min(30000,2000*Math.pow(2,n++));tim=setTimeout(()=>{tim=null;abrir();},d);};
-  return {abrir(hh){h=hh;abrir();},enviar(t,pl){if(!ok){fila.push([t,pl]);if(fila.length>20)fila.shift();return;}envia(t,pl);},
+  const religar=()=>{if(!vivo||tim)return;ok=false;const velho=ch;ch=null;const d=Math.min(15000,1500*Math.pow(2,n++));tim=setTimeout(()=>{tim=null;abrir();},d);try{if(velho)SB.removeChannel(velho);}catch(e){}};
+  return {abrir(hh){h=hh;abrir();},enviar(t,pl){if(!ok){if(t!=='estado'){fila.push([t,pl]);if(fila.length>30)fila.shift();}return;}envia(t,pl);},   /* sem canal: guarda as mensagens importantes (o estado, 4x por segundo, fica velho na hora) */
     fechar(){vivo=false;if(tim)clearTimeout(tim);try{if(ch)SB.removeChannel(ch);}catch(e){}ch=null;}};}
 function ptAbrir(){if(PT.tr||!PT.id||PT.fake)return;const modo=prModoRede();if(!modo)return;
   try{PT.tr=modo==='local'?ptTrLocal(PT.id):ptTrRealtime(PT.id);PT.tr.abrir(ptRec);}catch(e){PT.tr=null;}}
 function ptFechar(){const t=PT.tr;PT.tr=null;if(t)try{t.fechar();}catch(e){}}
-function ptEnv(t,pl){if(!PT.tr)return;PT.n.env++;PT.tr.enviar(t,pl||{});}
+function ptEnv(t,pl){if(!PT.tr)return;PT.n.env++;PT.n.te[t]=(PT.n.te[t]||0)+1;PT.tr.enviar(t,pl||{});}
 /* ---- dados dos membros ---- */
 function ptMetaEu(){const HU=PT.hunt,b=HU&&HU.b,s=S.sess;
-  return {nome:prTxt(S.name,20),voc:S.voc,level:S.level,outfit:S.outfit||null,hp:Math.round(S.hp),hpMax:maxHp(),mp:Math.round(S.mp),mpMax:maxMp(),loc:S.loc,
+  return {v:PT_VER,nome:prTxt(S.name,20),voc:S.voc,level:S.level,outfit:S.outfit||null,hp:Math.round(S.hp),hpMax:maxHp(),mp:Math.round(S.mp),mpMax:maxMp(),loc:S.loc,
     xp:b?Math.max(0,Math.round(s.exp-b.xp)):0,lc:b?Math.round(s.gold+s.loot-s.sup-b.lc):0,st:b?Math.max(0,Math.round(s.t-b.st)):0};}
 function ptSan(m,o){o=o||{};o.nome=prTxt(m.nome,20)||'Jogador';o.voc=VOC[m.voc]?m.voc:'knight';o.level=prNum(m.level,1,9999,1);o.outfit=prOutfit(m.outfit);
   o.hpMax=prNum(m.hpMax,1,200000,100);o.hp=prNum(m.hp,0,o.hpMax,o.hpMax);o.mpMax=prNum(m.mpMax,1,200000,50);o.mp=prNum(m.mp,0,o.mpMax,o.mpMax);
@@ -3333,7 +3340,7 @@ function ptAceitar(i){const c=PT.conv[i];if(!c||c.ate<Date.now()||PT.id||!PR.pid
   Object.assign(PT,{id:c.pt,me:PR.pid,lider:c.de,mb:[],conf:false,expOn:true,nEnt:0,tEnt:0,conv:[],fake:false});ptAbrir();ptMostrar();}
 function ptRecusar(i){const c=PT.conv[i];PT.conv.splice(i,1);if(c&&PR.ativo&&PR.tr)PR.tr.enviar('resposta',{para:c.de,nome:prTxt(S.name,20),ok:0});}
 function ptDesfazer(msg){const tinha=!!PT.id;if(PT.hunt)ptSairHunt(null,PT.hunt.papel==='lider');ptFechar();
-  Object.assign(PT,{id:null,me:null,lider:null,mb:[],conf:false,sent:{},huntInfo:null,epAuto:null,fake:false,sig:'',flag:'off'});PT.fichas.clear();PT.pend=null;
+  Object.assign(PT,{id:null,me:null,lider:null,mb:[],conf:false,sent:{},huntInfo:null,epAuto:null,seg:null,fim:{},pPend:null,st:'ok',verAv:{},fake:false,sig:'',flag:'off'});PT.fichas.clear();PT.pend=null;
   if(tinha&&msg)log('sys',msg,'o');}
 function ptSair(){if(!PT.id)return;if(PT.hunt&&PT.hunt.papel==='lider')ptSairHunt('Você saiu da caçada da party.',true);ptEnv('sair',{});ptDesfazer('Você saiu da party.');}
 function ptTirar(pid,como){const i=PT.mb.findIndex(x=>x.pid===pid);if(i<0)return;const x=PT.mb[i];PT.mb.splice(i,1);
@@ -3344,42 +3351,62 @@ function ptTirar(pid,como){const i=PT.mb.findIndex(x=>x.pid===pid);if(i<0)return
   if(ptSou()){if(i===0)log('sys','Você agora é o líder da party.','y');ptRost();}}
 function ptKick(pid){if(!ptSou()||pid===PR.pid||!ptM(pid))return;ptEnv('kick',{para:pid});ptTirar(pid,'foi expulso da party');}
 function ptPassar(pid){if(!ptSou()||pid===PR.pid||!ptM(pid)||PT.hunt){if(PT.hunt)log('sys','Troque o líder na cidade, fora da caçada.','o');return;}
-  PT.lider=pid;const x=ptM(pid);PT.mb.sort((a,b)=>(a.pid===pid?-1:b.pid===pid?1:0));ptRost();log('sys',`${x.nome} agora é o líder da party.`,'y');}
+  PT.lider=pid;const x=ptM(pid);PT.mb.sort((a,b)=>(a.pid===pid?-1:b.pid===pid?1:0));
+  /* ptRost() ignora quem não é líder: a rost final sai forçada, ainda como líder antigo (os outros aceitam porque o remetente é o líder que eles conhecem). Reenvia até o novo líder responder com a rost dele. */
+  PT.pPend=pid;ptRost(true);const ant=PR.pid,rep=()=>{if(PT.id&&PT.pPend===pid&&PT.lider===pid&&PR.pid===ant)ptRost(true);};setTimeout(rep,700);setTimeout(rep,2000);setTimeout(()=>{if(PT.pPend===pid)PT.pPend=null;},3000);
+  log('sys',`${x.nome} agora é o líder da party.`,'y');}
 function ptExpTog(){if(!ptSou())return;PT.expOn=!PT.expOn;ptRost();log('sys',PT.expOn?'Exp compartilhada ligada.':'Exp compartilhada desligada.','y');}
-function ptRost(){if(!ptSou())return;const HU=PT.hunt;
-  ptEnv('rost',{lider:PT.lider,exp:PT.expOn?1:0,h:HU&&HU.papel==='lider'?{ep:HU.ep,loc:HU.loc}:null,
+function ptRost(forca){if(!forca&&!ptSou())return;const HU=PT.hunt;
+  ptEnv('rost',{v:PT_VER,lider:PT.lider,exp:PT.expOn?1:0,h:HU&&HU.papel==='lider'?{ep:HU.ep,loc:HU.loc}:null,
     m:PT.mb.map(x=>({pid:x.pid,nome:x.nome,voc:x.voc,level:x.level,outfit:x.outfit,hp:x.hp,hpMax:x.hpMax,mp:x.mp,mpMax:x.mpMax,loc:x.loc,xp:x.xp,lc:x.lc,st:x.st}))});}
 /* ---- mensagens do canal da party ---- */
-function ptSeguirLider(ep,loc){
-  PT.pend={ep,loc,papel:'membro',ate:Date.now()+60000};closeModal();log('sys',`O líder iniciou a caçada da party: ${HUNTS[loc].n}.`,'y');
-  if(S.level<HUNTS[loc].lv){log('sys',`Aviso: seu level (${S.level}) está abaixo do recomendado (${HUNTS[loc].lv}).`,'o');toast('Level abaixo do recomendado');}
+/* seguir o líder até a caçada. Chamado pelo 'go', pela rost (campo h) e pelo próprio pacote de estado, então basta UMA mensagem chegar.
+   Falhou (viagem ignorada, mapa que não carregou, mensagem perdida)? Tenta de novo a cada 8 s, até 6 vezes por caçada. Caçada já encerrada (PT.fim) não é seguida. */
+function ptVer(de,m){if(m.v===PT_VER||PT.verAv[de])return;PT.verAv[de]=1;
+  log('sys',`${prTxt((ptM(de)||{}).nome,20)||'Um jogador'} está com outra versão do jogo (${prTxt(m.v,8)||'antiga'}). Recarregue a página (Ctrl+F5) para a party funcionar.`,'o');}
+function ptSeguirLider(ep,loc,forte){
+  if(!PT.id||ptSou()||PT.hunt||!S||!HUNTS[loc]||typeof ep!=='string'||PT.fim[ep])return;
+  if(S.loc==='arena'||(W&&W.loading)||(!forte&&S.loc!=='city'))return;
+  const now=performance.now(),sg=PT.seg&&PT.seg.ep===ep?PT.seg:null;if(sg&&(now-sg.t<8000||sg.n>=6))return;
+  const nova=!sg;PT.seg={ep,t:now,n:sg?sg.n+1:1};PT.epAuto=ep;
+  PT.pend={ep,loc,papel:'membro',ate:Date.now()+180000};closeModal();
+  if(nova){log('sys',`O líder iniciou a caçada da party: ${HUNTS[loc].n}.`,'y');
+    if(S.level<HUNTS[loc].lv){log('sys',`Aviso: seu level (${S.level}) está abaixo do recomendado (${HUNTS[loc].lv}).`,'o');toast('Level abaixo do recomendado');}}
+  else log('sys','Tentando entrar na caçada da party de novo…','o');
   travel(loc,null);}
-function ptRec(t,m){try{PT.n.rec++;if(!PT.id||!m||typeof m!=='object'||typeof m.pid!=='string')return;const now=performance.now(),eu=PR.pid,de=m.pid.slice(0,64),mm=ptM(de);
+function ptRec(t,m){try{if(PT.drop&&PT.drop.has(t))return;PT.n.rec++;PT.n.tr[t]=(PT.n.tr[t]||0)+1;if(!PT.id||!m||typeof m!=='object'||typeof m.pid!=='string')return;const now=performance.now(),eu=PR.pid,de=m.pid.slice(0,64),mm=ptM(de);
   if(t==='rost'){if(de!==PT.lider)return;
     const arr=Array.isArray(m.m)?m.m.slice(0,PT_MAX):[],nl=[];
     for(const e of arr){if(!e||typeof e!=='object'||typeof e.pid!=='string')continue;const pid=e.pid.slice(0,64);if(nl.some(x=>x.pid===pid))continue;
       const o=ptM(pid)||{pid,visto:now};if(pid===eu)ptSan(ptMetaEu(),o);else ptSan(e,o);nl.push(o);}
     if(!nl.some(x=>x.pid===eu)){if(PT.conf)ptDesfazer('Você foi removido da party.');return;}
     if(!PT.conf){PT.conf=true;log('sys',`Você entrou na party de ${nl[0].nome}.`,'y');ptMostrar();PT.tSin=0;}
+    const eraLider=PT.lider===eu,lidAnt=PT.lider;
     PT.mb=nl;PT.lider=typeof m.lider==='string'&&nl.some(x=>x.pid===m.lider)?m.lider:nl[0].pid;PT.expOn=!!m.exp;const lm=ptM(PT.lider);if(lm)lm.visto=now;
+    if(PT.pPend&&de===PT.pPend)PT.pPend=null;
+    if(PT.lider!==lidAnt){PT.sig='';
+      if(PT.lider===eu&&!eraLider){log('sys','Você agora é o líder da party.','y');toast('Você agora é o líder da party');PT.tSin=0;PT.sent={};PT.seg=null;}   /* assume os deveres do líder: rost periódica, convites, caçada */
+      else if(PT.lider!==eu)log('sys',`${prTxt((ptM(PT.lider)||{}).nome,20)||'O jogador'} agora é o líder da party.`,'y');}
+    ptVer(de,m);
     PT.huntInfo=m.h&&typeof m.h==='object'&&HUNTS[m.h.loc]&&typeof m.h.ep==='string'?{ep:m.h.ep.slice(0,16),loc:m.h.loc}:null;
     const hi=PT.huntInfo;
-    if(hi&&hi.ep!==PT.epAuto&&!ptSou()&&!PT.hunt&&!PT.pend&&S&&S.loc==='city'&&!(W&&W.loading)){PT.epAuto=hi.ep;ptSeguirLider(hi.ep,hi.loc);}
+    if(hi&&!ptSou())ptSeguirLider(hi.ep,hi.loc,false);
     if(nl.length<2)ptDesfazer('A party foi desfeita.');}
-  else if(t==='sinal'){if(!mm)return;ptSan(m,mm);mm.visto=now;}
-  else if(t==='entrar'){if(!ptSou())return;if(mm){mm.visto=now;ptRost();return;}
+  else if(t==='sinal'){if(!mm)return;ptSan(m,mm);mm.visto=now;ptVer(de,m);}
+  else if(t==='entrar'){if(!ptSou())return;ptVer(de,m);if(mm){mm.visto=now;ptRost();return;}
     if(!PT.sent[de]||Date.now()-PT.sent[de]>PT_CONVITE+10000)return;
     if(PT.mb.length>=PT_MAX){ptEnv('recusa',{para:de});return;}
     delete PT.sent[de];const o=Object.assign({pid:de,visto:now},ptSan(m));PT.mb.push(o);log('sys',`${o.nome} entrou na party.`,'y');ptRost();}
   else if(t==='sair'){if(mm)ptTirar(de,'saiu da party');}
   else if(t==='kick'){if(de===PT.lider&&m.para===eu)ptDesfazer('Você foi expulso da party.');}
   else if(t==='recusa'){if(de===PT.lider&&m.para===eu)ptDesfazer('A party está cheia.');}
-  else if(t==='go'){if(de!==PT.lider||!S)return;const loc=m.loc;if(!HUNTS[loc]||typeof m.ep!=='string'||S.loc==='arena'||(W&&W.loading))return;
-    PT.epAuto=m.ep.slice(0,16);ptSeguirLider(m.ep.slice(0,16),loc);}
-  else if(t==='fim'){const HU=PT.hunt;if(de!==PT.lider||!HU||HU.papel!=='membro'||m.ep!==HU.ep)return;ptSairHunt('A caçada da party terminou.');}
+  else if(t==='go'){if(de!==PT.lider||!S)return;ptSeguirLider(typeof m.ep==='string'?m.ep.slice(0,16):'',m.loc,true);}
+  else if(t==='fim'){if(de!==PT.lider||typeof m.ep!=='string')return;PT.fim[m.ep.slice(0,16)]=1;const HU=PT.hunt;if(!HU||HU.papel!=='membro'||m.ep!==HU.ep)return;ptSairHunt('A caçada da party terminou.');}
   else if(t==='ficha'){if(!ptSou()||!mm)return;const f=ptValFicha(m.f);if(!f||typeof m.ep!=='string')return;mm.visto=now;
     const ep=m.ep.slice(0,16);PT.fichas.set(de,{ep,f});const HU=PT.hunt;if(HU&&HU.papel==='lider'&&ep===HU.ep)ptCriarLut(de,f);}
-  else if(t==='estado'){if(mm&&de===PT.lider)mm.visto=now;ptEstadoRec(m);}
+  else if(t==='estado'){if(mm&&de===PT.lider)mm.visto=now;
+    if(de===PT.lider&&!PT.hunt&&typeof m.ep==='string')ptSeguirLider(m.ep.slice(0,16),m.loc,false);   /* o estado chega 4x por segundo: também serve de convite */
+    ptEstadoRec(m);}
   else if(t==='premio')ptPremioRec(m);
 }catch(e){}}
 /* ---- exp compartilhada: bônus por vocações, regra de 2/3, atividade ---- */
@@ -3426,6 +3453,7 @@ function ptIniciarCacada(hk){if(!ptSou()||!HUNTS[hk]||S.loc!=='city'||PT.mb.leng
 function ptIrCaca(){const hi=PT.huntInfo;if(!hi||!PT.id||ptSou()||PT.hunt||S.loc==='arena'||(W&&W.loading))return;
   PT.pend={ep:hi.ep,loc:hi.loc,papel:'membro',ate:Date.now()+60000};closeModal();travel(hi.loc,null);}
 function ptEntrouHunt(){const p=PT.pend;PT.pend=null;if(!p||p.loc!==S.loc||p.ate<Date.now()||!PT.id)return;
+  if(p.papel==='membro'&&PT.fim[p.ep]){log('sys','A caçada da party já tinha terminado.','o');setTimeout(()=>travel('city',null),0);return;}   /* o líder voltou enquanto o mapa carregava */
   W.rec=null;for(const k in ATK_T)delete ATK_T[k];
   const s=S.sess,HU=PT.hunt={papel:p.papel,ep:p.ep,loc:p.loc,b:{xp:s.exp,lc:s.gold+s.loot-s.sup,st:s.t},an:{},ia:[],xs:null,visto:performance.now()+30000,t0:W.time,nFic:0,tFic:0};
   if(p.papel==='lider'){Object.assign(HU,{lut:new Map(),valor:{},pq:[],reg:W.time+1000,tEnt:{}});W.pl=new Set();PT.ev=[];ptPull(p.n||PT.mb.length);
@@ -3519,7 +3547,7 @@ function ptEnviarEstado(){const HU=PT.hunt;if(!HU||HU.papel!=='lider'||!W||W.loa
   const al=(W.aliados||[]).slice(0,20).map(a=>[a.uid||(a.uid=++UID_MOB),a.id,a.x,a.y,a.face|0,Math.max(1,Math.ceil(a.hp/a.max*100))]);
   const j=[[PR.pid,W.p.x,W.p.y,W.p.face|0,Math.round(S.hp),maxHp(),Math.round(S.mp),maxMp(),1]];
   for(const L of HU.lut.values())j.push([L.pid,L.x,L.y,[2,1,0,3][L.dir],Math.round(L.hp),L.max,Math.round(L.mp),L.maxMp,L.hp>0?1:0]);
-  const pk={ep:HU.ep,m:mobs,a:al,j,e:PT.ev.splice(0),c:W.campos.slice(0,40).map(c=>[c.x,c.y,c.el||'fire',Math.max(0,Math.round(c.ate-W.time))]),xs:[ex.ativa?1:0,ex.motivo],ia:ptInativos()};
+  const pk={ep:HU.ep,loc:HU.loc,m:mobs,a:al,j,e:PT.ev.splice(0),c:W.campos.slice(0,40).map(c=>[c.x,c.y,c.el||'fire',Math.max(0,Math.round(c.ate-W.time))]),xs:[ex.ativa?1:0,ex.motivo],ia:ptInativos()};
   const now=performance.now();if(now-PT.tAn>=5000){PT.tAn=now;pk.an=HU.an=ptAnCalc();}
   ptEnv('estado',pk);}
 /* ---- lado do membro: aplica o estado recebido e roda o "relógio" da caçada ---- */
@@ -3559,7 +3587,7 @@ function ptMembro(dt){const HU=PT.hunt,s=S.sess;s.t+=dt;S.stamina-=dt;
   preyTick(dt);wcTempo(dt);W.p.mt=1;W.chk+=dt;
   if(W.chk>=1000){W.chk=0;if(S.stamina<=0){S.stamina=0;returnCity('stamina esgotada',false);}}}
 /* ---- encerrar ---- */
-function ptSairHunt(motivo,semViagem){const HU=PT.hunt;if(!HU)return;
+function ptSairHunt(motivo,semViagem){const HU=PT.hunt;if(!HU)return;PT.fim[HU.ep]=1;
   if(HU.papel==='lider'){ptFlush(true);ptEnv('fim',{ep:HU.ep});if(W){W.aliados=(W.aliados||[]).filter(a=>!(a.dono&&a.dono.cacada));}}
   PT.hunt=null;PT.ev=null;if(W){W.pl=null;W.partyR=null;}
   if(motivo)log('sys',motivo,'b');
@@ -3576,7 +3604,7 @@ function drawEscudo(x,y,tipo,glow){ctx.save();if(glow){ctx.shadowColor=glow;ctx.
 const ptEscSVG=(t,f)=>`<svg class="pesc ${f}" viewBox="0 0 10 12" width="10" height="12"><path d="M.8 1.4L5 .4l4.2 1v5.1Q9.2 10 5 11.6 .8 10 .8 6.5z" fill="${t===1?'#f2c14e':'#4a8cf0'}" stroke="${t===1?'#8a6a24':'#1f4a9a'}" stroke-width="1"/><path d="M2.4 2.4h1.4v4H2.4z" fill="#fff" opacity=".5"/></svg>`;
 const ptVocBadge=v=>`<span class="pv" style="background:${VOC[v].col.b}" title="${VOC[v].n}">${VOC[v].n[0]}</span>`;
 function ptRender(){const b=$('#partyBody');if(!b||!S)return;const ex=PT.id?ptExp():null,HU=PT.hunt;
-  const sig=JSON.stringify([PT.id,PT.lider,PT.expOn,PT.mb.map(x=>[x.pid,x.nome,x.level,x.hp,x.hpMax,x.mp,x.mpMax,x.loc]),PT.conv.map(c=>c.de),ex&&[ex.flag,ex.motivo,ex.nv],PT.huntInfo,HU&&HU.ep,S.loc]);
+  const sig=JSON.stringify([PT.id,PT.lider,PT.expOn,PT.st,PT.mb.map(x=>[x.pid,x.nome,x.level,x.hp,x.hpMax,x.mp,x.mpMax,x.loc]),PT.conv.map(c=>c.de),ex&&[ex.flag,ex.motivo,ex.nv],PT.huntInfo,HU&&HU.ep,S.loc]);
   if(sig===PT.sig)return;PT.sig=sig;let h=PT.conv.map((c,i)=>`<div class="ptc"><b>${esc(c.nome)}</b> convidou você para a party.<div class="ptb"><button class="btn go" data-act="ptAceitar" data-arg="${i}">Aceitar</button><button class="btn" data-act="ptRecusar" data-arg="${i}">Recusar</button></div></div>`).join('');
   if(!PT.id)h+=PT.conv.length?'':'<p class="mut sm">Você não está em uma party. Na cidade, clique em um jogador para convidá-lo.</p>';
   else{const sou=ptSou(),ord=PT.mb.slice().sort((a,c)=>(a.pid===PT.lider?-1:c.pid===PT.lider?1:0));
@@ -3585,6 +3613,7 @@ function ptRender(){const b=$('#partyBody');if(!b||!S)return;const ex=PT.id?ptEx
         <div class="mut sm">${esc(VOC[x.voc].n)} · Level ${x.level}${HU&&x.loc!==HU.loc&&x.pid!==PR.pid&&HU.papel==='lider'&&!HU.lut.has(x.pid)?' · fora da caçada':''}</div>
         <div class="ptbar hp"><i style="width:${pc(x.hp,x.hpMax)}%"></i><span>${x.hp}/${x.hpMax}</span></div><div class="ptbar mp"><i style="width:${pc(x.mp,x.mpMax)}%"></i><span>${x.mp}/${x.mpMax}</span></div></div>
         ${sou&&!eu?`<div class="pta"><button data-act="ptKick" data-arg="${esc(x.pid)}">Expulsar</button>${HU?'':`<button data-act="ptLider" data-arg="${esc(x.pid)}">Passar líder</button>`}</div>`:''}</div>`;}).join('');
+    if(PT.st!=='ok')h+=`<div class="ptx cinza"><b>Canal da party instável (${esc(PT.st)}). Reconectando…</b></div>`;
     h+=`<div class="ptx ${ex.flag}"><div>${ex.vocs.map(ptVocBadge).join('')}<b>${esc(ptBonusTxt(ex))}</b></div><div class="mut sm">Exp compartilhada: ${!PT.expOn?'<b>desligada</b>':ex.ativa?'<b style="color:#7fe07f">ativa</b>':ex.espera?'<b>aguardando</b>':'<b style="color:#ccc">inativa</b>'} — ${esc(ex.motivo)}</div></div>`;
     h+='<div class="ptb" style="margin-top:8px">'+(sou?`<button class="btn" data-act="ptExpTog">${PT.expOn?'Desligar':'Ligar'} exp compartilhada</button>`:'')+
       (!sou&&PT.huntInfo&&!HU&&S.loc==='city'?`<button class="btn go" data-act="ptIrCaca">Ir para a caçada (${esc(HUNTS[PT.huntInfo.loc].n)})</button>`:'')+`<button class="btn red" data-act="ptSair">Sair da party</button></div>`;}
