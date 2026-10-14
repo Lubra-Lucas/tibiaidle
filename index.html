@@ -474,6 +474,16 @@ select#wkClasse,select#wkBioma{background:#0a0c12;border:1px solid #2c3348;borde
 .chat-in{padding:4px 8px;border-top:1px solid var(--line)}.chat-in.hidden{display:none}.chat-in input{width:100%;box-sizing:border-box}
 .onl{display:flex;align-items:center;gap:5px;background:#0a0c12;border:1px solid var(--line);border-radius:3px;color:#cfd6ea;padding:3px 8px;font-size:11px;cursor:pointer;flex:none}.onl.hidden{display:none}.onl .dot{width:7px;height:7px;border-radius:50%;background:#6fcf5f}.onl.off .dot{background:#777}
 #tipRem{position:fixed;z-index:30;pointer-events:none;background:rgba(10,12,18,.95);border:1px solid var(--line);border-radius:3px;padding:3px 7px;font-size:11px;color:#fff}#tipRem.hidden{display:none}
+.ptm{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line)}
+.ptm .ret15,.ptm .ph{width:40px;height:40px;flex:none}.ptm .ph{display:grid;place-items:center;background:#0a0c12;border-radius:3px}
+.pti{flex:1;min-width:0}.ptn{display:flex;align-items:center;gap:5px;font-size:11px}.ptn b{color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ptn small{color:var(--mut);white-space:nowrap}
+.ptbar{height:11px;background:#07080c;border:1px solid #000;border-radius:2px;position:relative;margin-top:2px;overflow:hidden}.ptbar i{position:absolute;left:0;top:0;bottom:0}.ptbar.hp i{background:linear-gradient(#5fd35f,#2f8a2f)}.ptbar.mp i{background:linear-gradient(#5a8cff,#2a4cb0)}.ptbar span{position:relative;font-size:9px;color:#fff;text-shadow:0 0 2px #000;display:block;text-align:center;line-height:9px}
+.pta{display:flex;flex-direction:column;gap:2px}.pta button{padding:1px 5px;font-size:10px;background:#2a3146;border:1px solid #000;border-radius:2px;cursor:pointer;color:var(--txt)}
+.ptx{margin-top:8px;padding:6px 8px;background:#0a0c12;border:1px solid var(--line);border-radius:3px;font-size:11px}.ptx.verde{border-color:#3d8a3d}.ptx.cinza{border-color:#6a7388}.ptx .mut{margin-top:3px}
+.pv{display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;color:#fff;font-size:9px;font-weight:bold;border:1px solid #000;margin-right:2px}
+.pesc{flex:none}.pesc.verde{filter:drop-shadow(0 0 3px #3ddc57)}.pesc.cinza{filter:drop-shadow(0 0 3px #9aa3b2)}
+.ptc{padding:6px 8px;background:#0a0c12;border:1px solid var(--line2);border-radius:3px;margin-bottom:6px;font-size:11px}.ptb{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
+.anap{display:grid;grid-template-columns:1fr auto auto;gap:6px;font-size:10px;padding:2px 0;border-top:1px solid var(--line)}.anap b{color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .onlrow{display:flex;align-items:center;gap:10px;padding:4px 0;border-bottom:1px solid var(--line)}.onlrow .ret15{width:40px;height:40px;flex:none}.onlrow .ph{width:40px;height:40px;flex:none;display:grid;place-items:center;background:#0a0c12;border-radius:3px}
 #nuvem{display:none;width:30px;height:30px;place-items:center;color:#6fcf5f;flex:none}
 body.online #nuvem{display:grid}
@@ -509,6 +519,7 @@ button.lnk:hover{color:var(--gold)}
       <button data-open="bestiary"><img class="ui" src="tibia-assets/sprites15/ui/bestiario.png" alt=""><span>Bestiário e Charms</span></button>
       <button data-win="w-ana"><img class="ui" src="tibia-assets/sprites15/ui/analisador.png" alt=""><span>Analisador de caçada</span></button>
       <button data-win="w-loot"><img class="ui" src="tibia-assets/sprites15/ui/loot.png" alt=""><span>Loot da sessão</span></button>
+      <button data-win="w-party"><img class="ui" src="tibia-assets/sprites15/ui/personagem.png" alt=""><span>Party<small>grupo e exp compartilhada</small></span></button>
       <button data-open="rules"><img class="ui" src="tibia-assets/sprites15/ui/regras.png" alt=""><span>Regras automáticas<small>lure, volta, reabastecer</small></span></button>
     </div></div>
     <div class="mn"><button class="mt"><img class="ui" src="tibia-assets/sprites15/ui/personagem.png" alt=""><span class="mtx">Personagem</span><i>▾</i></button><div class="dd">
@@ -555,7 +566,12 @@ button.lnk:hover{color:var(--gold)}
 
 <div class="win" id="w-ana" style="right:10px;bottom:10px;width:250px">
   <div class="win-h"><span>Analisador de caçada</span><button data-act="resetSess" title="Zerar sessão">↺</button></div>
-  <div class="win-b"><div class="ana" id="anaBody"></div></div>
+  <div class="win-b"><div class="ana" id="anaBody"></div><div id="anaParty"></div></div>
+</div>
+
+<div class="win hidden" id="w-party" style="left:250px;top:66px;width:290px;max-height:62vh">
+  <div class="win-h"><span>Party</span><button data-close="w-party">✕</button></div>
+  <div class="win-b" id="partyBody"></div>
 </div>
 
 <div class="win" id="w-chat" style="left:10px;bottom:10px;width:360px;height:200px">
@@ -616,7 +632,7 @@ const pick=a=>a[Math.floor(Math.random()*a.length)], clamp=(v,a,b)=>Math.max(a,M
 const expFor=L=>Math.round(50/3*(L**3-6*L*L+17*L-12));
 const cheb=(a,b)=>Math.max(Math.abs(a.x-b.x),Math.abs(a.y-b.y));
 const REDE_LOCAL=/[?&]rede=local(?=&|$)/.test(location.search);
-const KEY='tibiaIdle2d_v1'+(REDE_LOCAL&&/[?&]perfil=2(?=&|$)/.test(location.search)?'_perfil2':''), TS=32, STEP=100, H=3600e3, MIN=60e3;
+const KEY='tibiaIdle2d_v1'+(REDE_LOCAL?(m=>m&&+m[1]>1?'_perfil'+m[1]:'')(location.search.match(/[?&]perfil=(\d+)(?=&|$)/)):''), TS=32, STEP=100, H=3600e3, MIN=60e3;
 function fmt(n){n=Math.round(n);const a=Math.abs(n);if(a>=1e6)return (n/1e6).toFixed(2).replace('.',',')+'kk';if(a>=1e5)return Math.round(n/1e3)+'k';return n.toLocaleString('pt-BR');}
 function hms(ms){const s=Math.max(0,Math.floor(ms/1000));return String(Math.floor(s/3600)).padStart(2,'0')+':'+String(Math.floor(s%3600/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
 function hm(ms){const m=Math.max(0,Math.floor(ms/60000));return Math.floor(m/60)+':'+String(m%60).padStart(2,'0')+'h';}
@@ -773,6 +789,7 @@ const CHARMS={dmg:{n:'Dano',d:'+2% de dano por nível',per:2},exp:{n:'Sabedoria'
 const CHARM_COST=[10,25,60,150,400];
 
 /* ======================= ESTADO ======================= */
+const PT={ev:null,hunt:null};   /* party (módulo mais abaixo) */
 let S=null, W=null, LOGS={sys:[],loot:[],cmb:[],cid:[]}, chatTab='sys', modal=null, modalArg=null;
 const STARTER={knight:'short_sword',paladin:'spear',sorcerer:'wand_vortex',druid:'rod_snake'};
 function defaultHot(v){
@@ -846,7 +863,7 @@ function now2(){const d=new Date();return String(d.getHours()).padStart(2,'0')+'
 let logDirty=true, quiet=false;
 function log(ch,msg,c='w'){if(quiet&&ch!=='sys')return;const L=LOGS[ch];L.push([now2(),msg,c]);if(L.length>150)L.shift();logDirty=true;}
 function toast(msg){if(quiet)return;const d=document.createElement('div');d.textContent=msg;$('#toast').appendChild(d);setTimeout(()=>d.remove(),3000);}
-function fxt(x,y,txt,col,big){if(quiet||!W)return;W.fx.push({x:x*TS+TS/2+rnd(-4,4),y:y*TS,txt,col,big,b:performance.now()});if(W.fx.length>40)W.fx.shift();}
+function fxt(x,y,txt,col,big){if(quiet||!W)return;if(PT.ev)ptEv(['f',x,y,txt,col,big?1:0]);W.fx.push({x:x*TS+TS/2+rnd(-4,4),y:y*TS,txt,col,big,b:performance.now()});if(W.fx.length>40)W.fx.shift();}
 function proj(a,b,col){if(quiet||!W)return;W.proj.push({x1:a.x,y1:a.y,x2:b.x,y2:b.y,col,b:performance.now()});}
 function ring(x,y,r,col){if(quiet||!W)return;W.rings.push({x,y,r,col,b:performance.now()});}
 
@@ -945,10 +962,11 @@ function buildWorld(loc){
 }
 function pullDe(hk){const h=HUNTS[hk],m=(S.pull&&S.pull[hk])||'cauteloso';return h.pull[m]||h.pull.cauteloso;}
 function pickMob(h){const e=Object.entries(h.mobs);let r=Math.random()*e.reduce((a,[,w])=>a+w,0);for(const [k,w] of e)if((r-=w)<=0)return k;return e[0][0];}
+let UID_MOB=0;
 function spawnMob(s,id){
   let x=s.x,y=s.y;
   if(W.occ[y*W.w+x]||(x===W.p.x&&y===W.p.y)){let ok=false;for(const [dx,dy] of DIRS){const nx=x+dx,ny=y+dy;if(walk(nx,ny)&&!W.occ[ny*W.w+nx]&&!(nx===W.p.x&&ny===W.p.y)){x=nx;y=ny;ok=true;break;}}if(!ok)return;}
-  const d=MOBS[id];const m={id,d,x,y,fx:x,fy:y,mt:1,fase:rnd(0,800),hp:d.hp,max:d.hp,sp:s,cdAtk:0,wander:0,aggro:false,dir:Math.random()<.5?1:-1,face:2};
+  const d=MOBS[id];const m={uid:++UID_MOB,id,d,x,y,fx:x,fy:y,mt:1,fase:rnd(0,800),hp:d.hp,max:d.hp,sp:s,cdAtk:0,wander:0,aggro:false,dir:Math.random()<.5?1:-1,face:2};
   W.mobs.push(m);W.occ[y*W.w+x]=1;
 }
 function bfs(sx,sy,goal,forMob,maxN=3200){
@@ -960,7 +978,7 @@ function bfs(sx,sy,goal,forMob,maxN=3200){
   const px=W.p.x,py=W.p.y;
   while(qh<qt&&qh<maxN){const c=q[qh++],cx=c%w,cy=(c/w)|0;
     for(const [dx,dy] of DIRS){const nx=cx+dx,ny=cy+dy;if(nx<0||ny<0||nx>=w||ny>=W.h)continue;const ni=ny*w+nx;if(seen[ni]===st)continue;seen[ni]=st;
-      if(!W.walk[ni]||W.occ[ni])continue;if(forMob&&nx===px&&ny===py)continue;
+      if(!W.walk[ni]||W.occ[ni])continue;if(forMob&&nx===px&&ny===py)continue;if(forMob===true&&W.pl&&W.pl.has(ni))continue;   /* forMob===2: lutador da party (não trava no corredor) */
       prev[ni]=c;if(goal(nx,ny)){let k=ni;while(prev[k]!==s)k=prev[k];return [k%w,(k/w)|0];}q[qt++]=ni;}}
   return null;
 }
@@ -971,18 +989,19 @@ function train(k,n){const s=S.skills[k];s.t+=n;S.sess.tries[k]=(S.sess.tries[k]|
   if(up){log('sys',k==='magic'?`Você avançou para o nível mágico ${s.lv}.`:`Você avançou para ${SKN[k]} nível ${s.lv}.`,'w');}}
 function gainExp(n){S.exp+=n;S.sess.exp+=n;const b=S.level;while(S.exp>=expFor(S.level+1))S.level++;
   if(S.level>b){S.hp=maxHp();S.mp=maxMp();log('sys',`Você avançou do Level ${b} para o Level ${S.level}.`,'w');toast(`⬆ Level ${S.level}!`);if(W)fxt(W.p.x,W.p.y,'LEVEL UP','#ffd84a',1);}}
-function healP(n){const r=Math.min(Math.round(n),maxHp()-S.hp);if(r>0){S.hp+=r;fxt(W.p.x,W.p.y,'+'+r,'#66ff66');}}
+function healP(n){const r=Math.min(Math.round(n),maxHp()-S.hp);if(r>0){ATK_T.eu=W.time;S.hp+=r;fxt(W.p.x,W.p.y,'+'+r,'#66ff66');}}
 function manaP(n){const r=Math.min(Math.round(n),maxMp()-S.mp);if(r>0){S.mp+=r;fxt(W.p.x,W.p.y,'+'+r,'#7aa2ff');}}
 function healBase(){const L=S.level,ml=S.skills.magic.lv;if(S.voc==='knight')return L*.4+S.skills.melee.lv*.6+10;if(S.voc==='paladin')return L*.3+ml*1.5+12;return (L*.2+ml*1.6+10)*(V().healMul||1);}
 function spellDmg(s){const L=S.level,ml=S.skills.magic.lv;
   if(MAGES.includes(S.voc))return rnd(L*.2+ml*1.6+8,L*.2+ml*2.6+16)*s.mul*V().spellMul;
   const sk=S.skills[V().main].lv;return rnd(.6,1)*(0.085*atk()*sk*V().dmg+L/5)*s.mul;}
 function dmgMult(m){const st=bestStage(m.id);return 1+charmV('dmg')+preyB(m.id,'dmg')+(st>=3?.1:st>=2?.05:0);}
+let ATKR='eu';const ATK_T={};   /* quem causou o dano (party): 'eu' ou o pid do lutador */
 function hitMob(m,dmg,col,fisico,proc){
   if(fisico&&m.d.arm){const A=m.d.arm;dmg-=A>3?rint(Math.floor(A/2),A-1):rint(0,A);}  /* armadura real do monstro */
   dmg=Math.max(0,Math.round(dmg*dmgMult(m)));let tipo=null,extra=0;
-  if(proc&&dmg>0){const r=procAtaque15(JOG,m.x,m.y,dmg);dmg=Math.round(r.d);tipo=r.tipo;extra=r.extra;}   /* crítico, fatal e agonia do jogador */
-  m.hp-=dmg+extra;fxt(m.x,m.y,tipo?dmg+'!':String(dmg),tipo==='fatal'?'#c78bff':tipo?'#ffd84a':(col||'#ff4d4d'),!!tipo);if(extra)fxt(m.x+.3,m.y-.3,String(extra),'#b04cff');
+  if(proc&&dmg>0){const r=procAtaque15(proc===true?JOG:proc,m.x,m.y,dmg);dmg=Math.round(r.d);tipo=r.tipo;extra=r.extra;}   /* crítico, fatal e agonia do jogador */
+  m.hp-=dmg+extra;if(dmg>0){const a=m.dano||(m.dano={});a[ATKR]=(a[ATKR]||0)+dmg;ATK_T[ATKR]=W.time;}fxt(m.x,m.y,tipo?dmg+'!':String(dmg),tipo==='fatal'?'#c78bff':tipo?'#ffd84a':(col||'#ff4d4d'),!!tipo);if(extra)fxt(m.x+.3,m.y-.3,String(extra),'#b04cff');
   if(dmg>0){const lv=imbVal('vamp'),mv=imbVal('void');if(lv)S.hp=Math.min(maxHp(),S.hp+dmg*lv);if(mv)S.mp=Math.min(maxMp(),S.mp+dmg*mv);}
   log('cmb',`${m.d.n} perdeu ${dmg} de vida.`,'m');
   if(m.hp<=0)killMob(m);
@@ -1019,6 +1038,7 @@ function killMob(m){
   for(const s of W.mobs.filter(x=>x.mestre===m))sumir15(s);
   if(m.inv){ef15(me15('poff'),m.x,m.y);return;}   /* invocação: sem cadáver, exp ou loot */
   W.corpses.push({x:m.x,y:m.y,m:m.d,id:m.id,b:performance.now()});if(W.corpses.length>25)W.corpses.shift();
+  if(PT.hunt&&PT.hunt.papel==='lider')return ptKill(m);   /* party: exp e loot divididos */
   const sm=S.stamina>0?1:0,ex=Math.round(m.d.exp*stage(S.level)*(1+charmV('exp')+preyB(m.id,'exp'))*sm);
   if(ex){gainExp(ex);fxt(m.x,m.y-.4,ex+' exp','#ffffff');}
   S.best[m.id]=(S.best[m.id]||0)+1;S.sess.kills[m.id]=(S.sess.kills[m.id]||0)+1;checkBest(m.id);
@@ -1054,8 +1074,8 @@ function tilesRaio(cx,cy,r){const o=[];for(let y=0;y<13;y++)for(let x=0;x<13;x++
 function tilesArea(mat,cx,cy,dir){let px=0,py=0;mat.forEach((l,y)=>l.forEach((v,x)=>{if(v===2||v===3){px=x;py=y;}}));const o=[];
   mat.forEach((l,y)=>l.forEach((v,x)=>{if(v!==1&&v!==3)return;let dx=x-px,dy=y-py;for(let k=0;k<dir;k++)[dx,dy]=[-dy,dx];o.push([cx+dx,cy+dy]);}));return o;}
 function livre15(x,y){return x>=0&&y>=0&&x<W.w&&y<W.h&&W.walk[y*W.w+x]===1;}
-function ef15(id,x,y,atraso){if(quiet||!W||!CB||!id||!CB.efeitos[id])return;W.e15.push({id,x,y,b:performance.now()+(atraso||0)});if(W.e15.length>500)W.e15.splice(0,W.e15.length-500);}
-function tiro15(id,a,b){if(!CB||!id||!CB.tiros[id])return 0;const dur=150*Math.sqrt(Math.hypot(b.x-a.x,b.y-a.y));if(!quiet&&W)W.t15.push({id,x1:a.x,y1:a.y,x2:b.x,y2:b.y,b:performance.now(),dur});return dur;}
+function ef15(id,x,y,atraso){if(quiet||!W||!CB||!id||!CB.efeitos[id])return;if(PT.ev)ptEv(['e',id,x,y,Math.round(atraso||0)]);W.e15.push({id,x,y,b:performance.now()+(atraso||0)});if(W.e15.length>500)W.e15.splice(0,W.e15.length-500);}
+function tiro15(id,a,b){if(!CB||!id||!CB.tiros[id])return 0;const dur=150*Math.sqrt(Math.hypot(b.x-a.x,b.y-a.y));if(PT.ev&&!quiet)ptEv(['t',id,a.x,a.y,b.x,b.y]);if(!quiet&&W)W.t15.push({id,x1:a.x,y1:a.y,x2:b.x,y2:b.y,b:performance.now(),dur});return dur;}
 function resist(m,el){const e=m.d.el;return e&&e[el]!==undefined?1-e[el]/100:1;}
 function velMob(m){return (m.rapidoAte>W.time?m.d.spd*.6:m.d.spd)*(m.lentoAte>W.time?1.6:1);}
 function formula15(f){const L=S.level,ml=S.skills.magic.lv;return rnd(L/5+ml*f[0]+f[1],L/5+ml*f[2]+f[3]);}
@@ -1097,28 +1117,30 @@ function magia15(sp,s){const p=W.p,T=W.time,tg=p.target;
     if(sp.dot&&W.mobs.includes(m)){const fila=[];for(const [n,iv,d] of sp.dot)for(let k=0;k<n;k++)fila.push(d);(m.dots=m.dots||[]).push({id:sp.id,el:sp.el,fila,iv:sp.dot[0][1],prox:T+sp.dot[0][1]});}}
   log('cmb',`Você lançou ${sp.nome}${alvos.length>1?' em '+alvos.length+' monstros':''}.`,'m');
   W.cd.atk=T+sp.gcd;W.cd[sp.id]=T+sp.cd;if(sp.focus)W.cd.focus=T+sp.focus;return true;}
-function danoJogador15(m,tipo,v,atraso){const p=W.p;
+function danoJogador15(m,tipo,v,atraso,tg){const p=tg||W.p;
+  if(tg&&tg!==W.p){if(tipo==='manadrain'){const d=Math.min(tg.mp,v);tg.mp-=d;ef15(me15('loseenergy'),p.x,p.y,atraso);if(d)fxt(p.x,p.y,String(d),'#5aa0ff');return;}tg.receber(v,tipo,atraso,m);return;}   /* party: lutador remoto como alvo */
   if(tipo==='manadrain'){const d=Math.min(S.mp,v);S.mp-=d;ef15(me15('loseenergy'),p.x,p.y,atraso);if(d)fxt(p.x,p.y,String(d),'#5aa0ff');return;}
   ef15(me15(HIT15[tipo]||'drawblood'),p.x,p.y,atraso);hurtPlayer(v,tipo!=='phys',m);}
 /* ataques do monstro como no Canary: cada um com sua chance a cada 2 s (vários podem sair juntos) */
-function ataque15(m,d){const p=W.p,D=m.d;
+function hurtAlvo(tg,raw,el,src,at){if(!tg||tg===W.p)return hurtPlayer(raw,el!=='phys',src);return tg.receber(raw,el,at||0,src);}
+function ataque15(m,d,tg){const p=tg||W.p,D=m.d;
   for(const a of D.atq15){
-    if(a.name==='melee'){if(d<=1){const r=hurtPlayer(rint(0,Math.abs(a.maxDamage||0)),false,m);ef15(me15(r>0?'drawblood':r===0?'poff':'blockhit'),p.x,p.y);}continue;}
+    if(a.name==='melee'){if(d<=1){const r=hurtAlvo(tg,rint(0,Math.abs(a.maxDamage||0)),'phys',m);ef15(me15(r>0?'drawblood':r===0?'poff':'blockhit'),p.x,p.y);}continue;}
     if(Math.random()*100>=(a.chance||0))continue;
     const alc=a.range||0,tipo=a.type||'phys',v=rint(Math.abs(a.minDamage||0),Math.abs(a.maxDamage||0));
     if(a.name==='combat'&&a.length){   /* feixe na direção do jogador */
       if((m.x!==p.x&&m.y!==p.y)||d>a.length)continue;const dir=dirPara(m,p);m.face=dir;const ts=[];
       for(let i=1;i<=a.length;i++){const x=m.x+DXY[dir][0]*i,y=m.y+DXY[dir][1]*i;if(!livre15(x,y))break;ts.push([x,y]);}
-      ts.forEach(([x,y])=>ef15(a.effect,x,y));if(ts.some(([x,y])=>x===p.x&&y===p.y))danoJogador15(m,tipo,v,0);continue;}
+      ts.forEach(([x,y])=>ef15(a.effect,x,y));if(ts.some(([x,y])=>x===p.x&&y===p.y))danoJogador15(m,tipo,v,0,tg);continue;}
     if(a.name==='combat'){if(alc&&d>alc)continue;
       if(a.target){faceTo(m,p.x,p.y);const at=a.shootEffect?tiro15(a.shootEffect,m,p):0;
         if(a.effect)(a.radius?tilesRaio(p.x,p.y,a.radius).filter(([x,y])=>livre15(x,y)):[[p.x,p.y]]).forEach(([x,y])=>ef15(a.effect,x,y,at));
-        danoJogador15(m,tipo,v,at);}
-      else danoJogador15(m,tipo,v,0);
+        danoJogador15(m,tipo,v,at,tg);}
+      else danoJogador15(m,tipo,v,0,tg);
       continue;}
     if(a.name==='firefield'||a.name==='energyfield'||a.name==='poisonfield'){if(alc&&d>alc)continue;faceTo(m,p.x,p.y);const at=a.shootEffect?tiro15(a.shootEffect,m,p):0,el=a.name==='firefield'?'fire':a.name==='energyfield'?'energy':'earth';
-      W.campos.push({x:p.x,y:p.y,b:performance.now()+at,ate:W.time+20000,el});danoJogador15(m,el,CAMPO_DANO[el],at);continue;}
-    if(a.name==='speed'&&a.target){if(d>Math.max(1,alc||1))continue;ef15(a.effect,p.x,p.y);p.lentoAte=W.time+(a.duration||10000);fxt(p.x,p.y-.3,'paralisado','#ff6a6a');continue;}
+      W.campos.push({x:p.x,y:p.y,b:performance.now()+at,ate:W.time+20000,el});danoJogador15(m,el,CAMPO_DANO[el],at,tg);continue;}
+    if(a.name==='speed'&&a.target){if(d>Math.max(1,alc||1))continue;ef15(a.effect,p.x,p.y);if(tg&&tg!==W.p)tg.condicao('lento',{f:.35,dur:a.duration||10000});else{p.lentoAte=W.time+(a.duration||10000);fxt(p.x,p.y-.3,'paralisado','#ff6a6a');}continue;}
   }
   for(const a of D.def15||[]){if(Math.random()*100>=(a.chance||0))continue;
     if(a.name==='combat'&&a.type==='healing'){if(m.hp>=m.max)continue;const v=rint(Math.abs(a.minDamage||0),Math.abs(a.maxDamage||0));m.hp=Math.min(m.max,m.hp+v);ef15(a.effect,m.x,m.y);fxt(m.x,m.y,'+'+v,'#7fe07f');}
@@ -1165,7 +1187,7 @@ function valor15(L,m){if(!m.fn)return 0;const md=mods(L);let r;
 /* ---- alvos: monstro (embrulho) ou lutador ---- */
 function alvoMob(m){return m.__a||(m.__a={ehLutador:false,mob:m,get x(){return m.x},get y(){return m.y},get hp(){return m.hp},get max(){return m.max},get nome(){return m.d.n},
   vivo:()=>W.mobs.includes(m),resist:el=>resist(m,el),
-  receber(v,el,at,f,puro){if(!W.mobs.includes(m))return 0;danoMagia15(m,v*(m.vuln&&m.vuln.ate>W.time?m.vuln.f:1),el,at,!!(f&&f.eJog&&!puro));return v;},
+  receber(v,el,at,f,puro){if(!W.mobs.includes(m))return 0;const a0=ATKR;ATKR=(f&&f.pid)||'eu';try{danoMagia15(m,v*(m.vuln&&m.vuln.ate>W.time?m.vuln.f:1),el,at,puro||!f?false:f.eJog?true:f.cacada?f:false);}finally{ATKR=a0;}return v;},
   condicao(t,d){if(t==='dot')(m.dots=m.dots||[]).push(d);else if(t==='lento'){m.lentoAte=W.time+d.dur;m.lentoF=d.f;}else if(t==='debuff'&&d.recebido)m.vuln={f:d.recebido/100,ate:W.time+d.dur};}});}
 function receberLutador(L,v,el,at,fonte,puro){if(L.hp<=0)return 0;let d=v;const md=mods(L),T=W.time;
   if(fonte&&fonte.ehLutador&&L.ehLutador&&fonte!==L)d*=.5;                     /* PvP: metade do dano entre jogadores */
@@ -1323,7 +1345,7 @@ function invocarAliado(L,id,dur){const d=MOBS[id];if(!d)return null;W.aliados=W.
   for(const [dx,dy] of DIRS){const x=L.x+dx,y=L.y+dy;if(!livre15(x,y)||W.occ[y*W.w+x]||ocupado15(x,y))continue;
     const a={id,d,x,y,fx:x,fy:y,mt:1,hp:d.hp,max:d.hp,dono:L,ate:W.time+dur,cdAtk:W.time+1000,face:2,fase:rnd(0,800),aliado:true};
     W.aliados.push(a);W.occ[y*W.w+x]=1;ef15(me15('teleport'),x,y);return a;}return null;}
-function ocupado15(x,y){if(W.arena&&W.arena.times.some(t=>t.some(L=>L.hp>0&&L.x===x&&L.y===y)))return true;return (W.aliados||[]).some(a=>a.x===x&&a.y===y)||(W.p.x===x&&W.p.y===y);}
+function ocupado15(x,y){if(W.arena&&W.arena.times.some(t=>t.some(L=>L.hp>0&&L.x===x&&L.y===y)))return true;return (W.aliados||[]).some(a=>a.x===x&&a.y===y)||(W.p.x===x&&W.p.y===y)||!!(W.pl&&W.pl.has(y*W.w+x));}
 function alvoAliado(a){return a.__a||(a.__a={ehLutador:false,aliado:a,dono:a.dono,get x(){return a.x},get y(){return a.y},get hp(){return a.hp},get max(){return a.max},get nome(){return a.d.n},
   vivo:()=>W.aliados.includes(a),resist:el=>{const e=a.d.el;return e&&e[el]!==undefined?1-e[el]/100:1;},
   receber(v,el,at){if(!W.aliados.includes(a))return 0;const d=Math.round(v*(a.__a.resist(el)));ef15(me15(HIT15[el]||'drawblood'),a.x,a.y,at);a.hp-=d;fxt(a.x,a.y,String(d),'#ff4d4d');if(a.hp<=0)tirarAliado(a);return d;},
@@ -1420,7 +1442,7 @@ function lutadorBot(op,base){const v=VOC[op.voc],L=op.nivel,eq=(base&&base.eq)||
   const max=145+5*Math.min(L,8)+v.hp*Math.max(0,L-8),maxMp=50+5*Math.min(L,8)+v.mp*Math.max(0,L-8);
   const B={ehLutador:true,bot:!base,jogador:!!base,nome:op.nome,voc:op.voc,nivel:L,ml:sk.magic,skill:op.voc==='knight'?sk.melee:sk.distance,atkArma:((arma&&arma.atk)||0)+((base&&base.t&&base.t.weapon)||0)*2,arma,wt:v.wt,alcance:v.range,dmgV:v.dmg||1,
     arm,def:df,shielding:sk.shielding,hp:max,max,mp:maxMp,maxMp,x:0,y:0,fx:0,fy:0,mt:1,dir:3,stepMs:300,c:{buffs:{},dots:[]},cd:{},bag:{},op,
-    folha:(base&&base.folha)||null,get alvo(){const A=W.arena;if(!A)return null;if(this._alvoTmp)return this._alvoTmp;if(this.voc==='knight'&&A.modo==='equipe'){const g=grudeKnight(this);if(g&&cheb(this,g)<=1){const f0=A.foco[this.time];return A.execOn&&A.execOn[this.time]&&f0&&f0.hp>0&&cheb(this,f0)<=1?f0:g;}}const f=A.foco[this.time];return f&&f.hp>0?f:maisPerto(this,A.times[1-this.time].filter(L=>L.hp>0));},
+    folha:(base&&base.folha)||null,get alvo(){const A=W.arena;if(!A)return this.cacada?ptAlvoLut(this):null;if(this._alvoTmp)return this._alvoTmp;if(this.voc==='knight'&&A.modo==='equipe'){const g=grudeKnight(this);if(g&&cheb(this,g)<=1){const f0=A.foco[this.time];return A.execOn&&A.execOn[this.time]&&f0&&f0.hp>0&&cheb(this,f0)<=1?f0:g;}}const f=A.foco[this.time];return f&&f.hp>0?f:maisPerto(this,A.times[1-this.time].filter(L=>L.hp>0));},
     receber(v2,el,at,f,puro){return receberLutador(this,v2,el,at,f,puro);},condicao(t,d){condicaoLutador(this,t,d);},resist(){return 1},vivo(){return this.hp>0}};
   B.slots=(base&&base.slots)||hotPadrao(op.voc,L,sk.magic);B.bag=kitArena(B.slots,op.voc);B.procs=(base&&base.procs)||procsBot(L);
   Object.defineProperty(B,'aliados',{get(){return (W.aliados||[]).filter(a=>a.dono===B)}});return B;}
@@ -1621,7 +1643,7 @@ function wpLure(){const vivos=W.mobs.filter(m=>m.d.hostil&&!m.aggro&&!m.inv),ss=
   return ss.length?pick(ss.slice(0,3)):pick(W.spawns);}
 function playerLogic(dt){
   const p=W.p;p.mt=Math.min(1,p.mt+dt/p.stepMs);
-  tickCond15(JOG);tickCampos15([JOG,...W.mobs.map(alvoMob)]);aliadosLogic(dt);if(S.hp<=0)return;
+  tickCond15(JOG);tickCampos15([JOG,...W.mobs.map(alvoMob),...(W.pl?ptLutVivos():[])]);aliadosLogic(dt);if(S.hp<=0)return;
   if(p.target&&(p.target.hp<=0||!W.mobs.includes(p.target)||cheb(p,p.target)>11))p.target=null;
   if(!p.target)p.target=chooseTarget();
   const puxa=lureLogic();   /* lure: true enquanto está puxando monstros (sem ataque pesado) */
@@ -1641,27 +1663,33 @@ function playerLogic(dt){
 }
 function faceTo(m,x,y){const dx=x-m.x,dy=y-m.y;if(Math.abs(dx)>=Math.abs(dy)&&dx)m.face=dx>0?1:3;else if(dy)m.face=dy>0?2:0;}   /* 4 lados: 0=N 1=L 2=S 3=O */
 function moveMob(m,nx,ny){m.movedAt=performance.now();W.occ[m.y*W.w+m.x]=0;m.fx=m.x;m.fy=m.y;if(nx!==m.x)m.dir=nx>m.x?1:-1;faceTo(m,nx,ny);m.x=nx;m.y=ny;m.mt=0;W.occ[ny*W.w+nx]=1;if(!quiet)iniciarPasso(m,velMob(m));}
+/* party (líder): o alvo do monstro entre o jogador e os lutadores remotos: o mais próximo, e às vezes quem mais o machucou */
+function ptAlvoMob(m){const p=W.p,T=W.time,cs=[p,...ptLutVivos()],a=m.alvo;
+  if(a&&cs.includes(a)&&cheb(m,a)<=12&&T<(m.reav||0))return a;
+  m.reav=T+rnd(2500,4000);let b=null,bd=1e9;for(const c of cs){const d=cheb(m,c);if(d<bd){bd=d;b=c;}}
+  if(m.dano&&Math.random()<.35){let bk=null,bv=0;for(const k in m.dano)if(m.dano[k]>bv){bv=m.dano[k];bk=k;}
+    const c=bk==='eu'?p:cs.find(x=>x.pid===bk);if(c&&cheb(m,c)<=Math.max(8,bd+3))b=c;}
+  return m.alvo=b||p;}
 function mobLogic(dt){
-  const p=W.p;
   for(const m of W.mobs.slice()){
     if(!W.mobs.includes(m))continue;
-    if(m.dots&&m.dots.length){for(const q of m.dots.slice()){if(W.time<q.prox)continue;danoMagia15(m,q.fila.shift(),q.el,0);q.prox+=q.iv;if(!q.fila.length)m.dots.splice(m.dots.indexOf(q),1);if(m.hp<=0)break;}if(m.hp<=0)continue;}
-    m.mt=Math.min(1,m.mt+dt/velMob(m));const d=cheb(m,p);
+    if(m.dots&&m.dots.length){for(const q of m.dots.slice()){if(W.time<q.prox)continue;ATKR=(q.fonte&&q.fonte.pid)||'eu';danoMagia15(m,q.fila.shift(),q.el,0);ATKR='eu';q.prox+=q.iv;if(!q.fila.length)m.dots.splice(m.dots.indexOf(q),1);if(m.hp<=0)break;}if(m.hp<=0)continue;}
+    m.mt=Math.min(1,m.mt+dt/velMob(m));const p=W.pl?ptAlvoMob(m):W.p,d=cheb(m,p);
     if(!m.aggro&&d<=5&&m.d.hostil){m.aggro=true;m.cdAtk=W.time+1000;}
     if(m.aggro&&d>12)m.aggro=false;
     if(m.aggro){
       if(d>1&&m.mt>=1&&!(m.lentoAte>W.time&&(m.lentoF||1)<=.35)){const nx=bfs(m.x,m.y,(x,y)=>Math.max(Math.abs(x-p.x),Math.abs(y-p.y))===1,true,900);if(nx&&nx!=='here')moveMob(m,nx[0],nx[1]);}
       if(d<=1)faceTo(m,p.x,p.y);
-      if(m.d.atq15){if(W.time>=m.cdAtk){m.cdAtk=W.time+2000;ataque15(m,d);}}
+      if(m.d.atq15){if(W.time>=m.cdAtk){m.cdAtk=W.time+2000;ataque15(m,d,W.pl?p:undefined);}}
       else if(W.time>=m.cdAtk){
         /* ataques reais do monstro: corpo a corpo + magias com a chance do Canary (a cada 2s) */
         let usou=false;
-        for(const s of m.d.spells){if(d<=s.r&&Math.random()<s.c){if(s.tiro||s.r>1)proj(m,p,ELC[s.el]);hurtPlayer(rint(s.min,s.max),s.el!=='phys',m);usou=true;break;}}
-        if(!usou&&d<=1&&m.d.hit>0){hurtPlayer(rint(0,m.d.hit),false,m);usou=true;}
+        for(const s of m.d.spells){if(d<=s.r&&Math.random()<s.c){if(s.tiro||s.r>1)proj(m,p,ELC[s.el]);hurtAlvo(p,rint(s.min,s.max),s.el,m);usou=true;break;}}
+        if(!usou&&d<=1&&m.d.hit>0){hurtAlvo(p,rint(0,m.d.hit),'phys',m);usou=true;}
         if(usou||d<=Math.max(1,...m.d.spells.map(s=>s.r)))m.cdAtk=W.time+2000;
       }
     }else if(m.mt>=1&&W.time>=m.wander&&!(m.lentoAte>W.time&&(m.lentoF||1)<=.35)){m.wander=W.time+rnd(1500,4500);const [dx,dy]=pick(DIRS),nx=m.x+dx,ny=m.y+dy;
-      if(walk(nx,ny)&&!W.occ[ny*W.w+nx]&&!(nx===p.x&&ny===p.y)&&Math.abs(nx-m.sp.x)<=3&&Math.abs(ny-m.sp.y)<=3)moveMob(m,nx,ny);}
+      if(walk(nx,ny)&&!W.occ[ny*W.w+nx]&&!(nx===W.p.x&&ny===W.p.y)&&!(W.pl&&W.pl.has(ny*W.w+nx))&&Math.abs(nx-m.sp.x)<=3&&Math.abs(ny-m.sp.y)<=3)moveMob(m,nx,ny);}
     if(S.hp<=0)return;
   }
 }
@@ -1670,7 +1698,9 @@ function mobLogic(dt){
 function regen(dt){W.reg+=dt;while(W.reg>=1000){W.reg-=1000;const v=V(),c=S.loc==='city';
   S.hp=Math.min(maxHp(),S.hp+Math.max(1,Math.round(maxHp()*(c?.05:v.hpReg))));S.mp=Math.min(maxMp(),S.mp+Math.max(1,Math.round(maxMp()*(c?.05:v.mpReg))));}}
 function update(dt){
-  if(!S||!W)return;W.time+=dt;regen(dt);
+  if(!S||!W)return;W.time+=dt;
+  if(PT.hunt&&PT.hunt.papel==='membro'&&S.loc!=='city'&&S.loc!=='arena'){ptMembro(dt);return;}   /* party: o líder simula a caçada */
+  regen(dt);
   if(S.loc==='arena'){arenaLogic(dt);return;}
   if(S.loc==='city'){S.stamina=Math.min(STAM_MAX,S.stamina+dt/3);const p=W.p;p.mt=Math.min(1,p.mt+dt/p.stepMs);andarMao();cityLogic();return;}
   S.sess.t+=dt;S.stamina-=dt;if(W.rec&&!W.rec.fim)medirRecorde();
@@ -1678,7 +1708,7 @@ function update(dt){
   preyTick(dt);wcTempo(dt);
   for(let i=W.respawns.length-1;i>=0;i--){const r=W.respawns[i];if(W.time>=r.t&&cheb(W.p,r.sp)>7){W.respawns.splice(i,1);spawnMob(r.sp,r.sp.mob||pickMob(HUNTS[S.loc]));}}
   mobLogic(dt);if(S.hp<=0){die();return;}
-  playerLogic(dt);
+  playerLogic(dt);if(W.pl)ptLider(dt);
   W.chk+=dt;if(W.chk>=1000){W.chk=0;autoChecks();}
 }
 /* recorde: nos primeiros 5 min de cada entrada na caçada mede exp/h e lucro/h; o melhor de cada fica em S.recordes[caçada] */
@@ -1703,7 +1733,7 @@ function die(){
   let lost=0;if(!S.bless){for(const k of Object.keys(S.bag))if(ITEMS[k]&&ITEMS[k].type==='loot'){lost+=S.bag[k];delete S.bag[k];}}
   log('sys',`☠ Você morreu! Perdeu ${loss*100}% da experiência${S.bless?' (blessing protegeu seus itens)':lost?` e ${lost} itens de loot`:''}. Level atual: ${S.level}.`,'r');
   toast('☠ Você morreu!');S.bless=false;S.hp=maxHp();S.mp=maxMp();
-  travel('city',S.rules.backAfterDeath?{t:0,step:0}:null);
+  travel('city',S.rules.backAfterDeath&&!PT.hunt?{t:0,step:0}:null);
 }
 function returnCity(why,routine){log('sys',`Voltando para a cidade: ${why}.`,'b');travel('city',routine?{t:0,step:0}:null);}
 function showLoading(on,txt){const el=$('#loading');el.classList.toggle('hidden',!on);if(txt)el.firstChild.textContent=txt;}
@@ -1713,6 +1743,7 @@ function travel(loc,routine){
     if(loc!=='city'&&loc!=='arena'&&S.sess.hunt!==loc)S.sess=newSess(loc);
     S.loc=loc;buildWorld(loc);if(loc==='arena')montarArena();else if(loc!=='city'){S.lastHunt=loc;iniciarRecorde();log('sys',`Você chegou em ${HUNTS[loc].n}.`,'b');}
     if(loc!=='city'&&loc!=='arena')liberarAtlas(REG[loc].srcs);
+    if(PT.pend&&loc!=='city'&&loc!=='arena')ptEntrouHunt();
     if(routine){W.routine=routine;W.routine.t=W.time+1500;}
     dirty.all=true;
   };
@@ -1898,6 +1929,8 @@ function draw(){
   if(!W.arena){const r=Math.round(pp.y);(rows[r]=rows[r]||[]).push({pl:1,p:pp});}
   for(const a of W.aliados||[]){const q=rpos(a),r=Math.round(q.y);(rows[r]=rows[r]||[]).push({m:a,p:q});}
   if(W.arena)for(const L of W.arena.times.flat().filter(L=>L.hp>0)){const q=rpos(L),r=Math.round(q.y);(rows[r]=rows[r]||[]).push({lut:L,p:q});}
+  if(W.pl)for(const L of ptLutVivos()){const q=rpos(L),r=Math.round(q.y);(rows[r]=rows[r]||[]).push({lut:L,p:q});}   /* party: lutadores simulados pelo líder */
+  if(W.partyR)for(const r of W.partyR.values()){if(r.vivo===0)continue;const q=rpos(r),ry=Math.round(q.y);(rows[ry]=rows[ry]||[]).push({rem:r,p:q});}   /* party: os outros membros (visão do membro) */
   if(W.city&&S.loc==='city'&&W.remotos)for(const r of W.remotos.values()){const q=rpos(r),ry=Math.round(q.y);(rows[ry]=rows[ry]||[]).push({rem:r,p:q});}
   const labels=[];
   for(let y=y0;y<=y1+1;y++){
@@ -1906,11 +1939,11 @@ function draw(){
       else if(!drawSprite(on,x*TS,y*TS,false)){ctx.fillStyle=KCOL[k];ctx.fillRect(x*TS+4,y*TS+4,24,24);}}
     for(const e of (rows[y]||[])){const X=e.p.x*TS,Y=e.p.y*TS;
       if(e.pl){const dd=drawJogador(X,Y)||drawSprite(V().outfit,X,Y,W.p.dir>0);if(!dd){ctx.save();if(W.p.dir<0){ctx.translate(X*2+32,0);ctx.scale(-1,1);}ctx.drawImage(PSPR[S.voc],X,Y-4);ctx.restore();}
-        labels.push({x:sx(X+16),y:sy(Y+32-(dd?dd.h:40)+6),name:S.name,hp:S.hp/maxHp(),fala:(PR.fala&&PR.fala.ate>now)?PR.fala.txt:null});}
+        labels.push({x:sx(X+16),y:sy(Y+32-(dd?dd.h:40)+6),name:S.name,hp:S.hp/maxHp(),fala:(PR.fala&&PR.fala.ate>now)?PR.fala.txt:null,pid:PR.pid});}
       else if(e.rem){const r=e.rem,dd=drawRemoto(r,X,Y);
-        labels.push({x:sx(X+16),y:sy(Y+32-(dd?dd.h:40)+6),name:r.nome,hp:1,fala:r.falaAte>now?r.fala:null});}
-      else if(e.lut){const L=e.lut,dd=drawLutador(L,X,Y);const fm=W.arena.focoMan[0];if(fm&&fm.L===L&&fm.ate>W.time){ctx.strokeStyle='#ff8a3a';ctx.lineWidth=1.5;ctx.strokeRect(X+1,Y+1,30,30);}
-        labels.push({x:sx(X+16),y:sy(Y+32-(dd?dd.h:40)+6),name:L.nome,hp:L.hp/L.max,cor:W.arena.modo==='equipe'?['#6fb4ff','#ff6f6f'][L.time]:null});}
+        labels.push({x:sx(X+16),y:sy(Y+32-(dd?dd.h:40)+6),name:r.nome,hp:r.hpMax?r.hp/r.hpMax:1,fala:r.falaAte>now?r.fala:null,pid:r.pid});}
+      else if(e.lut){const L=e.lut,dd=drawLutador(L,X,Y);const fm=W.arena&&W.arena.focoMan[0];if(fm&&fm.L===L&&fm.ate>W.time){ctx.strokeStyle='#ff8a3a';ctx.lineWidth=1.5;ctx.strokeRect(X+1,Y+1,30,30);}
+        labels.push({x:sx(X+16),y:sy(Y+32-(dd?dd.h:40)+6),name:L.nome,hp:L.hp/L.max,cor:W.arena&&W.arena.modo==='equipe'?['#6fb4ff','#ff6f6f'][L.time]:null,pid:L.pid});}
       else{const m=e.m,dd=drawCriatura(m,X,Y);
         if(!dd){ctx.save();ctx.font=`25px ${EMOJI}`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(m.d.i,X+16,Y+15);ctx.restore();}
         if(W.p.target===m){ctx.strokeStyle='#ff2a2a';ctx.lineWidth=1.5;ctx.strokeRect(X+1,Y+1,30,30);}
@@ -1927,6 +1960,7 @@ function draw(){
   ctx.textAlign='center';ctx.textBaseline='alphabetic';
   for(const l of labels){const col=l.hp>.6?'#5fd35f':l.hp>.3?'#f0d040':l.hp>.1?'#ff7a3a':'#c01818';
     ctx.font='bold 11px Verdana';ctx.lineWidth=3;ctx.strokeStyle='#000';ctx.strokeText(l.name,l.x,l.y-6);ctx.fillStyle=l.cor||col;ctx.fillText(l.name,l.x,l.y-6);
+    if(l.pid&&PT.id){const eb=ptEscudoDe(l.pid);if(eb)drawEscudo(l.x-ctx.measureText(l.name).width/2-13,l.y-17,eb.tipo,eb.glow);}
     ctx.fillStyle='#000';ctx.fillRect(l.x-15,l.y-3,30,4);ctx.fillStyle=col;ctx.fillRect(l.x-14,l.y-2,28*clamp(l.hp,0,1),2);
     if(l.fala){const ls=prQuebrar(l.fala,28);ctx.font='bold 11px Verdana';ctx.fillStyle='#ffff00';for(let i=0;i<ls.length;i++){const yy=l.y-22-(ls.length-1-i)*13;ctx.strokeText(ls[i],l.x,yy);ctx.fillText(ls[i],l.x,yy);}}}
   for(let i=W.fx.length-1;i>=0;i--){const f=W.fx[i],t=(now-f.b)/1100;if(t>=1){W.fx.splice(i,1);continue;}
@@ -2276,7 +2310,7 @@ function prepModal(hk){if(!HUNTS[hk])hk=S.lastHunt&&HUNTS[S.lastHunt]?S.lastHunt
       <button class="sugtog" data-act="sugTog">Conjunto sugerido de magias<i>${HF.sug?'▴':'▾'}</i></button>${HF.sug?sugestaoHTML('caca',hk,true):''}</div>
       <div class="pr"><div class="lhead"><h4>Loot possível</h4><div class="pills"><button class="${HF.ord==='valor'?'on':''}" data-act="lootOrd" data-arg="valor">Valor NPC</button><button class="${HF.ord==='peso'?'on':''}" data-act="lootOrd" data-arg="peso">Peso</button></div></div>
         <div class="lcols"><span>PEGAR</span><span>VENDER</span></div><div class="lscroll" data-keep="loot">${lootLinhas(hk)}</div><div class="lnote">A configuração vale para todas as caçadas. Vender converte o item em gold na hora, sem ocupar peso.</div></div></div>
-    <div class="pfoot"><span>${esc(h.n)} · ${pn}</span><button class="wbtn pri" data-act="hunt" data-arg="${hk}">${btn}</button></div>`};}
+    <div class="pfoot"><span>${esc(h.n)} · ${pn}</span><span>${ptBtnHunt(hk)}<button class="wbtn pri" data-act="hunt" data-arg="${hk}">${btn}</button></span></div>`};}
 
 /* ---- Prey: 3 slots (1 livre, 2 liberado com gold, 3 liberado com Tibia Coins), bônus de 1 a 10 estrelas, wildcards ---- */
 const PREY_LISTA=20*H, WC_MAX=1000, SLOT3_TC=900, PREY_TIPOS={dmg:'dano',def:'defesa',exp:'exp',loot:'loot'};
@@ -2756,6 +2790,7 @@ function act(a,arg){
   if(a==='create'){if(ON.criando){if(!ON.busy)onCriar();return;}const name=($('#cName').value||'').trim().replace(/[<>]/g,'')||'Aventureiro';const vc=$('.vcard.on');const voc=vc?vc.dataset.voc:'knight';
     S=personagemForte(newState(name,voc));S.hp=maxHp();S.mp=maxMp();buildWorld('city');closeModal();setupWins();log('sys',`Bem-vindo a ${CITY.n}, ${name}!`,'y');log('sys','Abra 🗺️ Caçadas e seu personagem já começa no level 100 com todas as magias. Experimente a hunt de Goblins de Edron. A hotbar já vem configurada.','m');save();presenteImbuements();return;}
   if(!S)return;
+  if(PTACT[a]){PTACT[a](arg);return;}
   if(/^(mk|lei|wk)[A-Z]/.test(a)){mkAct(a,arg);return;}
   switch(a){
     case 'closeModal':closeModal();return;
@@ -3124,6 +3159,7 @@ function carregarSave(d){try{if(!d||!VOC[d.voc])return null;const b=newState(d.n
 function tickLoop(){
   if(!S||!W||ON.parado||modal==='create')return;const now=Date.now();let el=now-S.lastTick;if(el<STEP)return;
   if(el>60000&&S.loc==='arena'){W.arena=null;S.loc='city';buildWorld('city');}
+  if(el>60000&&PT.hunt){S.lastTick=now;if(S.loc!=='city'&&S.loc!=='arena'){quiet=true;travel('city',null);quiet=false;}log('sys','A caçada da party não rende progresso offline.','o');return;}
   if(el>60000){const r=offline(el);S.lastTick=now;if(el>120000)openModal('offline',r);mercadoTick();hud();save();return;}
   quiet=el>3000;while(el>=STEP){update(STEP);el-=STEP;S.lastTick+=STEP;}quiet=false;
   mercadoTick();
@@ -3144,7 +3180,7 @@ function prTrLocal(chave){const bc=new BroadcastChannel('tibiaidle-'+chave);let 
   const env=(m)=>{try{if(vivo)bc.postMessage(m);}catch(e){}};
   bc.onmessage=ev=>{const m=ev.data;if(!m||typeof m!=='object'||!h||m.pid===PR.pid||typeof m.pid!=='string')return;
     if(m.t==='oi'){h.entrou(m.pid,m.meta);if(!m.r&&meuMeta)env({t:'oi',r:1,pid:PR.pid,meta:meuMeta()});}
-    else if(m.t==='tchau')h.saiu(m.pid);else if(m.t==='pos'||m.t==='fala')h.rec(m.t,m);};
+    else if(m.t==='tchau')h.saiu(m.pid);else if(m.t==='pos'||m.t==='fala'||m.t==='convite'||m.t==='resposta')h.rec(m.t,m);};
   return {entrar(hh,mf){h=hh;meuMeta=mf;env({t:'oi',pid:PR.pid,meta:mf()});},atualizar(meta){env({t:'oi',r:1,pid:PR.pid,meta});},
     enviar(t,pl){env(Object.assign({t,pid:PR.pid},pl));},sair(){env({t:'tchau',pid:PR.pid});vivo=false;try{bc.close();}catch(e){}}};}
 function prTrRealtime(chave){let ch=null,h=null,vivo=true,meuMeta=null,tim=null,n=0;
@@ -3153,6 +3189,8 @@ function prTrRealtime(chave){let ch=null,h=null,vivo=true,meuMeta=null,tim=null,
     ch.on('presence',{event:'sync'},()=>{try{const st=ch.presenceState(),m=new Map();for(const k of Object.keys(st)){const a=st[k];if(a&&a.length)m.set(k,a[a.length-1]);}h.sync(m);}catch(e){}});
     ch.on('broadcast',{event:'pos'},m=>{try{h.rec('pos',m.payload);}catch(e){}});
     ch.on('broadcast',{event:'fala'},m=>{try{h.rec('fala',m.payload);}catch(e){}});
+    ch.on('broadcast',{event:'convite'},m=>{try{h.rec('convite',m.payload);}catch(e){}});
+    ch.on('broadcast',{event:'resposta'},m=>{try{h.rec('resposta',m.payload);}catch(e){}});
     ch.subscribe(st=>{if(!vivo)return;
       if(st==='SUBSCRIBED'){n=0;PR.erro=null;try{ch.track(meuMeta());}catch(e){}}
       else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){PR.erro=st;religar();}});
@@ -3184,9 +3222,9 @@ function prRec(t,m){try{if(!m||typeof m!=='object'||typeof m.pid!=='string'||m.p
   else if(t==='fala'){const r=PR.remotos.get(m.pid);if(!r)return;if(now-(PR.falaRx[m.pid]||0)<700)return;PR.falaRx[m.pid]=now;
     const txt=prTxt(m.txt,120);if(!txt)return;r.fala=txt;r.falaAte=now+4000;r.visto=now;log('cid',`${r.nome} diz: ${txt}`,'y');}
 }catch(e){}}
-const PR_H={sync:prSync,entrou:prEntrou,saiu:prSaiu,rec:prRec};
+const PR_H={sync:prSync,entrou:prEntrou,saiu:prSaiu,rec:(t,m)=>t==='convite'||t==='resposta'?ptRecCidade(t,m):prRec(t,m)};
 function prEntrar(){if(PR.ativo)return;const modo=prModoRede();if(!modo||!S)return;
-  try{PR.modo=modo;PR.pid=modo==='rt'?String(ON.pid):'L'+Math.random().toString(36).slice(2,10);
+  try{PR.modo=modo;PR.pid=modo==='rt'?String(ON.pid):(PR.pidL||(PR.pidL='L'+Math.random().toString(36).slice(2,10)));
     const chave=String(CITY&&CITY.n||'cidade').toLowerCase().replace(/[^a-z0-9]/g,'')||'cidade';
     PR.tr=modo==='local'?prTrLocal(chave):prTrRealtime(chave);PR.ativo=true;PR.ult=null;PR.sigPerfil=prSigPerfil();PR.remotos.clear();
     PR.tr.entrar(PR_H,prMeta);}catch(e){PR.ativo=false;PR.tr=null;}}
@@ -3232,6 +3270,375 @@ cv.addEventListener('mousemove',prTip);cv.addEventListener('click',prTip);cv.add
 document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='chatTxt'){if(e.key==='Enter'){e.preventDefault();const v=e.target.value;e.target.value='';prFalar(v);}else if(e.key==='Escape')e.target.blur();e.stopPropagation();}},true);
 addEventListener('pagehide',prSair);addEventListener('beforeunload',prSair);
 setInterval(prTick,100);
+
+/* ======================= PARTY E HUNT COMPARTILHADA =======================
+   Party de até 4 jogadores. O navegador do LÍDER simula a caçada inteira (monstros, IA, dano, loot e exp); os membros entram com uma "ficha" de lutador
+   (o líder cria um lutador com a IA da arena) e só desenham o que o líder envia (4 Hz, num único broadcast com os eventos) e aplicam as recompensas.
+   Canal da party: party:<pid do fundador>, mesmo padrão da presença (Supabase Realtime, ou BroadcastChannel com ?rede=local).
+   Convites ficam no canal da cidade (convite/resposta). Modo solo: PT.hunt e W.pl ficam vazios e nada muda. */
+const PARTY_HZ=4,PT_MAX=4,PT_CONVITE=60000,PT_SUMIR=15000,PT_INATIVO=120000,PT_BONUS=[0,.2,.3,.6,1];
+const PT_EVS=['rost','sinal','entrar','sair','go','fim','ficha','estado','premio','kick','recusa'];
+Object.assign(PT,{id:null,me:null,lider:null,mb:[],expOn:true,tr:null,conv:[],sent:{},pend:null,fichas:new Map(),conf:false,tEnt:0,nEnt:0,tSin:0,tEst:0,tPre:0,tAn:0,tMe:0,sig:'',flag:'off',huntInfo:null,fake:false,n:{env:0,rec:0}});
+const ptSou=()=>!!PT.id&&PT.lider===PR.pid;
+const ptM=pid=>PT.mb.find(x=>x.pid===pid);
+function ptEv(e){const a=PT.ev;if(a&&a.length<200)a.push(e);}
+const ptLutVivos=()=>PT.hunt&&PT.hunt.lut?[...PT.hunt.lut.values()].filter(L=>L.hp>0):[];
+function ptAlvoLut(L){const t=L.tgM;return t&&t.hp>0&&W.mobs.includes(t)&&cheb(L,t)<=11?alvoMob(t):null;}
+/* ---- transportes do canal da party (mesma interface da presença) ---- */
+function ptTrLocal(chave){const bc=new BroadcastChannel('tibiaidle-party-'+chave);let h=null,vivo=true;
+  bc.onmessage=ev=>{const m=ev.data;if(!m||typeof m!=='object'||typeof m.pid!=='string'||m.pid===PR.pid||!h||!PT_EVS.includes(m._e))return;h(m._e,m);};
+  return {abrir(hh){h=hh;},enviar(t,pl){if(vivo)try{bc.postMessage(Object.assign({},pl,{_e:t,pid:PR.pid}));}catch(e){}},fechar(){vivo=false;try{bc.close();}catch(e){}}};}
+function ptTrRealtime(chave){let ch=null,h=null,vivo=true,tim=null,n=0;
+  const abrir=()=>{if(!vivo)return;try{
+    ch=SB.channel('party:'+chave,{config:{broadcast:{self:false}}});
+    for(const e of PT_EVS)ch.on('broadcast',{event:e},m=>{try{const p=m.payload;if(p&&typeof p.pid==='string'&&p.pid!==PR.pid)h(e,p);}catch(x){}});
+    ch.subscribe(st=>{if(!vivo)return;if(st==='SUBSCRIBED')n=0;else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED')religar();});
+  }catch(e){religar();}};
+  const religar=()=>{if(!vivo||tim)return;try{if(ch)SB.removeChannel(ch);}catch(e){}ch=null;const d=Math.min(30000,2000*Math.pow(2,n++));tim=setTimeout(()=>{tim=null;abrir();},d);};
+  return {abrir(hh){h=hh;abrir();},enviar(t,pl){try{if(ch)ch.send({type:'broadcast',event:t,payload:Object.assign({},pl,{pid:PR.pid})});}catch(e){}},
+    fechar(){vivo=false;if(tim)clearTimeout(tim);try{if(ch)SB.removeChannel(ch);}catch(e){}ch=null;}};}
+function ptAbrir(){if(PT.tr||!PT.id||PT.fake)return;const modo=prModoRede();if(!modo)return;
+  try{PT.tr=modo==='local'?ptTrLocal(PT.id):ptTrRealtime(PT.id);PT.tr.abrir(ptRec);}catch(e){PT.tr=null;}}
+function ptFechar(){const t=PT.tr;PT.tr=null;if(t)try{t.fechar();}catch(e){}}
+function ptEnv(t,pl){if(!PT.tr)return;PT.n.env++;PT.tr.enviar(t,pl||{});}
+/* ---- dados dos membros ---- */
+function ptMetaEu(){const HU=PT.hunt,b=HU&&HU.b,s=S.sess;
+  return {nome:prTxt(S.name,20),voc:S.voc,level:S.level,outfit:S.outfit||null,hp:Math.round(S.hp),hpMax:maxHp(),mp:Math.round(S.mp),mpMax:maxMp(),loc:S.loc,
+    xp:b?Math.max(0,Math.round(s.exp-b.xp)):0,lc:b?Math.round(s.gold+s.loot-s.sup-b.lc):0,st:b?Math.max(0,Math.round(s.t-b.st)):0};}
+function ptSan(m,o){o=o||{};o.nome=prTxt(m.nome,20)||'Jogador';o.voc=VOC[m.voc]?m.voc:'knight';o.level=prNum(m.level,1,9999,1);o.outfit=prOutfit(m.outfit);
+  o.hpMax=prNum(m.hpMax,1,200000,100);o.hp=prNum(m.hp,0,o.hpMax,o.hpMax);o.mpMax=prNum(m.mpMax,1,200000,50);o.mp=prNum(m.mp,0,o.mpMax,o.mpMax);
+  o.loc=(m.loc==='city'||m.loc==='arena'||HUNTS[m.loc])?m.loc:'city';o.xp=prNum(m.xp,0,1e12,0);o.lc=prNum(m.lc,-1e12,1e12,0);o.st=prNum(m.st,0,1e10,0);return o;}
+const ptNome=pid=>{const x=ptM(pid)||PR.remotos.get(pid);return x?x.nome:'Jogador';};
+/* ---- criar, convidar, entrar, sair ---- */
+function ptMostrar(){const w=$('#w-party');if(w)w.classList.remove('hidden');}
+function ptCriar(){if(PT.id||!PR.pid||!S)return false;PT.id=PT.me=PR.pid;PT.lider=PR.pid;PT.expOn=true;PT.conf=true;PT.fake=false;
+  PT.mb=[Object.assign({pid:PR.pid,visto:performance.now()},ptSan(ptMetaEu()))];PT.tSin=performance.now();ptAbrir();log('sys','Você criou uma party.','y');ptMostrar();return true;}
+function ptConvidar(pid){const r=PR.remotos.get(pid);
+  if(!S||S.loc!=='city'||!PR.ativo||!r){log('sys','Você precisa estar na cidade para convidar.','o');return;}
+  if(PT.id&&!ptSou()){log('sys','Só o líder da party pode convidar.','o');return;}
+  if(PT.id&&ptM(pid)){log('sys',`${r.nome} já está na sua party.`,'o');return;}
+  if(PT.mb.length>=PT_MAX){log('sys','A party está cheia (4 membros).','o');return;}
+  if(!PT.id&&!ptCriar())return;
+  PT.sent[pid]=Date.now();PR.tr.enviar('convite',{para:pid,nome:prTxt(S.name,20),voc:S.voc,level:S.level,pt:PT.id});log('sys',`Você convidou ${r.nome} para a party.`,'y');ptMostrar();}
+function ptRecCidade(t,m){try{if(!S||!m||typeof m!=='object'||typeof m.pid!=='string'||m.para!==PR.pid)return;
+  if(t==='convite'){const pt=prTxt(m.pt,64);if(!pt||PT.id||m.pid.length>64)return;
+    PT.conv=PT.conv.filter(c=>c.de!==m.pid);if(PT.conv.length>=5)PT.conv.shift();
+    const c={de:m.pid.slice(0,64),nome:prTxt(m.nome,20)||'Jogador',voc:VOC[m.voc]?m.voc:'knight',level:prNum(m.level,1,9999,1),pt,ate:Date.now()+PT_CONVITE};PT.conv.push(c);
+    log('sys',`${c.nome} convidou você para a party.`,'y');toast(`${c.nome} convidou você para a party`);ptMostrar();}
+  else if(t==='resposta'){if(!ptSou()||!PT.sent[m.pid])return;delete PT.sent[m.pid];log('sys',`${prTxt(m.nome,20)||'O jogador'} recusou o convite.`,'o');}
+}catch(e){}}
+function ptAceitar(i){const c=PT.conv[i];if(!c||c.ate<Date.now()||PT.id||!PR.pid)return;
+  Object.assign(PT,{id:c.pt,me:PR.pid,lider:c.de,mb:[],conf:false,expOn:true,nEnt:0,tEnt:0,conv:[],fake:false});ptAbrir();ptMostrar();}
+function ptRecusar(i){const c=PT.conv[i];PT.conv.splice(i,1);if(c&&PR.ativo&&PR.tr)PR.tr.enviar('resposta',{para:c.de,nome:prTxt(S.name,20),ok:0});}
+function ptDesfazer(msg){const tinha=!!PT.id;if(PT.hunt)ptSairHunt(null,PT.hunt.papel==='lider');ptFechar();
+  Object.assign(PT,{id:null,me:null,lider:null,mb:[],conf:false,sent:{},huntInfo:null,fake:false,sig:'',flag:'off'});PT.fichas.clear();PT.pend=null;
+  if(tinha&&msg)log('sys',msg,'o');}
+function ptSair(){if(!PT.id)return;if(PT.hunt&&PT.hunt.papel==='lider')ptSairHunt('Você saiu da caçada da party.',true);ptEnv('sair',{});ptDesfazer('Você saiu da party.');}
+function ptTirar(pid,como){const i=PT.mb.findIndex(x=>x.pid===pid);if(i<0)return;const x=PT.mb[i];PT.mb.splice(i,1);
+  const HU=PT.hunt;if(HU&&HU.lut){const L=HU.lut.get(pid);if(L){L.hp=0;if(W.pl)W.pl.delete(L.y*W.w+L.x);HU.lut.delete(pid);W.aliados=(W.aliados||[]).filter(a=>a.dono!==L);}}
+  log('sys',`${x.nome} ${como}.`,'o');
+  if(pid===PT.lider){PT.lider=PT.mb[0]&&PT.mb[0].pid;if(HU&&HU.papel==='membro')ptSairHunt('O líder saiu da caçada.');}
+  if(PT.mb.length<2&&!PT.fake){ptDesfazer('A party foi desfeita.');return;}
+  if(ptSou()){if(i===0)log('sys','Você agora é o líder da party.','y');ptRost();}}
+function ptKick(pid){if(!ptSou()||pid===PR.pid||!ptM(pid))return;ptEnv('kick',{para:pid});ptTirar(pid,'foi expulso da party');}
+function ptPassar(pid){if(!ptSou()||pid===PR.pid||!ptM(pid)||PT.hunt){if(PT.hunt)log('sys','Troque o líder na cidade, fora da caçada.','o');return;}
+  PT.lider=pid;const x=ptM(pid);PT.mb.sort((a,b)=>(a.pid===pid?-1:b.pid===pid?1:0));ptRost();log('sys',`${x.nome} agora é o líder da party.`,'y');}
+function ptExpTog(){if(!ptSou())return;PT.expOn=!PT.expOn;ptRost();log('sys',PT.expOn?'Exp compartilhada ligada.':'Exp compartilhada desligada.','y');}
+function ptRost(){if(!ptSou())return;const HU=PT.hunt;
+  ptEnv('rost',{lider:PT.lider,exp:PT.expOn?1:0,h:HU&&HU.papel==='lider'?{ep:HU.ep,loc:HU.loc}:null,
+    m:PT.mb.map(x=>({pid:x.pid,nome:x.nome,voc:x.voc,level:x.level,outfit:x.outfit,hp:x.hp,hpMax:x.hpMax,mp:x.mp,mpMax:x.mpMax,loc:x.loc,xp:x.xp,lc:x.lc,st:x.st}))});}
+/* ---- mensagens do canal da party ---- */
+function ptRec(t,m){try{PT.n.rec++;if(!PT.id||!m||typeof m!=='object'||typeof m.pid!=='string')return;const now=performance.now(),eu=PR.pid,de=m.pid.slice(0,64),mm=ptM(de);
+  if(t==='rost'){if(de!==PT.lider)return;
+    const arr=Array.isArray(m.m)?m.m.slice(0,PT_MAX):[],nl=[];
+    for(const e of arr){if(!e||typeof e!=='object'||typeof e.pid!=='string')continue;const pid=e.pid.slice(0,64);if(nl.some(x=>x.pid===pid))continue;
+      const o=ptM(pid)||{pid,visto:now};if(pid===eu)ptSan(ptMetaEu(),o);else ptSan(e,o);nl.push(o);}
+    if(!nl.some(x=>x.pid===eu)){if(PT.conf)ptDesfazer('Você foi removido da party.');return;}
+    if(!PT.conf){PT.conf=true;log('sys',`Você entrou na party de ${nl[0].nome}.`,'y');ptMostrar();PT.tSin=0;}
+    PT.mb=nl;PT.lider=typeof m.lider==='string'&&nl.some(x=>x.pid===m.lider)?m.lider:nl[0].pid;PT.expOn=!!m.exp;const lm=ptM(PT.lider);if(lm)lm.visto=now;
+    PT.huntInfo=m.h&&typeof m.h==='object'&&HUNTS[m.h.loc]&&typeof m.h.ep==='string'?{ep:m.h.ep.slice(0,16),loc:m.h.loc}:null;
+    if(nl.length<2)ptDesfazer('A party foi desfeita.');}
+  else if(t==='sinal'){if(!mm)return;ptSan(m,mm);mm.visto=now;}
+  else if(t==='entrar'){if(!ptSou())return;if(mm){mm.visto=now;ptRost();return;}
+    if(!PT.sent[de]||Date.now()-PT.sent[de]>PT_CONVITE+10000)return;
+    if(PT.mb.length>=PT_MAX){ptEnv('recusa',{para:de});return;}
+    delete PT.sent[de];const o=Object.assign({pid:de,visto:now},ptSan(m));PT.mb.push(o);log('sys',`${o.nome} entrou na party.`,'y');ptRost();}
+  else if(t==='sair'){if(mm)ptTirar(de,'saiu da party');}
+  else if(t==='kick'){if(de===PT.lider&&m.para===eu)ptDesfazer('Você foi expulso da party.');}
+  else if(t==='recusa'){if(de===PT.lider&&m.para===eu)ptDesfazer('A party está cheia.');}
+  else if(t==='go'){if(de!==PT.lider||!S)return;const loc=m.loc;if(!HUNTS[loc]||typeof m.ep!=='string'||S.loc==='arena'||(W&&W.loading))return;
+    PT.pend={ep:m.ep.slice(0,16),loc,papel:'membro',ate:Date.now()+60000};closeModal();log('sys',`O líder iniciou a caçada da party: ${HUNTS[loc].n}.`,'y');
+    if(S.level<HUNTS[loc].lv){log('sys',`Aviso: seu level (${S.level}) está abaixo do recomendado (${HUNTS[loc].lv}).`,'o');toast('Level abaixo do recomendado');}
+    travel(loc,null);}
+  else if(t==='fim'){const HU=PT.hunt;if(de!==PT.lider||!HU||HU.papel!=='membro'||m.ep!==HU.ep)return;ptSairHunt('A caçada da party terminou.');}
+  else if(t==='ficha'){if(!ptSou()||!mm)return;const f=ptValFicha(m.f);if(!f||typeof m.ep!=='string')return;mm.visto=now;
+    const ep=m.ep.slice(0,16);PT.fichas.set(de,{ep,f});const HU=PT.hunt;if(HU&&HU.papel==='lider'&&ep===HU.ep)ptCriarLut(de,f);}
+  else if(t==='estado'){if(mm&&de===PT.lider)mm.visto=now;ptEstadoRec(m);}
+  else if(t==='premio')ptPremioRec(m);
+}catch(e){}}
+/* ---- exp compartilhada: bônus por vocações, regra de 2/3, atividade ---- */
+function ptExp(){const HU=PT.hunt,mb=PT.mb,me=PR.pid,vs=[...new Set(mb.map(x=>x.voc))],r={ativa:false,flag:'off',motivo:'',nv:vs.length,vocs:vs,n:mb.length,bonus:PT_BONUS[Math.min(4,vs.length)]||0};
+  if(!PT.expOn){r.motivo='Desligada pelo líder.';return r;}
+  if(mb.length<2){r.flag='cinza';r.motivo='Precisa de pelo menos 2 membros.';return r;}
+  const lv=mb.map(x=>x.level),mn=Math.min(...lv),mx=Math.max(...lv);
+  if(mn*3<mx*2){r.flag='cinza';r.motivo=`Level ${mn} abaixo de 2/3 do level ${mx} (mínimo ${Math.ceil(mx*2/3)}).`;return r;}
+  if(HU&&HU.papel==='lider'){
+    for(const x of mb){const L=x.pid===me?null:HU.lut.get(x.pid);
+      if(x.pid!==me&&(!L||L.hp<=0)){r.flag='cinza';r.motivo=`${x.nome} não está na caçada.`;return r;}
+      const k=x.pid===me?'eu':x.pid;if(W.time-Math.max(ATK_T[k]||0,HU.t0)>PT_INATIVO){r.flag='cinza';r.motivo=`${x.nome} está inativo há mais de 2 min.`;return r;}}}
+  else if(HU){if(HU.xs&&!HU.xs[0]){r.flag='cinza';r.motivo=HU.xs[1]||'Inativa.';return r;}}
+  else{r.flag='verde';r.espera=true;r.motivo='Ativa quando todos estiverem na mesma caçada.';return r;}
+  r.ativa=true;r.flag='verde';r.motivo='Ativa.';return r;}
+const ptBonusTxt=r=>`${r.nv} vocaç${r.nv===1?'ão':'ões'}: +${Math.round(r.bonus*100)}% de exp`;
+/* ---- ficha do lutador ---- */
+function ptFicha(){const eq={},t={};for(const k of ['weapon','helmet','armor','legs','boots','shield']){eq[k]=S.eq[k].id;t[k]=S.eq[k].t||0;}
+  const slots=(S.sets[S.set]||[]).map(x=>x&&{a:x.a,v:x.v}),bag={};for(const s of slots){if(!s)continue;const it=ITEMS[s.a];if(it&&(it.type==='pot'||it.type==='runa'))bag[s.a]=S.bag[s.a]|0;}
+  return {nome:prTxt(S.name,20),voc:S.voc,nivel:S.level,sk:{melee:S.skills.melee.lv,distance:S.skills.distance.lv,shielding:S.skills.shielding.lv,magic:S.skills.magic.lv},eq,t,procs:JOG.procs,slots,bag,
+    outfit:S.outfit||null,addon:S.addon??3,hp:Math.round(S.hp),mp:Math.round(S.mp),prot:JOG.protecao()};}
+function ptValFicha(f){try{if(!f||typeof f!=='object'||!VOC[f.voc])return null;const voc=f.voc,nivel=prNum(f.nivel,1,9999,0);if(!nivel)return null;
+  const sk={};for(const k of ['melee','distance','shielding','magic'])sk[k]=prNum(f.sk&&f.sk[k],1,3000,1);
+  const eq={},t={};for(const k of ['weapon','helmet','armor','legs','boots','shield']){const it=ITEMS[f.eq&&f.eq[k]];
+    eq[k]=it&&it.type==='eq'&&it.slot===k&&(k!=='weapon'||it.wt===VOC[voc].wt)?it:(k==='weapon'?ITEMS[STARTER[voc]]:null);t[k]=prNum(f.t&&f.t[k],0,20,0);}
+  const p=f.procs||{},cl=(v,mx)=>{v=+v;return Number.isFinite(v)?clamp(v,0,mx):0;};
+  const procs={crit:cl(p.crit,.5),critX:.5,fatal:cl(p.fatal,.15),ruse:cl(p.ruse,.15),agonia:cl(p.agonia,.3)};
+  const slots=new Array(16).fill(null),sl=Array.isArray(f.slots)?f.slots.slice(0,16):[];
+  sl.forEach((x,i)=>{if(x&&typeof x==='object'&&typeof x.a==='string'&&(MAGIAS15[x.a]||RUNAS15[x.a]||(ITEMS[x.a]&&ITEMS[x.a].type==='pot')))slots[i]={a:x.a,v:prNum(x.v,0,100,0)};});
+  const bag={};for(const s of slots){if(!s||bag[s.a]!==undefined)continue;const it=ITEMS[s.a];if(it&&(it.type==='pot'||it.type==='runa'))bag[s.a]=prNum(f.bag&&f.bag[s.a],0,5000,0);}
+  const pr=+f.prot;return {nome:prTxt(f.nome,20)||'Jogador',voc,nivel,sk,eq,t,procs,slots,bag,outfit:prOutfit(f.outfit),addon:prNum(f.addon,0,3,3),hp:prNum(f.hp,0,200000,1e9),mp:prNum(f.mp,0,200000,1e9),prot:Number.isFinite(pr)?clamp(pr,.3,1):1};}catch(e){return null;}}
+function ptFichaFalsa(x){const sk=skillsBot(x.voc,x.level),eq=equipBot(x.voc,x.level),slots=hotPadrao(x.voc,x.level,sk.magic),bag=kitArena(slots,x.voc),t={};
+  for(const k in bag)bag[k]*=6;for(const k in eq)t[k]=rint(0,3);
+  return {nome:x.nome,voc:x.voc,nivel:x.level,sk,eq,t,procs:procsBot(x.level),slots,bag,outfit:x.outfit,addon:3,hp:1e9,mp:1e9,prot:1};}
+/* ---- iniciar a caçada da party (líder) e entrar nela (todos) ---- */
+function ptBtnHunt(hk){if(!PT.id||S.loc!=='city')return '';
+  if(!ptSou())return '<span class="mut sm">Só o líder inicia a caçada da party. </span>';
+  if(PT.mb.length<2)return '<span class="mut sm">Convide ao menos 1 jogador para a caçada da party. </span>';
+  return `<button class="wbtn" data-act="ptHunt" data-arg="${hk}">Iniciar caçada da party</button> `;}
+function ptIniciarCacada(hk){if(!ptSou()||!HUNTS[hk]||S.loc!=='city'||PT.mb.length<2||PT.hunt||(W&&W.loading))return;
+  const ep=Math.random().toString(36).slice(2,10);PT.pend={ep,loc:hk,papel:'lider',n:PT.mb.length,ate:Date.now()+60000};ptEnv('go',{ep,loc:hk});
+  for(const x of PT.mb)if(x.pid!==PR.pid&&x.level<HUNTS[hk].lv)log('sys',`${x.nome} (Lv ${x.level}) está abaixo do level recomendado (${HUNTS[hk].lv}).`,'o');
+  closeModal();log('sys','Iniciando a caçada da party...','y');travel(hk,null);}
+function ptIrCaca(){const hi=PT.huntInfo;if(!hi||!PT.id||ptSou()||PT.hunt||S.loc==='arena'||(W&&W.loading))return;
+  PT.pend={ep:hi.ep,loc:hi.loc,papel:'membro',ate:Date.now()+60000};closeModal();travel(hi.loc,null);}
+function ptEntrouHunt(){const p=PT.pend;PT.pend=null;if(!p||p.loc!==S.loc||p.ate<Date.now()||!PT.id)return;
+  W.rec=null;for(const k in ATK_T)delete ATK_T[k];
+  const s=S.sess,HU=PT.hunt={papel:p.papel,ep:p.ep,loc:p.loc,b:{xp:s.exp,lc:s.gold+s.loot-s.sup,st:s.t},an:{},ia:[],xs:null,visto:performance.now()+30000,t0:W.time,nFic:0,tFic:0};
+  if(p.papel==='lider'){Object.assign(HU,{lut:new Map(),valor:{},pq:[],reg:W.time+1000,tEnt:{}});W.pl=new Set();PT.ev=[];ptPull(p.n||PT.mb.length);
+    for(const [pid,fh] of PT.fichas)if(fh.ep===HU.ep&&ptM(pid))ptCriarLut(pid,fh.f);
+    if(PT.fake)for(const x of PT.mb)if(x.pid!==PR.pid)ptCriarLut(x.pid,ptFichaFalsa(x));}
+  else{W.mobs=[];W.respawns=[];W.occ.fill(0);W.spawns=[];HU.mobs=new Map();HU.rem=new Map();W.partyR=HU.rem;ptEnviarFicha();}
+  PT.tSin=0;PT.tEst=0;PT.sig='';}
+const ptSigHot=()=>S.set+JSON.stringify(S.sets[S.set]||[]);
+function ptEnviarFicha(){const HU=PT.hunt;if(!HU||HU.papel!=='membro')return;HU.nFic++;HU.tFic=performance.now();HU.sigHot=ptSigHot();ptEnv('ficha',{ep:HU.ep,f:ptFicha()});}
+/* mais monstros com a party: spawns × (1 + 0,5 × (n−1)) */
+function ptPull(n){if(n<2)return;const h=HUNTS[S.loc],tot=W.mobs.length+W.respawns.length,extra=Math.round(tot*.5*(n-1)),sps=W.spawns.filter(sp=>cheb(sp,W.p)>=6);if(!sps.length||!h)return;
+  for(let i=0;i<extra;i++){const sp=pick(sps);spawnMob(sp,sp.mob||pickMob(h));}}
+function ptLivreProx(c){for(let r=1;r<=4;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){const x=c.x+dx,y=c.y+dy;
+  if(Math.max(Math.abs(dx),Math.abs(dy))!==r||!livre15(x,y)||W.occ[y*W.w+x]||(x===W.p.x&&y===W.p.y)||(W.pl&&W.pl.has(y*W.w+x)))continue;return [x,y];}return [c.x,c.y];}
+function ptCriarLut(pid,f){const HU=PT.hunt;if(!HU||HU.papel!=='lider'||!f)return;const old=HU.lut.get(pid);
+  if(old&&old.hp>0){old.slots=f.slots;old.procs=f.procs;for(const id in f.bag)if(old.bag[id]===undefined){old.bag[id]=old.bag0[id]=f.bag[id];}return;}   /* mudou o conjunto/hotbar: só troca a hotbar */
+  if(old)HU.lut.delete(pid);
+  if(HU.lut.size>=PT_MAX-1)return;
+  const R=SP15.roupas[f.voc],fo=f.outfit?null:(R&&(R[f.addon]||R[0])||null);
+  const L=lutadorBot({nome:f.nome,voc:f.voc,nivel:f.nivel,outfit:f.outfit||undefined,sk:f.sk},{eq:f.eq,t:f.t,procs:f.procs,slots:f.slots,folha:fo});
+  L.bag=Object.assign({},f.bag);L.bag0=Object.assign({},f.bag);L.pid=pid;L.cacada=true;L.tgM=null;L.hp=Math.max(1,Math.min(L.max,f.hp));L.mp=Math.min(L.maxMp,f.mp);const pr=f.prot;L.protecao=()=>pr;
+  Object.defineProperty(L,'face',{get(){return [2,1,0,3][this.dir];}});Object.defineProperty(L,'level',{get(){return this.nivel;}});
+  const q=ptLivreProx(W.p);L.x=L.fx=q[0];L.y=L.fy=q[1];L.dir=2;L.mt=1;L.t0=0;L.dur=0;HU.lut.set(pid,L);HU.tEnt[pid]=performance.now();W.pl.add(L.y*W.w+L.x);
+  ef15(me15('teleport'),L.x,L.y);log('sys',`${f.nome} entrou na caçada.`,'y');}
+function ptTeleLut(L){const q=ptLivreProx(W.p);W.pl.delete(L.y*W.w+L.x);ef15(me15('teleport'),L.x,L.y);L.x=L.fx=q[0];L.y=L.fy=q[1];L.mt=1;L.t0=0;L.dur=0;W.pl.add(L.y*W.w+L.x);ef15(me15('teleport'),L.x,L.y);}
+function ptMorreu(L){L.morto=true;L.tMorte=W.time;if(W.pl)W.pl.delete(L.y*W.w+L.x);ef15(me15('mortarea'),L.x,L.y);fxt(L.x,L.y-.6,'MORTO','#ff3b30',true);log('cmb',`☠️ ${L.nome} morreu.`,'r');W.aliados=(W.aliados||[]).filter(a=>a.dono!==L);}
+/* ---- simulação dos lutadores remotos no líder (um tick de 100 ms) ---- */
+function ptMover(L){if(L.mt<1)return;const lz=L.c.lento;if(lz&&lz.ate>W.time&&lz.f<=.35)return;
+  const t=L.tgM&&L.tgM.hp>0?L.tgM:null;let nx=null;
+  if(t){const d=cheb(L,t),R=L.alcance;if(d>R||d===0)nx=bfs(L.x,L.y,(x,y)=>{const dd=Math.max(Math.abs(x-t.x),Math.abs(y-t.y));return dd>=1&&dd<=R;},2);}
+  else if(cheb(L,W.p)>3)nx=bfs(L.x,L.y,(x,y)=>Math.max(Math.abs(x-W.p.x),Math.abs(y-W.p.y))<=2,2);
+  if(!nx||nx==='here')return;
+  const md=mods(L),diag=nx[0]!==L.x&&nx[1]!==L.y;W.pl.delete(L.y*W.w+L.x);
+  L.fx=L.x;L.fy=L.y;L.dir=dirPara(L,{x:nx[0],y:nx[1]});L.x=nx[0];L.y=nx[1];L.mt=0;L.stepMs=(260-Math.min(90,L.nivel*.9))*(diag?1.4:1)/md.vel;W.pl.add(L.y*W.w+L.x);if(!quiet)iniciarPasso(L,L.stepMs);}
+function ptLider(dt){const HU=PT.hunt;if(!HU||HU.papel!=='lider'||S.loc!==HU.loc)return;const T=W.time,vivos=[];
+  for(const L of HU.lut.values()){if(L.hp<=0){if(!L.morto)ptMorreu(L);continue;}vivos.push(L);L.mt=Math.min(1,L.mt+dt/L.stepMs);tickCond15(L);}
+  if(T>=HU.reg){HU.reg=T+1000;for(const L of vivos){const v=VOC[L.voc];L.hp=Math.min(L.max,L.hp+Math.max(1,Math.round(L.max*v.hpReg)));L.mp=Math.min(L.maxMp,L.mp+Math.max(1,Math.round(L.maxMp*v.mpReg)));}}
+  for(const L of vivos.slice().sort(()=>Math.random()-.5)){if(L.hp<=0)continue;ATKR=L.pid;
+    try{if(cheb(L,W.p)>22)ptTeleLut(L);
+      if(!ptAlvoLut(L)){L.tgM=null;let b=null,bd=1e9;for(const m of W.mobs){if(!m.d.hostil)continue;const d=cheb(L,m);if(d<=8&&d<bd){bd=d;b=m;}}L.tgM=b;}
+      const h0=(L.cd.cura||0)+(L.cd.pot||0);usarHotbar15(L);const O=L.alvo;if(O)basico15(L,O);if((L.cd.cura||0)+(L.cd.pot||0)!==h0)ATK_T[L.pid]=T;
+      ptMover(L);}
+    finally{ATKR='eu';}}
+  for(const L of HU.lut.values()){const x=ptM(L.pid);if(x){x.hp=Math.max(0,Math.round(L.hp));x.hpMax=L.max;x.mp=Math.round(L.mp);x.mpMax=L.maxMp;}}}
+/* ---- abate na party: exp compartilhada, loot dividido ---- */
+function ptKill(m){const HU=PT.hunt,me=PR.pid,ex=ptExp(),tem=[me,...ptLutVivos().map(L=>L.pid)];
+  const dano={};for(const k in (m.dano||{})){const pid=k==='eu'?me:k;if(tem.includes(pid))dano[pid]=(dano[pid]||0)+m.dano[k];}
+  const eb={};if(ex.ativa){const v=m.d.exp*(1+ex.bonus)/tem.length;for(const pid of tem)eb[pid]=v;}
+  else{let top=me,tv=-1;for(const pid in dano)if(dano[pid]>tv){tv=dano[pid];top=pid;}eb[top]=m.d.exp;}   /* exp compartilhada desligada ou inativa: inteira para quem causou mais dano */
+  const lm=1+charmV('loot')+preyB(m.id,'loot');let gold=rint(m.d.gold[0],m.d.gold[1]);const its=[];
+  for(const [id,c,mc] of m.d.loot){if(Math.random()>=c*lm)continue;const it=ITEMS[id],q=mc>1?rint(1,mc):1;if(it.type==='coin'){gold+=it.v*q;continue;}its.push([id,q,c]);}
+  const rec={};for(const pid of tem)rec[pid]=[Math.round((eb[pid]||0)*1000)/1000,0,[]];
+  const n=tem.length,base=Math.floor(gold/n);for(const pid of tem)rec[pid][1]=base;rec[pick(tem)][1]+=gold-base*n;   /* ouro em moedas dividido igualmente */
+  its.sort((a,b)=>ITEMS[b[0]].v*b[1]-ITEMS[a[0]].v*a[1]);
+  for(const [id,q,c] of its){let b=null,bv=1e18;for(const pid of tem){const v=(HU.valor[pid]||0)+Math.random()*.01;if(v<bv){bv=v;b=pid;}}   /* divisão justa: quem recebeu menos valor até agora */
+    rec[b][2].push([id,q,c<=.005||ITEMS[id].v*q>=2000?1:0]);HU.valor[b]=(HU.valor[b]||0)+ITEMS[id].v*q;}
+  const r=[m.id,rec];HU.ultKill=r;ptAplicar(r);HU.pq.push(r);ptEv(['c',m.x,m.y,m.id]);
+  W.respawns.push({sp:m.sp,t:W.time+(m.sp.t||30000)*rnd(.8,1.2)});}
+/* aplica a recompensa de um abate ao meu personagem (cada um com os próprios multiplicadores e a própria configuração PEGAR/VENDER) */
+function ptAplicar(r){if(!Array.isArray(r))return;const mid=r[0],mp=r[1],mob=MOBS[mid];if(!mob||!mp||typeof mp!=='object')return;const me=PR.pid;
+  for(const pid in mp){if(pid===me)continue;const e=mp[pid],x=ptM(pid);if(!x||!Array.isArray(e)||!Array.isArray(e[2]))continue;
+    const nm=e[2].filter(i=>Array.isArray(i)&&ITEMS[i[0]]).map(i=>{const q=prNum(i[1],1,100,1);return (q>1?q+' ':'')+ITEMS[i[0]].n;});if(nm.length)log('loot',`${x.nome} recebeu ${nm.join(', ')}.`,'g');}
+  const e=mp[me];if(!Array.isArray(e))return;
+  const eb=clamp(+e[0]||0,0,mob.exp),gold=prNum(e[1],0,1e7,0),its=Array.isArray(e[2])?e[2].slice(0,30):[];
+  const sm=S.stamina>0?1:0,ex=Math.round(eb*stage(S.level)*(1+charmV('exp')+preyB(mid,'exp'))*sm);
+  if(ex){gainExp(ex);fxt(W.p.x,W.p.y-.4,ex+' exp','#ffffff');}
+  S.best[mid]=(S.best[mid]||0)+1;S.sess.kills[mid]=(S.sess.kills[mid]||0)+1;checkBest(mid);
+  S.gold+=gold;S.sess.gold+=gold;const got=[];if(gold)got.push(gold+' gold coins');
+  for(const i of its){if(!Array.isArray(i))continue;const id=i[0],it=ITEMS[id];if(!it||it.type==='coin'||!mob.loot.some(l=>l[0]===id))continue;const q=prNum(i[1],1,100,1);
+    const cf=lootCfgDe(id);if(!cf.pegar)continue;
+    if(cf.vender&&it.v>0){const g=Math.round(it.v*q);S.gold+=g;S.sess.gold+=g;S.sess.vend=(S.sess.vend||0)+g;got.push((q>1?`${q} ${it.n}`:it.n)+' ($)');if(i[2])log('loot',`🎉 Drop raro: ${it.n} (${fmt(it.v)} gp)!`,'o');continue;}
+    if(capFree()<it.w*q){if(!W.capWarn||W.time>W.capWarn){log('sys','Capacidade cheia! Loot deixado no chão.','o');W.capWarn=W.time+15000;}continue;}
+    S.bag[id]=(S.bag[id]||0)+q;S.sess.items[id]=(S.sess.items[id]||0)+q;S.sess.loot+=it.v*q;got.push(q>1?`${q} ${it.n}`:it.n);
+    if(i[2]){log('loot',`🎉 Drop raro: ${it.n} (${fmt(it.v)} gp)!`,'o');toast(`🎉 ${it.n}!`);}}
+  if(got.length)log('loot',`Você recebeu ${got.join(', ')} (${mob.n}).`,'g');}
+/* prêmios e gastos em lote (a cada 2 s) */
+function ptFlush(forca){const HU=PT.hunt;if(!HU||HU.papel!=='lider')return;const now=performance.now();if(!forca&&now-PT.tPre<2000)return;PT.tPre=now;
+  const u={};for(const L of HU.lut.values()){const d={};for(const id in L.bag0){const q=L.bag0[id]-(L.bag[id]||0);if(q>0)d[id]=q;}L.bag0=Object.assign({},L.bag);if(Object.keys(d).length)u[L.pid]=d;}
+  if(!HU.pq.length&&!Object.keys(u).length)return;ptEnv('premio',{ep:HU.ep,r:HU.pq.splice(0,60),u});}
+function ptPremioRec(m){const HU=PT.hunt;if(!HU||HU.papel!=='membro'||m.ep!==HU.ep||m.pid!==PT.lider)return;HU.visto=performance.now();
+  for(const r of (Array.isArray(m.r)?m.r.slice(0,60):[]))ptAplicar(r);
+  const u=m.u&&typeof m.u==='object'?m.u[PR.pid]:null;
+  if(u&&typeof u==='object')for(const id in u){const it=ITEMS[id];if(!it||(it.type!=='pot'&&it.type!=='runa'))continue;const q=Math.min(prNum(u[id],0,5000,0),S.bag[id]||0);if(!q)continue;
+    S.bag[id]-=q;if(!S.bag[id])delete S.bag[id];S.sess.sup+=(it.price||0)*q;S.sess.used[id]=(S.sess.used[id]||0)+q;}}
+/* ---- pacote de estado do líder (4 Hz) ---- */
+function ptAnCalc(){const HU=PT.hunt,o={};if(!HU)return o;const s=S.sess,t=Math.max(1,s.t-HU.b.st),taxa=(x,l,st)=>st>30000?[Math.round(x/st*3600e3),Math.round(l/st*3600e3)]:[0,0];
+  o[PR.pid]=taxa(s.exp-HU.b.xp,s.gold+s.loot-s.sup-HU.b.lc,t);for(const x of PT.mb)if(x.pid!==PR.pid)o[x.pid]=taxa(x.xp,x.lc,x.st);return o;}
+function ptInativos(){const HU=PT.hunt,o=[];if(!HU||HU.papel!=='lider')return o;for(const x of PT.mb){const k=x.pid===PR.pid?'eu':x.pid;if(W.time-Math.max(ATK_T[k]||0,HU.t0)>PT_INATIVO)o.push(x.pid);}return o;}
+function ptEnviarEstado(){const HU=PT.hunt;if(!HU||HU.papel!=='lider'||!W||W.loading)return;const ex=ptExp(),mobs=[],mx=Math.min(W.mobs.length,140);
+  for(let i=0;i<mx;i++){const m=W.mobs[i];mobs.push([m.uid,m.id,m.x,m.y,m.face|0,Math.max(1,Math.ceil(m.hp/m.max*100))]);}
+  const al=(W.aliados||[]).slice(0,20).map(a=>[a.uid||(a.uid=++UID_MOB),a.id,a.x,a.y,a.face|0,Math.max(1,Math.ceil(a.hp/a.max*100))]);
+  const j=[[PR.pid,W.p.x,W.p.y,W.p.face|0,Math.round(S.hp),maxHp(),Math.round(S.mp),maxMp(),1]];
+  for(const L of HU.lut.values())j.push([L.pid,L.x,L.y,[2,1,0,3][L.dir],Math.round(L.hp),L.max,Math.round(L.mp),L.maxMp,L.hp>0?1:0]);
+  const pk={ep:HU.ep,m:mobs,a:al,j,e:PT.ev.splice(0),c:W.campos.slice(0,40).map(c=>[c.x,c.y,c.el||'fire',Math.max(0,Math.round(c.ate-W.time))]),xs:[ex.ativa?1:0,ex.motivo],ia:ptInativos()};
+  const now=performance.now();if(now-PT.tAn>=5000){PT.tAn=now;pk.an=HU.an=ptAnCalc();}
+  ptEnv('estado',pk);}
+/* ---- lado do membro: aplica o estado recebido e roda o "relógio" da caçada ---- */
+function ptEstadoRec(m){const HU=PT.hunt;if(!HU||HU.papel!=='membro'||m.ep!==HU.ep||m.pid!==PT.lider||!W||W.loading||S.loc!==HU.loc)return;
+  const now=performance.now(),gap=clamp(HU.tPk?now-HU.tPk:250,150,450);HU.tPk=now;HU.visto=now;
+  const mv=(e,x,y,face)=>{if(x!==e.x||y!==e.y){const d=Math.max(Math.abs(x-e.x),Math.abs(y-e.y));
+      if(d>2){e.x=e.fx=x;e.y=e.fy=y;e.t0=0;e.dur=0;}else{e.fx=e.x;e.fy=e.y;e.x=x;e.y=y;iniciarPasso(e,gap*(d>1?1.4:1));}}e.face=face;};
+  const vistos=new Set();
+  for(const lista of [m.m,m.a]){for(const e of (Array.isArray(lista)?lista.slice(0,160):[])){if(!Array.isArray(e))continue;
+    const uid=prNum(e[0],1,1e9,0),id=e[1],d=typeof id==='string'?MOBS[id]:null;if(!uid||!d)continue;
+    const x=prNum(e[2],0,W.w-1,-1),y=prNum(e[3],0,W.h-1,-1);if(x<0||y<0)continue;vistos.add(uid);
+    let mb=HU.mobs.get(uid);if(!mb){mb={uid,id,d,x,y,fx:x,fy:y,mt:1,fase:rnd(0,800),max:d.hp,hp:d.hp,dir:1,face:2,aggro:false,sp:{x,y,t:0},cdAtk:0,wander:0};HU.mobs.set(uid,mb);W.mobs.push(mb);}
+    if(x>mb.x)mb.dir=1;else if(x<mb.x)mb.dir=-1;mv(mb,x,y,prNum(e[4],0,3,mb.face));mb.hp=mb.max*prNum(e[5],1,100,100)/100;}}
+  for(const [uid,mb] of HU.mobs)if(!vistos.has(uid)){HU.mobs.delete(uid);const i=W.mobs.indexOf(mb);if(i>=0)W.mobs.splice(i,1);}
+  const jv=new Set();
+  for(const e of (Array.isArray(m.j)?m.j.slice(0,PT_MAX):[])){if(!Array.isArray(e)||typeof e[0]!=='string')continue;const pid=e[0].slice(0,64),x=prNum(e[1],0,W.w-1,-1),y=prNum(e[2],0,W.h-1,-1);if(x<0||y<0)continue;
+    const face=prNum(e[3],0,3,0),mx=prNum(e[5],1,200000,100),hp=prNum(e[4],0,mx,mx),mpx=prNum(e[7],1,200000,50),mp=prNum(e[6],0,mpx,mpx),vivo=e[8]?1:0,pm=ptM(pid);jv.add(pid);
+    if(pm){pm.hp=hp;pm.hpMax=mx;pm.mp=mp;pm.mpMax=mpx;}
+    if(pid===PR.pid){HU.noJ=true;mv(W.p,x,y,face);W.p.mt=1;
+      if(!HU.morreu){if(!vivo||hp<=0){HU.morreu=1;S.hp=0;die();return;}S.hp=Math.min(hp,maxHp());S.mp=Math.min(mp,maxMp());}}
+    else{let r=HU.rem.get(pid);if(!r){r={pid,x,y,fx:x,fy:y,face,andaDesde:0,dur:0,t0:0,fala:null,falaAte:0};HU.rem.set(pid,r);}
+      if(pm){r.nome=pm.nome;r.voc=pm.voc;r.level=pm.level;r.outfit=pm.outfit;}else{r.nome=r.nome||'Jogador';r.voc=r.voc||'knight';r.outfit=r.outfit||null;}
+      r.hp=hp;r.hpMax=mx;r.vivo=vivo;mv(r,x,y,face);}}
+  for(const pid of [...HU.rem.keys()])if(!jv.has(pid))HU.rem.delete(pid);
+  for(const e of (Array.isArray(m.e)?m.e.slice(0,200):[])){if(!Array.isArray(e))continue;const k=e[0];
+    if(k==='e'){const id=e[1];if(CB&&CB.efeitos[id])ef15(id,prNum(e[2],0,W.w-1,0),prNum(e[3],0,W.h-1,0),prNum(e[4],0,3000,0));}
+    else if(k==='t'){const id=e[1];if(CB&&CB.tiros[id])tiro15(id,{x:prNum(e[2],-2,W.w+2,0),y:prNum(e[3],-2,W.h+2,0)},{x:prNum(e[4],-2,W.w+2,0),y:prNum(e[5],-2,W.h+2,0)});}
+    else if(k==='f'){const txt=prTxt(e[3],14),col=/^#[0-9a-fA-F]{3,8}$/.test(e[4])?e[4]:'#fff';if(txt)fxt(prNum(e[1],0,W.w,0),prNum(e[2],0,W.h,0),txt,col,!!e[5]);}
+    else if(k==='c'){const d=MOBS[e[3]];if(d){W.corpses.push({x:prNum(e[1],0,W.w-1,0),y:prNum(e[2],0,W.h-1,0),m:d,id:e[3],b:performance.now()});if(W.corpses.length>25)W.corpses.shift();}}}
+  const cp=[];for(const c of (Array.isArray(m.c)?m.c.slice(0,40):[])){if(!Array.isArray(c))continue;cp.push({x:prNum(c[0],0,W.w-1,0),y:prNum(c[1],0,W.h-1,0),el:['fire','energy','earth'].includes(c[2])?c[2]:'fire',b:performance.now(),ate:W.time+prNum(c[3],0,60000,0)});}
+  W.campos=cp;
+  if(Array.isArray(m.xs))HU.xs=[m.xs[0]?1:0,prTxt(m.xs[1],90)];
+  HU.ia=Array.isArray(m.ia)?m.ia.filter(x=>typeof x==='string').slice(0,PT_MAX):[];
+  if(m.an&&typeof m.an==='object'){const an={};for(const k in m.an){const a=m.an[k];if(Array.isArray(a)&&a.length===2)an[String(k).slice(0,64)]=[prNum(a[0],0,1e9,0),prNum(a[1],-1e9,1e9,0)];}HU.an=an;}}
+function ptMembro(dt){const HU=PT.hunt,s=S.sess;s.t+=dt;S.stamina-=dt;
+  for(const arr of Object.values(S.imb))for(const im of arr)if(im&&im.ms>0)im.ms-=dt;
+  preyTick(dt);wcTempo(dt);W.p.mt=1;W.chk+=dt;
+  if(W.chk>=1000){W.chk=0;if(S.stamina<=0){S.stamina=0;returnCity('stamina esgotada',false);}}}
+/* ---- encerrar ---- */
+function ptSairHunt(motivo,semViagem){const HU=PT.hunt;if(!HU)return;
+  if(HU.papel==='lider'){ptFlush(true);ptEnv('fim',{ep:HU.ep});if(W){W.aliados=(W.aliados||[]).filter(a=>!(a.dono&&a.dono.cacada));}}
+  PT.hunt=null;PT.ev=null;if(W){W.pl=null;W.partyR=null;}
+  if(motivo)log('sys',motivo,'b');
+  if(!semViagem&&HU.papel==='membro'&&S&&S.loc!=='city'&&S.loc!=='arena')travel('city',null);
+  PT.tSin=0;PT.sig='';}
+function ptSairPagina(){try{if(PT.id&&PT.tr){if(PT.hunt&&PT.hunt.papel==='lider')ptEnv('fim',{ep:PT.hunt.ep});ptEnv('sair',{});}}catch(e){}}
+/* ---- interface: escudos, janela Party, analisador ---- */
+function ptEscudoDe(pid){if(!PT.id||PT.mb.length<1)return null;const x=ptM(pid);if(!x)return null;
+  return {tipo:pid===PT.lider?1:2,glow:PT.flag==='verde'?'#3ddc57':PT.flag==='cinza'?'#9aa3b2':null};}
+function drawEscudo(x,y,tipo,glow){ctx.save();if(glow){ctx.shadowColor=glow;ctx.shadowBlur=6;}
+  const c=tipo===1?['#f2c14e','#8a6a24','#fff1b0']:['#4a8cf0','#1f4a9a','#cfe0ff'];
+  ctx.beginPath();ctx.moveTo(x,y+1);ctx.lineTo(x+4.5,y);ctx.lineTo(x+9,y+1);ctx.lineTo(x+9,y+6);ctx.quadraticCurveTo(x+9,y+9.5,x+4.5,y+11.5);ctx.quadraticCurveTo(x,y+9.5,x,y+6);ctx.closePath();
+  ctx.fillStyle=c[0];ctx.fill();ctx.shadowBlur=0;ctx.lineWidth=1.2;ctx.strokeStyle=c[1];ctx.stroke();ctx.fillStyle=c[2];ctx.globalAlpha=.6;ctx.fillRect(x+2,y+2.5,2,4);ctx.restore();}
+const ptEscSVG=(t,f)=>`<svg class="pesc ${f}" viewBox="0 0 10 12" width="10" height="12"><path d="M.8 1.4L5 .4l4.2 1v5.1Q9.2 10 5 11.6 .8 10 .8 6.5z" fill="${t===1?'#f2c14e':'#4a8cf0'}" stroke="${t===1?'#8a6a24':'#1f4a9a'}" stroke-width="1"/><path d="M2.4 2.4h1.4v4H2.4z" fill="#fff" opacity=".5"/></svg>`;
+const ptVocBadge=v=>`<span class="pv" style="background:${VOC[v].col.b}" title="${VOC[v].n}">${VOC[v].n[0]}</span>`;
+function ptRender(){const b=$('#partyBody');if(!b||!S)return;const ex=PT.id?ptExp():null,HU=PT.hunt;
+  const sig=JSON.stringify([PT.id,PT.lider,PT.expOn,PT.mb.map(x=>[x.pid,x.nome,x.level,x.hp,x.hpMax,x.mp,x.mpMax,x.loc]),PT.conv.map(c=>c.de),ex&&[ex.flag,ex.motivo,ex.nv],PT.huntInfo,HU&&HU.ep,S.loc]);
+  if(sig===PT.sig)return;PT.sig=sig;let h=PT.conv.map((c,i)=>`<div class="ptc"><b>${esc(c.nome)}</b> convidou você para a party.<div class="ptb"><button class="btn go" data-act="ptAceitar" data-arg="${i}">Aceitar</button><button class="btn" data-act="ptRecusar" data-arg="${i}">Recusar</button></div></div>`).join('');
+  if(!PT.id)h+=PT.conv.length?'':'<p class="mut sm">Você não está em uma party. Na cidade, clique em um jogador para convidá-lo.</p>';
+  else{const sou=ptSou(),ord=PT.mb.slice().sort((a,c)=>(a.pid===PT.lider?-1:c.pid===PT.lider?1:0));
+    h+=ord.map(x=>{const lid=x.pid===PT.lider,eu=x.pid===PR.pid,pc=(v,m)=>Math.round(clamp(v/Math.max(1,m),0,1)*100);
+      return `<div class="ptm"><div>${x.outfit?ret15(x.outfit):`<div class="ph">${esc((x.nome||'?')[0])}</div>`}</div><div class="pti"><div class="ptn">${ptEscSVG(lid?1:2,ex&&ex.flag||'off')}<b>${esc(x.nome)}</b>${eu?'<small>(você)</small>':''}</div>
+        <div class="mut sm">${esc(VOC[x.voc].n)} · Level ${x.level}${HU&&x.loc!==HU.loc&&x.pid!==PR.pid&&HU.papel==='lider'&&!HU.lut.has(x.pid)?' · fora da caçada':''}</div>
+        <div class="ptbar hp"><i style="width:${pc(x.hp,x.hpMax)}%"></i><span>${x.hp}/${x.hpMax}</span></div><div class="ptbar mp"><i style="width:${pc(x.mp,x.mpMax)}%"></i><span>${x.mp}/${x.mpMax}</span></div></div>
+        ${sou&&!eu?`<div class="pta"><button data-act="ptKick" data-arg="${esc(x.pid)}">Expulsar</button>${HU?'':`<button data-act="ptLider" data-arg="${esc(x.pid)}">Passar líder</button>`}</div>`:''}</div>`;}).join('');
+    h+=`<div class="ptx ${ex.flag}"><div>${ex.vocs.map(ptVocBadge).join('')}<b>${esc(ptBonusTxt(ex))}</b></div><div class="mut sm">Exp compartilhada: ${!PT.expOn?'<b>desligada</b>':ex.ativa?'<b style="color:#7fe07f">ativa</b>':ex.espera?'<b>aguardando</b>':'<b style="color:#ccc">inativa</b>'} — ${esc(ex.motivo)}</div></div>`;
+    h+='<div class="ptb" style="margin-top:8px">'+(sou?`<button class="btn" data-act="ptExpTog">${PT.expOn?'Desligar':'Ligar'} exp compartilhada</button>`:'')+
+      (!sou&&PT.huntInfo&&!HU&&S.loc==='city'?`<button class="btn go" data-act="ptIrCaca">Ir para a caçada (${esc(HUNTS[PT.huntInfo.loc].n)})</button>`:'')+`<button class="btn red" data-act="ptSair">Sair da party</button></div>`;}
+  b.innerHTML=h;pintarRetratos();}
+function ptAna(){const el=$('#anaParty');if(!el)return;const HU=PT.hunt;let h='';
+  if(HU&&PT.mb.length>1){const an=HU.papel==='lider'?HU.an:HU.an,hd=`<div class="anap" style="border-top:0;color:var(--mut)"><span>PARTY</span><span>EXP/H</span><span>LUCRO/H</span></div>`;
+    h=hd+PT.mb.map(x=>{const a=(an&&an[x.pid])||[0,0];return `<div class="anap"><b>${esc(x.nome)}</b><span>${a[0]?fmt(a[0]):'---'}</span><span class="${a[1]<0?'r':'g'}">${a[0]||a[1]?fmt(a[1]):'---'}</span></div>`;}).join('');}
+  if(PT.sigA!==h){PT.sigA=h;el.innerHTML=h;}}
+function ptUI(){try{const ex=PT.id?ptExp():null;PT.flag=ex?ex.flag:'off';ptRender();ptAna();}catch(e){}}
+/* menu ao clicar num jogador da cidade */
+function ptClique(e){if(!S||!W||!W.city||!PR.ativo||!W.cam)return;const r=prRemotoEm(e);if(!r)return;
+  const noP=PT.id&&ptM(r.pid),cheia=PT.id&&PT.mb.length>=PT_MAX,naoLider=PT.id&&!ptSou();
+  const dis=noP||cheia||naoLider,why=noP?'Já está na sua party':cheia?'Party cheia (4)':naoLider?'Só o líder convida':'';
+  const c=$('#ctx');c.innerHTML=`<div class="ttl">${esc(r.nome)}</div><div class="info">${esc(VOC[r.voc].n)} · Level ${esc(r.level)}</div><button data-act="ptConvidar" data-arg="${esc(r.pid)}" ${dis?'disabled':''}>Convidar para party${why?' — '+why:''}</button>`;
+  c.classList.remove('hidden');const b=c.getBoundingClientRect();c.style.left=clamp(e.clientX,4,innerWidth-b.width-4)+'px';c.style.top=clamp(e.clientY,4,innerHeight-b.height-4)+'px';e.stopPropagation();}
+cv.addEventListener('click',ptClique);
+const PTACT={ptConvidar:a=>{hideCtx();ptConvidar(a);},ptAceitar:a=>ptAceitar(+a),ptRecusar:a=>ptRecusar(+a),ptSair:()=>ptSair(),ptKick:a=>ptKick(a),ptLider:a=>ptPassar(a),ptExpTog:()=>ptExpTog(),
+  ptHunt:a=>ptIniciarCacada(a),ptIrCaca:()=>ptIrCaca()};
+/* ---- relógio da party (100 ms) ---- */
+function ptTick(){try{if(!S)return;const now=performance.now(),ag=Date.now();
+  PT.conv=PT.conv.filter(c=>c.ate>ag);for(const k in PT.sent)if(ag-PT.sent[k]>PT_CONVITE+10000)delete PT.sent[k];if(PT.pend&&PT.pend.ate<ag)PT.pend=null;
+  if(PT.id){
+    if(!PT.fake&&(!prModoRede()||PR.pid!==PT.me)){ptDesfazer('A party foi encerrada.');}
+    else{
+      if(!PT.tr&&!PT.fake)ptAbrir();
+      const sou=ptSou(),HU=PT.hunt;
+      if(!PT.conf&&!sou){if(PT.nEnt<6&&now-PT.tEnt>2500){PT.tEnt=now;PT.nEnt++;ptEnv('entrar',ptMetaEu());}else if(PT.nEnt>=6&&now-PT.tEnt>3500){ptDesfazer('Não foi possível entrar na party.');return;}}
+      if(sou&&PT.mb.length<2&&!PT.fake&&!Object.keys(PT.sent).length){ptDesfazer('A party foi desfeita.');return;}
+      const eu=ptM(PR.pid);if(eu&&now-PT.tMe>1000){PT.tMe=now;if(!HU||HU.papel!=='membro'||!HU.noJ)ptSan(ptMetaEu(),eu);eu.visto=now;}
+      if(PT.conf&&now-PT.tSin>=5000){PT.tSin=now;if(sou)ptRost();else ptEnv('sinal',ptMetaEu());}
+      if(PT.conf&&!PT.fake){
+        if(sou){for(const x of PT.mb.slice())if(x.pid!==PR.pid&&now-x.visto>PT_SUMIR)ptTirar(x.pid,'caiu (sem sinal)');}
+        else{const l=ptM(PT.lider);if(l&&now-l.visto>PT_SUMIR)ptTirar(PT.lider,'caiu (sem sinal)');}}
+      if(PT.id&&HU){
+        if(S.loc!==HU.loc){ptSairHunt(HU.papel==='lider'?'A caçada da party terminou (o líder saiu).':null,true);}
+        else if(HU.papel==='lider'){
+          ptFlush();
+          for(const [pid,L] of [...HU.lut]){const x=ptM(pid);
+            if(!x||(!PT.fake&&x.loc!==HU.loc&&now-(HU.tEnt[pid]||0)>8000)||(L.hp<=0&&L.morto&&W.time-L.tMorte>30000)){HU.lut.delete(pid);if(W.pl)W.pl.delete(L.y*W.w+L.x);W.aliados=(W.aliados||[]).filter(a=>a.dono!==L);}}}
+        else{
+          if(now>HU.visto+PT_SUMIR){ptSairHunt('O líder saiu da caçada.');}
+          else if(!HU.noJ&&HU.nFic<8&&now-HU.tFic>3000)ptEnviarFicha();
+          else if(HU.noJ&&HU.sigHot!==ptSigHot()&&now-HU.tFic>2000)ptEnviarFicha();}}}}
+  ptUI();
+}catch(e){}}
+/* estado do líder: PARTY_HZ vezes por segundo */
+function ptEstLoop(){try{const HU=PT.hunt;if(HU&&HU.papel==='lider'&&PT.id&&S&&S.loc===HU.loc){const now=performance.now();if(now-PT.tEst>=1000/PARTY_HZ-8){PT.tEst=now;ptEnviarEstado();}}}catch(e){}}
+/* relógio da party num Worker: abas escondidas por muito tempo têm os timers da página reduzidos a 1 por minuto, e a party dependeria deles */
+let ptWorker=null;
+try{ptWorker=new Worker(URL.createObjectURL(new Blob(['let n=0;setInterval(()=>{n++;postMessage(n&1?1:2)},50)'],{type:'text/javascript'})));
+  ptWorker.onmessage=e=>{ptEstLoop();if(e.data===2){ptTick();if(PT.hunt)tickLoop();}};}catch(e){ptWorker=null;}
+if(!ptWorker){setInterval(ptTick,100);setInterval(ptEstLoop,50);}
+addEventListener('pagehide',ptSairPagina);addEventListener('beforeunload',ptSairPagina);
+/* teste local (só com ?rede=local): party falsa com lutadores simulados, sem rede. Ex.: ptTeste(['paladin','sorcerer','druid'],'edron_goblins') */
+function ptTeste(vocs,hk){if(!REDE_LOCAL||!S||S.loc!=='city'||PT.hunt)return false;if(!PR.pid)PR.pid='Lteste'+Math.random().toString(36).slice(2,6);
+  if(PT.id)ptDesfazer();
+  PT.id=PT.me=PR.pid;PT.lider=PR.pid;PT.fake=true;PT.conf=true;PT.expOn=true;
+  PT.mb=[Object.assign({pid:PR.pid,visto:performance.now()},ptSan(ptMetaEu()))];
+  vocs.forEach((v,i)=>{const o=gerarOponente(S.level,1000,v);PT.mb.push(Object.assign({pid:'F'+i,visto:Infinity},ptSan({nome:o.nome,voc:v,level:o.nivel,outfit:o.outfit,hp:1,hpMax:1,mp:1,mpMax:1,loc:'city'}),{level:S.level}));});
+  ptIniciarCacada(hk||S.lastHunt||bestHunt());return true;}
 
 async function boot(){
   document.body.appendChild(holder);buildSprites();resize();
