@@ -3183,7 +3183,8 @@ function prTrLocal(chave){const bc=new BroadcastChannel('tibiaidle-'+chave);let 
     else if(m.t==='tchau')h.saiu(m.pid);else if(m.t==='pos'||m.t==='fala'||m.t==='convite'||m.t==='resposta')h.rec(m.t,m);};
   return {entrar(hh,mf){h=hh;meuMeta=mf;env({t:'oi',pid:PR.pid,meta:mf()});},atualizar(meta){env({t:'oi',r:1,pid:PR.pid,meta});},
     enviar(t,pl){env(Object.assign({t,pid:PR.pid},pl));},sair(){env({t:'tchau',pid:PR.pid});vivo=false;try{bc.close();}catch(e){}}};}
-function prTrRealtime(chave){let ch=null,h=null,vivo=true,meuMeta=null,tim=null,n=0;
+function prTrRealtime(chave){let ch=null,h=null,vivo=true,meuMeta=null,tim=null,n=0,ok=false;const fila=[];
+  const envia=(t,pl)=>{try{if(ch)ch.send({type:'broadcast',event:t,payload:Object.assign({pid:PR.pid},pl)});}catch(e){}};
   const abrir=()=>{if(!vivo)return;try{
     ch=SB.channel('cidade:'+chave,{config:{presence:{key:PR.pid},broadcast:{self:false}}});
     ch.on('presence',{event:'sync'},()=>{try{const st=ch.presenceState(),m=new Map();for(const k of Object.keys(st)){const a=st[k];if(a&&a.length)m.set(k,a[a.length-1]);}h.sync(m);}catch(e){}});
@@ -3192,12 +3193,12 @@ function prTrRealtime(chave){let ch=null,h=null,vivo=true,meuMeta=null,tim=null,
     ch.on('broadcast',{event:'convite'},m=>{try{h.rec('convite',m.payload);}catch(e){}});
     ch.on('broadcast',{event:'resposta'},m=>{try{h.rec('resposta',m.payload);}catch(e){}});
     ch.subscribe(st=>{if(!vivo)return;
-      if(st==='SUBSCRIBED'){n=0;PR.erro=null;try{ch.track(meuMeta());}catch(e){}}
-      else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){PR.erro=st;religar();}});
+      if(st==='SUBSCRIBED'){n=0;PR.erro=null;ok=true;try{ch.track(meuMeta());}catch(e){}while(fila.length){const q=fila.shift();envia(q[0],q[1]);}}
+      else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){PR.erro=st;ok=false;religar();}});
   }catch(e){PR.erro=String(e&&e.message||e);religar();}};
   const religar=()=>{if(!vivo||tim)return;try{if(ch)SB.removeChannel(ch);}catch(e){}ch=null;const d=Math.min(30000,2000*Math.pow(2,n++));tim=setTimeout(()=>{tim=null;abrir();},d);};
   return {entrar(hh,mf){h=hh;meuMeta=mf;abrir();},atualizar(meta){try{if(ch)ch.track(meta);}catch(e){}},
-    enviar(t,pl){try{if(ch)ch.send({type:'broadcast',event:t,payload:Object.assign({pid:PR.pid},pl)});}catch(e){}},
+    enviar(t,pl){if(!ok){if(t==='convite'||t==='resposta'){fila.push([t,pl]);if(fila.length>20)fila.shift();}return;}envia(t,pl);},
     sair(){vivo=false;if(tim)clearTimeout(tim);try{if(ch){ch.untrack();SB.removeChannel(ch);}}catch(e){}ch=null;}};}
 /* ---- remotos ---- */
 function prAplicarMeta(r,m){r.nome=prTxt(m.nome,20)||'Jogador';r.voc=VOC[m.voc]?m.voc:'knight';r.level=prNum(m.level,1,9999,1);r.outfit=prOutfit(m.outfit);}
@@ -3278,7 +3279,7 @@ setInterval(prTick,100);
    Convites ficam no canal da cidade (convite/resposta). Modo solo: PT.hunt e W.pl ficam vazios e nada muda. */
 const PARTY_HZ=4,PT_MAX=4,PT_CONVITE=60000,PT_SUMIR=15000,PT_INATIVO=120000,PT_BONUS=[0,.2,.3,.6,1];
 const PT_EVS=['rost','sinal','entrar','sair','go','fim','ficha','estado','premio','kick','recusa'];
-Object.assign(PT,{id:null,me:null,lider:null,mb:[],expOn:true,tr:null,conv:[],sent:{},pend:null,fichas:new Map(),conf:false,tEnt:0,nEnt:0,tSin:0,tEst:0,tPre:0,tAn:0,tMe:0,sig:'',flag:'off',huntInfo:null,fake:false,n:{env:0,rec:0}});
+Object.assign(PT,{id:null,me:null,lider:null,mb:[],expOn:true,tr:null,conv:[],sent:{},pend:null,fichas:new Map(),conf:false,tEnt:0,nEnt:0,tSin:0,tEst:0,tPre:0,tAn:0,tMe:0,sig:'',flag:'off',huntInfo:null,epAuto:null,fake:false,n:{env:0,rec:0}});
 const ptSou=()=>!!PT.id&&PT.lider===PR.pid;
 const ptM=pid=>PT.mb.find(x=>x.pid===pid);
 function ptEv(e){const a=PT.ev;if(a&&a.length<200)a.push(e);}
@@ -3288,14 +3289,15 @@ function ptAlvoLut(L){const t=L.tgM;return t&&t.hp>0&&W.mobs.includes(t)&&cheb(L
 function ptTrLocal(chave){const bc=new BroadcastChannel('tibiaidle-party-'+chave);let h=null,vivo=true;
   bc.onmessage=ev=>{const m=ev.data;if(!m||typeof m!=='object'||typeof m.pid!=='string'||m.pid===PR.pid||!h||!PT_EVS.includes(m._e))return;h(m._e,m);};
   return {abrir(hh){h=hh;},enviar(t,pl){if(vivo)try{bc.postMessage(Object.assign({},pl,{_e:t,pid:PR.pid}));}catch(e){}},fechar(){vivo=false;try{bc.close();}catch(e){}}};}
-function ptTrRealtime(chave){let ch=null,h=null,vivo=true,tim=null,n=0;
+function ptTrRealtime(chave){let ch=null,h=null,vivo=true,tim=null,n=0,ok=false;const fila=[];
+  const envia=(t,pl)=>{try{if(ch)ch.send({type:'broadcast',event:t,payload:Object.assign({},pl,{pid:PR.pid})});}catch(e){}};
   const abrir=()=>{if(!vivo)return;try{
     ch=SB.channel('party:'+chave,{config:{broadcast:{self:false}}});
     for(const e of PT_EVS)ch.on('broadcast',{event:e},m=>{try{const p=m.payload;if(p&&typeof p.pid==='string'&&p.pid!==PR.pid)h(e,p);}catch(x){}});
-    ch.subscribe(st=>{if(!vivo)return;if(st==='SUBSCRIBED')n=0;else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED')religar();});
+    ch.subscribe(st=>{if(!vivo)return;if(st==='SUBSCRIBED'){n=0;ok=true;while(fila.length){const q=fila.shift();envia(q[0],q[1]);}}else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){ok=false;religar();}});
   }catch(e){religar();}};
-  const religar=()=>{if(!vivo||tim)return;try{if(ch)SB.removeChannel(ch);}catch(e){}ch=null;const d=Math.min(30000,2000*Math.pow(2,n++));tim=setTimeout(()=>{tim=null;abrir();},d);};
-  return {abrir(hh){h=hh;abrir();},enviar(t,pl){try{if(ch)ch.send({type:'broadcast',event:t,payload:Object.assign({},pl,{pid:PR.pid})});}catch(e){}},
+  const religar=()=>{if(!vivo||tim)return;ok=false;try{if(ch)SB.removeChannel(ch);}catch(e){}ch=null;const d=Math.min(30000,2000*Math.pow(2,n++));tim=setTimeout(()=>{tim=null;abrir();},d);};
+  return {abrir(hh){h=hh;abrir();},enviar(t,pl){if(!ok){fila.push([t,pl]);if(fila.length>20)fila.shift();return;}envia(t,pl);},
     fechar(){vivo=false;if(tim)clearTimeout(tim);try{if(ch)SB.removeChannel(ch);}catch(e){}ch=null;}};}
 function ptAbrir(){if(PT.tr||!PT.id||PT.fake)return;const modo=prModoRede();if(!modo)return;
   try{PT.tr=modo==='local'?ptTrLocal(PT.id):ptTrRealtime(PT.id);PT.tr.abrir(ptRec);}catch(e){PT.tr=null;}}
@@ -3331,7 +3333,7 @@ function ptAceitar(i){const c=PT.conv[i];if(!c||c.ate<Date.now()||PT.id||!PR.pid
   Object.assign(PT,{id:c.pt,me:PR.pid,lider:c.de,mb:[],conf:false,expOn:true,nEnt:0,tEnt:0,conv:[],fake:false});ptAbrir();ptMostrar();}
 function ptRecusar(i){const c=PT.conv[i];PT.conv.splice(i,1);if(c&&PR.ativo&&PR.tr)PR.tr.enviar('resposta',{para:c.de,nome:prTxt(S.name,20),ok:0});}
 function ptDesfazer(msg){const tinha=!!PT.id;if(PT.hunt)ptSairHunt(null,PT.hunt.papel==='lider');ptFechar();
-  Object.assign(PT,{id:null,me:null,lider:null,mb:[],conf:false,sent:{},huntInfo:null,fake:false,sig:'',flag:'off'});PT.fichas.clear();PT.pend=null;
+  Object.assign(PT,{id:null,me:null,lider:null,mb:[],conf:false,sent:{},huntInfo:null,epAuto:null,fake:false,sig:'',flag:'off'});PT.fichas.clear();PT.pend=null;
   if(tinha&&msg)log('sys',msg,'o');}
 function ptSair(){if(!PT.id)return;if(PT.hunt&&PT.hunt.papel==='lider')ptSairHunt('Você saiu da caçada da party.',true);ptEnv('sair',{});ptDesfazer('Você saiu da party.');}
 function ptTirar(pid,como){const i=PT.mb.findIndex(x=>x.pid===pid);if(i<0)return;const x=PT.mb[i];PT.mb.splice(i,1);
@@ -3348,6 +3350,10 @@ function ptRost(){if(!ptSou())return;const HU=PT.hunt;
   ptEnv('rost',{lider:PT.lider,exp:PT.expOn?1:0,h:HU&&HU.papel==='lider'?{ep:HU.ep,loc:HU.loc}:null,
     m:PT.mb.map(x=>({pid:x.pid,nome:x.nome,voc:x.voc,level:x.level,outfit:x.outfit,hp:x.hp,hpMax:x.hpMax,mp:x.mp,mpMax:x.mpMax,loc:x.loc,xp:x.xp,lc:x.lc,st:x.st}))});}
 /* ---- mensagens do canal da party ---- */
+function ptSeguirLider(ep,loc){
+  PT.pend={ep,loc,papel:'membro',ate:Date.now()+60000};closeModal();log('sys',`O líder iniciou a caçada da party: ${HUNTS[loc].n}.`,'y');
+  if(S.level<HUNTS[loc].lv){log('sys',`Aviso: seu level (${S.level}) está abaixo do recomendado (${HUNTS[loc].lv}).`,'o');toast('Level abaixo do recomendado');}
+  travel(loc,null);}
 function ptRec(t,m){try{PT.n.rec++;if(!PT.id||!m||typeof m!=='object'||typeof m.pid!=='string')return;const now=performance.now(),eu=PR.pid,de=m.pid.slice(0,64),mm=ptM(de);
   if(t==='rost'){if(de!==PT.lider)return;
     const arr=Array.isArray(m.m)?m.m.slice(0,PT_MAX):[],nl=[];
@@ -3357,6 +3363,8 @@ function ptRec(t,m){try{PT.n.rec++;if(!PT.id||!m||typeof m!=='object'||typeof m.
     if(!PT.conf){PT.conf=true;log('sys',`Você entrou na party de ${nl[0].nome}.`,'y');ptMostrar();PT.tSin=0;}
     PT.mb=nl;PT.lider=typeof m.lider==='string'&&nl.some(x=>x.pid===m.lider)?m.lider:nl[0].pid;PT.expOn=!!m.exp;const lm=ptM(PT.lider);if(lm)lm.visto=now;
     PT.huntInfo=m.h&&typeof m.h==='object'&&HUNTS[m.h.loc]&&typeof m.h.ep==='string'?{ep:m.h.ep.slice(0,16),loc:m.h.loc}:null;
+    const hi=PT.huntInfo;
+    if(hi&&hi.ep!==PT.epAuto&&!ptSou()&&!PT.hunt&&!PT.pend&&S&&S.loc==='city'&&!(W&&W.loading)){PT.epAuto=hi.ep;ptSeguirLider(hi.ep,hi.loc);}
     if(nl.length<2)ptDesfazer('A party foi desfeita.');}
   else if(t==='sinal'){if(!mm)return;ptSan(m,mm);mm.visto=now;}
   else if(t==='entrar'){if(!ptSou())return;if(mm){mm.visto=now;ptRost();return;}
@@ -3367,9 +3375,7 @@ function ptRec(t,m){try{PT.n.rec++;if(!PT.id||!m||typeof m!=='object'||typeof m.
   else if(t==='kick'){if(de===PT.lider&&m.para===eu)ptDesfazer('Você foi expulso da party.');}
   else if(t==='recusa'){if(de===PT.lider&&m.para===eu)ptDesfazer('A party está cheia.');}
   else if(t==='go'){if(de!==PT.lider||!S)return;const loc=m.loc;if(!HUNTS[loc]||typeof m.ep!=='string'||S.loc==='arena'||(W&&W.loading))return;
-    PT.pend={ep:m.ep.slice(0,16),loc,papel:'membro',ate:Date.now()+60000};closeModal();log('sys',`O líder iniciou a caçada da party: ${HUNTS[loc].n}.`,'y');
-    if(S.level<HUNTS[loc].lv){log('sys',`Aviso: seu level (${S.level}) está abaixo do recomendado (${HUNTS[loc].lv}).`,'o');toast('Level abaixo do recomendado');}
-    travel(loc,null);}
+    PT.epAuto=m.ep.slice(0,16);ptSeguirLider(m.ep.slice(0,16),loc);}
   else if(t==='fim'){const HU=PT.hunt;if(de!==PT.lider||!HU||HU.papel!=='membro'||m.ep!==HU.ep)return;ptSairHunt('A caçada da party terminou.');}
   else if(t==='ficha'){if(!ptSou()||!mm)return;const f=ptValFicha(m.f);if(!f||typeof m.ep!=='string')return;mm.visto=now;
     const ep=m.ep.slice(0,16);PT.fichas.set(de,{ep,f});const HU=PT.hunt;if(HU&&HU.papel==='lider'&&ep===HU.ep)ptCriarLut(de,f);}
@@ -3426,7 +3432,7 @@ function ptEntrouHunt(){const p=PT.pend;PT.pend=null;if(!p||p.loc!==S.loc||p.ate
     for(const [pid,fh] of PT.fichas)if(fh.ep===HU.ep&&ptM(pid))ptCriarLut(pid,fh.f);
     if(PT.fake)for(const x of PT.mb)if(x.pid!==PR.pid)ptCriarLut(x.pid,ptFichaFalsa(x));}
   else{W.mobs=[];W.respawns=[];W.occ.fill(0);W.spawns=[];HU.mobs=new Map();HU.rem=new Map();W.partyR=HU.rem;ptEnviarFicha();}
-  PT.tSin=0;PT.tEst=0;PT.sig='';}
+  PT.tSin=0;PT.tEst=0;PT.sig='';if(p.papel==='lider')ptRost();}
 const ptSigHot=()=>S.set+JSON.stringify(S.sets[S.set]||[]);
 function ptEnviarFicha(){const HU=PT.hunt;if(!HU||HU.papel!=='membro')return;HU.nFic++;HU.tFic=performance.now();HU.sigHot=ptSigHot();ptEnv('ficha',{ep:HU.ep,f:ptFicha()});}
 /* mais monstros com a party: spawns × (1 + 0,5 × (n−1)) */
