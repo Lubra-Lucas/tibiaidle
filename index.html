@@ -1766,7 +1766,9 @@ function cityLogic(){
     if(S.stamina<30*MIN){log('sys','Stamina baixa: descansando na cidade.','o');return;}
     if((S.rules.minHp>0&&countPots('hp')<S.rules.minHp)||(S.rules.minMp>0&&countPots('mp')<S.rules.minMp)){log('sys','Sem gold para reabastecer: ficando na cidade.','o');return;}
     let dest=S.lastHunt;if(S.rules.smart)dest=bestHunt();
-    if(PT.id&&ptSou()&&PT.mb.length>=2&&!PT.hunt&&HUNTS[dest]){ptIniciarCacada(dest);return;}   /* líder de party: a volta automática reinicia a caçada DA PARTY (antes ia sozinho e deixava a party na cidade) */
+    if(PT.pend&&PT.pend.ate>Date.now())return;   /* já indo para a caçada da party: não disputa a viagem */
+    if(PT.id&&ptSou()&&PT.mb.length>=2&&!PT.hunt&&HUNTS[dest]){if(!PT.fila)ptIniciarCacada(dest);travel(dest,null);return;}   /* líder de party: a volta automática abre a fila da party e já caça sozinho enquanto espera */
+    if(PT.id&&!ptSou()&&PT.huntInfo&&!PT.hunt&&HUNTS[PT.huntInfo.loc]){ptIrCaca();return;}   /* membro: a party já está caçando, vai para lá em vez de caçar sozinho */
     travel(dest,null);}
 }
 function bestHunt(){let b=Object.keys(HUNTS)[0];for(const [k,h] of Object.entries(HUNTS))if(h.lv<=S.level)b=k;return b;}
@@ -3284,9 +3286,9 @@ setInterval(prTick,100);
    (o líder cria um lutador com a IA da arena) e só desenham o que o líder envia (4 Hz, num único broadcast com os eventos) e aplicam as recompensas.
    Canal da party: party:<pid do fundador>, mesmo padrão da presença (Supabase Realtime, ou BroadcastChannel com ?rede=local; ?rede=rt&perfil=N = Realtime real sem login, para testar).
    Convites ficam no canal da cidade (convite/resposta). Modo solo: PT.hunt e W.pl ficam vazios e nada muda. */
-const PARTY_HZ=4,PT_MAX=4,PT_CONVITE=60000,PT_SUMIR=15000,PT_INATIVO=120000,PT_BONUS=[0,.2,.3,.6,1],PT_VER='p3';
-const PT_EVS=['rost','sinal','entrar','sair','go','fim','ficha','estado','premio','kick','recusa'];
-Object.assign(PT,{id:null,me:null,lider:null,mb:[],expOn:true,tr:null,conv:[],sent:{},pend:null,fichas:new Map(),conf:false,tEnt:0,nEnt:0,tSin:0,tEst:0,tPre:0,tAn:0,tMe:0,sig:'',flag:'off',huntInfo:null,epAuto:null,seg:null,fim:{},pPend:null,st:'ok',verAv:{},fake:false,n:{env:0,rec:0,te:{},tr:{},res:{}}});
+const PARTY_HZ=4,PT_MAX=4,PT_CONVITE=60000,PT_SUMIR=15000,PT_INATIVO=120000,PT_BONUS=[0,.2,.3,.6,1],PT_VER='p4',PT_FILA_T=120000;
+const PT_EVS=['rost','sinal','entrar','sair','go','fim','ficha','estado','premio','kick','recusa','fila','pronto'];
+Object.assign(PT,{id:null,me:null,lider:null,mb:[],expOn:true,tr:null,conv:[],sent:{},pend:null,fichas:new Map(),conf:false,tEnt:0,nEnt:0,tSin:0,tEst:0,tPre:0,tAn:0,tMe:0,sig:'',flag:'off',huntInfo:null,fila:null,filaM:null,aceito:null,epAuto:null,seg:null,fim:{},pPend:null,st:'ok',verAv:{},fake:false,n:{env:0,rec:0,te:{},tr:{},res:{}}});
 const ptSou=()=>!!PT.id&&PT.lider===PR.pid;
 const ptM=pid=>PT.mb.find(x=>x.pid===pid);
 function ptEv(e){const a=PT.ev;if(a&&a.length<200)a.push(e);}
@@ -3340,32 +3342,33 @@ function ptAceitar(i){const c=PT.conv[i];if(!c||c.ate<Date.now()||PT.id||!PR.pid
   Object.assign(PT,{id:c.pt,me:PR.pid,lider:c.de,mb:[],conf:false,expOn:true,nEnt:0,tEnt:0,conv:[],fake:false});ptAbrir();ptMostrar();}
 function ptRecusar(i){const c=PT.conv[i];PT.conv.splice(i,1);if(c&&PR.ativo&&PR.tr)PR.tr.enviar('resposta',{para:c.de,nome:prTxt(S.name,20),ok:0});}
 function ptDesfazer(msg){const tinha=!!PT.id;if(PT.hunt)ptSairHunt(null,PT.hunt.papel==='lider');ptFechar();
-  Object.assign(PT,{id:null,me:null,lider:null,mb:[],conf:false,sent:{},huntInfo:null,epAuto:null,seg:null,fim:{},pPend:null,st:'ok',verAv:{},fake:false,sig:'',flag:'off'});PT.fichas.clear();PT.pend=null;
+  Object.assign(PT,{id:null,me:null,lider:null,mb:[],conf:false,sent:{},huntInfo:null,fila:null,filaM:null,aceito:null,epAuto:null,seg:null,fim:{},pPend:null,st:'ok',verAv:{},fake:false,sig:'',flag:'off'});PT.fichas.clear();PT.pend=null;
   if(tinha&&msg)log('sys',msg,'o');}
 function ptSair(){if(!PT.id)return;if(PT.hunt&&PT.hunt.papel==='lider')ptSairHunt('Você saiu da caçada da party.',true);ptEnv('sair',{});ptDesfazer('Você saiu da party.');}
 function ptTirar(pid,como){const i=PT.mb.findIndex(x=>x.pid===pid);if(i<0)return;const x=PT.mb[i];PT.mb.splice(i,1);
   const HU=PT.hunt;if(HU&&HU.lut){const L=HU.lut.get(pid);if(L){L.hp=0;if(W.pl)W.pl.delete(L.y*W.w+L.x);HU.lut.delete(pid);W.aliados=(W.aliados||[]).filter(a=>a.dono!==L);}}
   log('sys',`${x.nome} ${como}.`,'o');
-  if(pid===PT.lider){PT.lider=PT.mb[0]&&PT.mb[0].pid;if(HU&&HU.papel==='membro')ptSairHunt('O líder saiu da caçada.');}
+  if(PT.fila&&ptSou())ptFilaCancelar(`Fila da party cancelada: ${x.nome} saiu.`);if(pid===PT.lider){PT.filaM=null;PT.aceito=null;PT.lider=PT.mb[0]&&PT.mb[0].pid;if(HU&&HU.papel==='membro')ptSairHunt('O líder saiu da caçada.');}
   if(PT.mb.length<2&&!PT.fake){ptDesfazer('A party foi desfeita.');return;}
   if(ptSou()){if(i===0)log('sys','Você agora é o líder da party.','y');ptRost();}}
 function ptKick(pid){if(!ptSou()||pid===PR.pid||!ptM(pid))return;ptEnv('kick',{para:pid});ptTirar(pid,'foi expulso da party');}
-function ptPassar(pid){if(!ptSou()||pid===PR.pid||!ptM(pid)||PT.hunt){if(PT.hunt)log('sys','Troque o líder na cidade, fora da caçada.','o');return;}
+function ptPassar(pid){if(!ptSou()||pid===PR.pid||!ptM(pid)||PT.hunt||PT.fila){if(PT.hunt)log('sys','Troque o líder na cidade, fora da caçada.','o');else if(PT.fila)log('sys','Cancele a fila da party antes de passar o líder.','o');return;}
   PT.lider=pid;const x=ptM(pid);PT.mb.sort((a,b)=>(a.pid===pid?-1:b.pid===pid?1:0));
   /* ptRost() ignora quem não é líder: a rost final sai forçada, ainda como líder antigo (os outros aceitam porque o remetente é o líder que eles conhecem). Reenvia até o novo líder responder com a rost dele. */
   PT.pPend=pid;ptRost(true);const ant=PR.pid,rep=()=>{if(PT.id&&PT.pPend===pid&&PT.lider===pid&&PR.pid===ant)ptRost(true);};setTimeout(rep,700);setTimeout(rep,2000);setTimeout(()=>{if(PT.pPend===pid)PT.pPend=null;},3000);
   log('sys',`${x.nome} agora é o líder da party.`,'y');}
 function ptExpTog(){if(!ptSou())return;PT.expOn=!PT.expOn;ptRost();log('sys',PT.expOn?'Exp compartilhada ligada.':'Exp compartilhada desligada.','y');}
 function ptRost(forca){if(!forca&&!ptSou())return;const HU=PT.hunt;
-  ptEnv('rost',{v:PT_VER,lider:PT.lider,exp:PT.expOn?1:0,h:HU&&HU.papel==='lider'?{ep:HU.ep,loc:HU.loc}:null,
+  ptEnv('rost',{v:PT_VER,lider:PT.lider,exp:PT.expOn?1:0,h:HU&&HU.papel==='lider'?{ep:HU.ep,loc:HU.loc,fid:HU.fid||null}:null,q:PT.fila?{fid:PT.fila.fid,loc:PT.fila.loc,pr:Object.keys(PT.fila.pr),ep:PT.fila.ep||null}:null,
     m:PT.mb.map(x=>({pid:x.pid,nome:x.nome,voc:x.voc,level:x.level,outfit:x.outfit,hp:x.hp,hpMax:x.hpMax,mp:x.mp,mpMax:x.mpMax,loc:x.loc,xp:x.xp,lc:x.lc,st:x.st}))});}
 /* ---- mensagens do canal da party ---- */
 /* seguir o líder até a caçada. Chamado pelo 'go', pela rost (campo h) e pelo próprio pacote de estado, então basta UMA mensagem chegar.
    Falhou (viagem ignorada, mapa que não carregou, mensagem perdida)? Tenta de novo a cada 8 s, até 6 vezes por caçada. Caçada já encerrada (PT.fim) não é seguida. */
 function ptVer(de,m){if(m.v===PT_VER||PT.verAv[de])return;PT.verAv[de]=1;
   log('sys',`${prTxt((ptM(de)||{}).nome,20)||'Um jogador'} está com outra versão do jogo (${prTxt(m.v,8)||'antiga'}). Recarregue a página (Ctrl+F5) para a party funcionar.`,'o');}
-function ptSeguirLider(ep,loc,forte){
+function ptSeguirLider(ep,loc,forte,fid){
   if(!PT.id||ptSou()||PT.hunt||!S||!HUNTS[loc]||typeof ep!=='string'||PT.fim[ep])return;
+  if(!forte&&fid&&PT.aceito&&PT.aceito.fid===fid&&PT.aceito.ate>Date.now())forte=true;   /* aceitou a fila desta caçada: segue mesmo estando em outra hunt */
   if(S.loc==='arena'||(W&&W.loading)||(!forte&&S.loc!=='city'))return;
   const now=performance.now(),sg=PT.seg&&PT.seg.ep===ep?PT.seg:null;if(sg&&(now-sg.t<8000||sg.n>=6))return;
   const nova=!sg;PT.seg={ep,t:now,n:sg?sg.n+1:1};PT.epAuto=ep;
@@ -3385,14 +3388,19 @@ function ptRec(t,m){try{if(PT.drop&&PT.drop.has(t))return;PT.n.rec++;PT.n.tr[t]=
     PT.mb=nl;PT.lider=typeof m.lider==='string'&&nl.some(x=>x.pid===m.lider)?m.lider:nl[0].pid;PT.expOn=!!m.exp;const lm=ptM(PT.lider);if(lm)lm.visto=now;
     if(PT.pPend&&de===PT.pPend)PT.pPend=null;
     if(PT.lider!==lidAnt){PT.sig='';
+      if(eraLider&&PT.lider!==eu)PT.fila=null;PT.filaM=null;PT.aceito=null;
       if(PT.lider===eu&&!eraLider){log('sys','Você agora é o líder da party.','y');toast('Você agora é o líder da party');PT.tSin=0;PT.sent={};PT.seg=null;}   /* assume os deveres do líder: rost periódica, convites, caçada */
       else if(PT.lider!==eu)log('sys',`${prTxt((ptM(PT.lider)||{}).nome,20)||'O jogador'} agora é o líder da party.`,'y');}
     ptVer(de,m);
-    PT.huntInfo=m.h&&typeof m.h==='object'&&HUNTS[m.h.loc]&&typeof m.h.ep==='string'?{ep:m.h.ep.slice(0,16),loc:m.h.loc}:null;
+    PT.huntInfo=m.h&&typeof m.h==='object'&&HUNTS[m.h.loc]&&typeof m.h.ep==='string'?{ep:m.h.ep.slice(0,16),loc:m.h.loc,fid:typeof m.h.fid==='string'?m.h.fid.slice(0,16):null}:null;
     const hi=PT.huntInfo;
-    if(hi&&!ptSou())ptSeguirLider(hi.ep,hi.loc,false);
+    if(hi&&!ptSou())ptSeguirLider(hi.ep,hi.loc,false,hi.fid);
+    if(!ptSou())ptFilaRec(ptQ(m.q),true);
     if(nl.length<2)ptDesfazer('A party foi desfeita.');}
   else if(t==='sinal'){if(!mm)return;ptSan(m,mm);mm.visto=now;ptVer(de,m);}
+  else if(t==='fila'){if(de!==PT.lider||ptSou())return;if(typeof m.fid!=='string'){if(PT.filaM)log('sys','A fila da caçada da party foi cancelada.','o');PT.filaM=null;PT.aceito=null;return;}ptFilaRec(ptQ(m),false);}
+  else if(t==='pronto'){if(!ptSou()||!mm||!PT.fila||typeof m.fid!=='string'||m.fid.slice(0,16)!==PT.fila.fid)return;mm.visto=now;
+    if(m.ok){if(!PT.fila.pr[de]){PT.fila.pr[de]=1;ptRost();}ptFilaCheck();}else ptFilaCancelar(`Fila da party cancelada: ${mm.nome} recusou.`);}
   else if(t==='entrar'){if(!ptSou())return;ptVer(de,m);if(mm){mm.visto=now;ptRost();return;}
     if(!PT.sent[de]||Date.now()-PT.sent[de]>PT_CONVITE+10000)return;
     if(PT.mb.length>=PT_MAX){ptEnv('recusa',{para:de});return;}
@@ -3400,12 +3408,12 @@ function ptRec(t,m){try{if(PT.drop&&PT.drop.has(t))return;PT.n.rec++;PT.n.tr[t]=
   else if(t==='sair'){if(mm)ptTirar(de,'saiu da party');}
   else if(t==='kick'){if(de===PT.lider&&m.para===eu)ptDesfazer('Você foi expulso da party.');}
   else if(t==='recusa'){if(de===PT.lider&&m.para===eu)ptDesfazer('A party está cheia.');}
-  else if(t==='go'){if(de!==PT.lider||!S)return;ptSeguirLider(typeof m.ep==='string'?m.ep.slice(0,16):'',m.loc,true);}
+  else if(t==='go'){if(de!==PT.lider||!S)return;if(Array.isArray(m.ps)&&!m.ps.includes(eu))return;ptSeguirLider(typeof m.ep==='string'?m.ep.slice(0,16):'',m.loc,true);}
   else if(t==='fim'){if(de!==PT.lider||typeof m.ep!=='string')return;PT.fim[m.ep.slice(0,16)]=1;const HU=PT.hunt;if(!HU||HU.papel!=='membro'||m.ep!==HU.ep)return;ptSairHunt('A caçada da party terminou.');}
   else if(t==='ficha'){if(!ptSou()||!mm)return;const f=ptValFicha(m.f);if(!f||typeof m.ep!=='string')return;mm.visto=now;
     const ep=m.ep.slice(0,16);PT.fichas.set(de,{ep,f});const HU=PT.hunt;if(HU&&HU.papel==='lider'&&ep===HU.ep)ptCriarLut(de,f);}
   else if(t==='estado'){if(mm&&de===PT.lider)mm.visto=now;
-    if(de===PT.lider&&!PT.hunt&&typeof m.ep==='string')ptSeguirLider(m.ep.slice(0,16),m.loc,false);   /* o estado chega 4x por segundo: também serve de convite */
+    if(de===PT.lider&&!PT.hunt&&typeof m.ep==='string')ptSeguirLider(m.ep.slice(0,16),m.loc,false,typeof m.fid==='string'?m.fid.slice(0,16):'');   /* o estado chega 4x por segundo: também serve de convite */
     ptEstadoRec(m);}
   else if(t==='premio')ptPremioRec(m);
 }catch(e){}}
@@ -3444,18 +3452,49 @@ function ptFichaFalsa(x){const sk=skillsBot(x.voc,x.level),eq=equipBot(x.voc,x.l
 /* ---- iniciar a caçada da party (líder) e entrar nela (todos) ---- */
 function ptBtnHunt(hk){if(!PT.id||S.loc!=='city')return '';
   if(!ptSou())return '<span class="mut sm">Só o líder inicia a caçada da party. </span>';
+  if(PT.fila)return '<span class="mut sm">Fila da party aberta. </span>';
   if(PT.mb.length<2)return '<span class="mut sm">Convide ao menos 1 jogador para a caçada da party. </span>';
   return `<button class="wbtn" data-act="ptHunt" data-arg="${hk}">Iniciar caçada da party</button> `;}
-function ptIniciarCacada(hk){if(!ptSou()||!HUNTS[hk]||S.loc!=='city'||PT.mb.length<2||PT.hunt||(W&&W.loading))return;
-  const ep=Math.random().toString(36).slice(2,10);PT.pend={ep,loc:hk,papel:'lider',n:PT.mb.length,ate:Date.now()+60000};ptEnv('go',{ep,loc:hk});
+function ptIniciarCacada(hk){if(!ptSou()||!HUNTS[hk]||S.loc==='arena'||PT.mb.length<2||PT.hunt||PT.fila||(W&&W.loading))return;
+  const F=PT.fila={fid:Math.random().toString(36).slice(2,10),loc:hk,t0:Date.now(),pr:{[PR.pid]:1}};   /* fila (ready check): todos continuam o que faziam até estarem prontos; só então entram juntos */
+  if(PT.fake)for(const x of PT.mb)F.pr[x.pid]=1;
   for(const x of PT.mb)if(x.pid!==PR.pid&&x.level<HUNTS[hk].lv)log('sys',`${x.nome} (Lv ${x.level}) está abaixo do level recomendado (${HUNTS[hk].lv}).`,'o');
-  closeModal();log('sys','Iniciando a caçada da party...','y');travel(hk,null);}
+  ptEnv('fila',{fid:F.fid,loc:hk});ptRost();closeModal();log('sys',`Fila da caçada da party aberta: ${HUNTS[hk].n}. Aguardando todos ficarem prontos…`,'y');ptFilaCheck();}
+function ptFilaCancelar(motivo){const F=PT.fila;if(!F)return;PT.fila=null;if(motivo)log('sys',motivo,'o');ptEnv('fila',{fid:null});ptRost();}
+function ptFilaCheck(){const F=PT.fila;if(!F||!ptSou())return;
+  for(const k of Object.keys(F.pr))if(!ptM(k))delete F.pr[k];
+  const falta=PT.mb.filter(x=>!F.pr[x.pid]);
+  if(Date.now()-F.t0>PT_FILA_T){ptFilaCancelar(`Fila da party cancelada (tempo esgotado): ${falta.map(x=>x.nome).join(', ')||'ninguém'} não ficou pronto.`);return;}
+  if(falta.length||PT.mb.length<2||F.ep||S.loc==='arena'||(W&&W.loading)||PT.hunt)return;
+  const ep=F.ep=Math.random().toString(36).slice(2,10),hk=F.loc;   /* todos prontos: o líder viaja (mesmo já estando na hunt: o travel refaz o mundo) e manda o 'go' */
+  PT.pend={ep,loc:hk,papel:'lider',n:PT.mb.length,fid:F.fid,esp:PT.mb.filter(x=>x.pid!==PR.pid).map(x=>x.pid),ate:Date.now()+60000};
+  ptEnv('go',{ep,loc:hk,fid:F.fid});ptRost();closeModal();log('sys','Todos prontos! Iniciando a caçada da party...','y');travel(hk,null);}
+const ptQ=q=>q&&typeof q==='object'&&typeof q.fid==='string'&&HUNTS[q.loc]?{fid:q.fid.slice(0,16),loc:q.loc,pr:Array.isArray(q.pr)?q.pr.filter(x=>typeof x==='string').map(x=>x.slice(0,64)).slice(0,PT_MAX):[],ep:typeof q.ep==='string'?q.ep.slice(0,16):null}:null;
+/* membro: recebe a fila (evento 'fila' ou campo q da rost). q nulo na rost = sem fila (silencioso: a fila pode ter virado caçada) */
+function ptFilaRec(q,daRost){const F=PT.filaM;
+  if(!q){if(daRost)PT.filaM=null;return;}
+  if(!F||F.fid!==q.fid){PT.filaM={fid:q.fid,loc:q.loc,ok:undefined,avisou:false};
+    log('sys',`O líder abriu a fila da caçada da party: ${HUNTS[q.loc].n}.`,'y');toast(`Caçada da party: ${HUNTS[q.loc].n}`);
+    if(S.level<HUNTS[q.loc].lv){log('sys',`Aviso: seu level (${S.level}) está abaixo do recomendado (${HUNTS[q.loc].lv}).`,'o');}
+    ptMostrar();ptFilaAuto();return;}
+  if(F.ok===1&&!q.pr.includes(PR.pid))ptEnv('pronto',{fid:F.fid,ok:1});   /* o líder ainda não me contou como pronto: reenvia */
+  if(F.ok===1&&q.ep)ptSeguirLider(q.ep,q.loc,false,q.fid);}
+function ptFilaAuto(){const F=PT.filaM;if(!F||F.ok!==undefined||!S)return;
+  if(S.rules.ptAuto===false)return;
+  const mot=S.loc==='arena'?'você está na arena':(W&&W.loading)?null:S.stamina<30*MIN?'stamina abaixo de 30 min':'';
+  if(mot===null)return;
+  if(mot){if(!F.avisou){F.avisou=true;log('sys',`Aceite automático não possível (${mot}): clique em Pronto na janela Party.`,'o');}return;}
+  ptFilaResp(1);}
+function ptFilaResp(ok){const F=PT.filaM;if(!F||!PT.id||ptSou())return;if(ok&&S.loc==='arena'){toast('Saia da arena primeiro');return;}
+  F.ok=ok?1:0;if(ok)PT.aceito={fid:F.fid,ate:Date.now()+180000};else PT.aceito=null;
+  ptEnv('pronto',{fid:F.fid,ok:F.ok});log('sys',ok?'Você está pronto para a caçada da party.':'Você recusou a caçada da party.',ok?'y':'o');}
 function ptIrCaca(){const hi=PT.huntInfo;if(!hi||!PT.id||ptSou()||PT.hunt||S.loc==='arena'||(W&&W.loading))return;
   PT.pend={ep:hi.ep,loc:hi.loc,papel:'membro',ate:Date.now()+60000};closeModal();travel(hi.loc,null);}
 function ptEntrouHunt(){const p=PT.pend;PT.pend=null;if(!p||p.loc!==S.loc||p.ate<Date.now()||!PT.id)return;
   if(p.papel==='membro'&&PT.fim[p.ep]){log('sys','A caçada da party já tinha terminado.','o');setTimeout(()=>travel('city',null),0);return;}   /* o líder voltou enquanto o mapa carregava */
   W.rec=null;for(const k in ATK_T)delete ATK_T[k];
-  const s=S.sess,HU=PT.hunt={papel:p.papel,ep:p.ep,loc:p.loc,b:{xp:s.exp,lc:s.gold+s.loot-s.sup,st:s.t},an:{},ia:[],xs:null,visto:performance.now()+30000,t0:W.time,nFic:0,tFic:0};
+  if(p.papel==='lider')PT.fila=null;else{PT.filaM=null;PT.aceito=null;}
+  const s=S.sess,HU=PT.hunt={papel:p.papel,ep:p.ep,loc:p.loc,fid:p.fid||null,esp:p.esp||null,tEntr:performance.now(),tGo:performance.now(),b:{xp:s.exp,lc:s.gold+s.loot-s.sup,st:s.t},an:{},ia:[],xs:null,visto:performance.now()+30000,t0:W.time,nFic:0,tFic:0};
   if(p.papel==='lider'){Object.assign(HU,{lut:new Map(),valor:{},pq:[],reg:W.time+1000,tEnt:{}});W.pl=new Set();PT.ev=[];ptPull(p.n||PT.mb.length);
     for(const [pid,fh] of PT.fichas)if(fh.ep===HU.ep&&ptM(pid))ptCriarLut(pid,fh.f);
     if(PT.fake)for(const x of PT.mb)if(x.pid!==PR.pid)ptCriarLut(x.pid,ptFichaFalsa(x));}
@@ -3547,7 +3586,7 @@ function ptEnviarEstado(){const HU=PT.hunt;if(!HU||HU.papel!=='lider'||!W||W.loa
   const al=(W.aliados||[]).slice(0,20).map(a=>[a.uid||(a.uid=++UID_MOB),a.id,a.x,a.y,a.face|0,Math.max(1,Math.ceil(a.hp/a.max*100))]);
   const j=[[PR.pid,W.p.x,W.p.y,W.p.face|0,Math.round(S.hp),maxHp(),Math.round(S.mp),maxMp(),1]];
   for(const L of HU.lut.values())j.push([L.pid,L.x,L.y,[2,1,0,3][L.dir],Math.round(L.hp),L.max,Math.round(L.mp),L.maxMp,L.hp>0?1:0]);
-  const pk={ep:HU.ep,loc:HU.loc,m:mobs,a:al,j,e:PT.ev.splice(0),c:W.campos.slice(0,40).map(c=>[c.x,c.y,c.el||'fire',Math.max(0,Math.round(c.ate-W.time))]),xs:[ex.ativa?1:0,ex.motivo],ia:ptInativos()};
+  const pk={ep:HU.ep,fid:HU.fid||null,loc:HU.loc,m:mobs,a:al,j,e:PT.ev.splice(0),c:W.campos.slice(0,40).map(c=>[c.x,c.y,c.el||'fire',Math.max(0,Math.round(c.ate-W.time))]),xs:[ex.ativa?1:0,ex.motivo],ia:ptInativos()};
   const now=performance.now();if(now-PT.tAn>=5000){PT.tAn=now;pk.an=HU.an=ptAnCalc();}
   ptEnv('estado',pk);}
 /* ---- lado do membro: aplica o estado recebido e roda o "relógio" da caçada ---- */
@@ -3604,17 +3643,21 @@ function drawEscudo(x,y,tipo,glow){ctx.save();if(glow){ctx.shadowColor=glow;ctx.
 const ptEscSVG=(t,f)=>`<svg class="pesc ${f}" viewBox="0 0 10 12" width="10" height="12"><path d="M.8 1.4L5 .4l4.2 1v5.1Q9.2 10 5 11.6 .8 10 .8 6.5z" fill="${t===1?'#f2c14e':'#4a8cf0'}" stroke="${t===1?'#8a6a24':'#1f4a9a'}" stroke-width="1"/><path d="M2.4 2.4h1.4v4H2.4z" fill="#fff" opacity=".5"/></svg>`;
 const ptVocBadge=v=>`<span class="pv" style="background:${VOC[v].col.b}" title="${VOC[v].n}">${VOC[v].n[0]}</span>`;
 function ptRender(){const b=$('#partyBody');if(!b||!S)return;const ex=PT.id?ptExp():null,HU=PT.hunt;
-  const sig=JSON.stringify([PT.id,PT.lider,PT.expOn,PT.st,PT.mb.map(x=>[x.pid,x.nome,x.level,x.hp,x.hpMax,x.mp,x.mpMax,x.loc]),PT.conv.map(c=>c.de),ex&&[ex.flag,ex.motivo,ex.nv],PT.huntInfo,HU&&HU.ep,S.loc]);
+  const sig=JSON.stringify([PT.id,PT.lider,PT.expOn,PT.st,PT.mb.map(x=>[x.pid,x.nome,x.level,x.hp,x.hpMax,x.mp,x.mpMax,x.loc]),PT.conv.map(c=>c.de),ex&&[ex.flag,ex.motivo,ex.nv],PT.huntInfo,HU&&HU.ep,S.loc,S.rules.ptAuto,PT.fila&&[PT.fila.fid,Object.keys(PT.fila.pr),Math.floor((Date.now()-PT.fila.t0)/1000)],PT.filaM&&[PT.filaM.fid,PT.filaM.ok]]);
   if(sig===PT.sig)return;PT.sig=sig;let h=PT.conv.map((c,i)=>`<div class="ptc"><b>${esc(c.nome)}</b> convidou você para a party.<div class="ptb"><button class="btn go" data-act="ptAceitar" data-arg="${i}">Aceitar</button><button class="btn" data-act="ptRecusar" data-arg="${i}">Recusar</button></div></div>`).join('');
   if(!PT.id)h+=PT.conv.length?'':'<p class="mut sm">Você não está em uma party. Na cidade, clique em um jogador para convidá-lo.</p>';
   else{const sou=ptSou(),ord=PT.mb.slice().sort((a,c)=>(a.pid===PT.lider?-1:c.pid===PT.lider?1:0));
+    const F=PT.fila,FM=PT.filaM;
+    if(F)h+=`<div class="ptc"><b>Fila da caçada: ${esc(HUNTS[F.loc].n)}</b> <small>${Math.floor((Date.now()-F.t0)/1000)}s / ${PT_FILA_T/1000}s</small>${PT.mb.map(x=>`<div class="sm">${F.pr[x.pid]?'✓ pronto':'⏳ aguardando'} — ${esc(x.nome)}</div>`).join('')}<div class="ptb"><button class="btn red" data-act="ptFilaCancel">Cancelar fila</button></div></div>`;
+    else if(FM&&HUNTS[FM.loc])h+=`<div class="ptc"><b>Caçada da party:</b> ${esc(HUNTS[FM.loc].n)} — ${FM.ok===1?'você está pronto, aguardando os outros…':FM.ok===0?'você recusou.':'Pronto?'}${FM.ok===undefined?'<div class="ptb"><button class="btn go" data-act="ptPronto">Pronto</button><button class="btn" data-act="ptNaoPronto">Recusar</button></div>':''}</div>`;
     h+=ord.map(x=>{const lid=x.pid===PT.lider,eu=x.pid===PR.pid,pc=(v,m)=>Math.round(clamp(v/Math.max(1,m),0,1)*100);
       return `<div class="ptm"><div>${x.outfit?ret15(x.outfit):`<div class="ph">${esc((x.nome||'?')[0])}</div>`}</div><div class="pti"><div class="ptn">${ptEscSVG(lid?1:2,ex&&ex.flag||'off')}<b>${esc(x.nome)}</b>${eu?'<small>(você)</small>':''}</div>
         <div class="mut sm">${esc(VOC[x.voc].n)} · Level ${x.level}${HU&&x.loc!==HU.loc&&x.pid!==PR.pid&&HU.papel==='lider'&&!HU.lut.has(x.pid)?' · fora da caçada':''}</div>
         <div class="ptbar hp"><i style="width:${pc(x.hp,x.hpMax)}%"></i><span>${x.hp}/${x.hpMax}</span></div><div class="ptbar mp"><i style="width:${pc(x.mp,x.mpMax)}%"></i><span>${x.mp}/${x.mpMax}</span></div></div>
-        ${sou&&!eu?`<div class="pta"><button data-act="ptKick" data-arg="${esc(x.pid)}">Expulsar</button>${HU?'':`<button data-act="ptLider" data-arg="${esc(x.pid)}">Passar líder</button>`}</div>`:''}</div>`;}).join('');
+        ${sou&&!eu?`<div class="pta"><button data-act="ptKick" data-arg="${esc(x.pid)}">Expulsar</button>${HU||F?'':`<button data-act="ptLider" data-arg="${esc(x.pid)}">Passar líder</button>`}</div>`:''}</div>`;}).join('');
     if(PT.st!=='ok')h+=`<div class="ptx cinza"><b>Canal da party instável (${esc(PT.st)}). Reconectando…</b></div>`;
     h+=`<div class="ptx ${ex.flag}"><div>${ex.vocs.map(ptVocBadge).join('')}<b>${esc(ptBonusTxt(ex))}</b></div><div class="mut sm">Exp compartilhada: ${!PT.expOn?'<b>desligada</b>':ex.ativa?'<b style="color:#7fe07f">ativa</b>':ex.espera?'<b>aguardando</b>':'<b style="color:#ccc">inativa</b>'} — ${esc(ex.motivo)}</div></div>`;
+    h+=`<label style="display:flex;gap:6px;align-items:center;margin:6px 0" class="sm"><input type="checkbox" data-act="ptAutoTog" ${S.rules.ptAuto!==false?'checked':''}> Aceitar caçadas da party automaticamente</label>`;
     h+='<div class="ptb" style="margin-top:8px">'+(sou?`<button class="btn" data-act="ptExpTog">${PT.expOn?'Desligar':'Ligar'} exp compartilhada</button>`:'')+
       (!sou&&PT.huntInfo&&!HU&&S.loc==='city'?`<button class="btn go" data-act="ptIrCaca">Ir para a caçada (${esc(HUNTS[PT.huntInfo.loc].n)})</button>`:'')+`<button class="btn red" data-act="ptSair">Sair da party</button></div>`;}
   b.innerHTML=h;pintarRetratos();}
@@ -3631,7 +3674,7 @@ function ptClique(e){if(!S||!W||!W.city||!PR.ativo||!W.cam)return;const r=prRemo
   c.classList.remove('hidden');const b=c.getBoundingClientRect();c.style.left=clamp(e.clientX,4,innerWidth-b.width-4)+'px';c.style.top=clamp(e.clientY,4,innerHeight-b.height-4)+'px';e.stopPropagation();}
 cv.addEventListener('click',ptClique);
 const PTACT={ptConvidar:a=>{hideCtx();ptConvidar(a);},ptAceitar:a=>ptAceitar(+a),ptRecusar:a=>ptRecusar(+a),ptSair:()=>ptSair(),ptKick:a=>ptKick(a),ptLider:a=>ptPassar(a),ptExpTog:()=>ptExpTog(),
-  ptHunt:a=>ptIniciarCacada(a),ptIrCaca:()=>ptIrCaca()};
+  ptHunt:a=>ptIniciarCacada(a),ptFilaCancel:()=>ptFilaCancelar('Fila da party cancelada.'),ptPronto:()=>ptFilaResp(1),ptNaoPronto:()=>ptFilaResp(0),ptAutoTog:()=>{S.rules.ptAuto=S.rules.ptAuto===false;PT.sig='';if(S.rules.ptAuto)ptFilaAuto();},ptIrCaca:()=>ptIrCaca()};
 /* ---- relógio da party (100 ms) ---- */
 function ptTick(){try{if(!S)return;const now=performance.now(),ag=Date.now();
   PT.conv=PT.conv.filter(c=>c.ate>ag);for(const k in PT.sent)if(ag-PT.sent[k]>PT_CONVITE+10000)delete PT.sent[k];if(PT.pend&&PT.pend.ate<ag)PT.pend=null;
@@ -3643,14 +3686,19 @@ function ptTick(){try{if(!S)return;const now=performance.now(),ag=Date.now();
       if(!PT.conf&&!sou){if(PT.nEnt<6&&now-PT.tEnt>2500){PT.tEnt=now;PT.nEnt++;ptEnv('entrar',ptMetaEu());}else if(PT.nEnt>=6&&now-PT.tEnt>3500){ptDesfazer('Não foi possível entrar na party.');return;}}
       if(sou&&PT.mb.length<2&&!PT.fake&&!Object.keys(PT.sent).length){ptDesfazer('A party foi desfeita.');return;}
       const eu=ptM(PR.pid);if(eu&&now-PT.tMe>1000){PT.tMe=now;if(!HU||HU.papel!=='membro'||!HU.noJ)ptSan(ptMetaEu(),eu);eu.visto=now;}
-      if(PT.conf&&now-PT.tSin>=5000){PT.tSin=now;if(sou)ptRost();else ptEnv('sinal',ptMetaEu());}
+      if(PT.conf&&now-PT.tSin>=5000){PT.tSin=now;if(sou)ptRost();else{ptEnv('sinal',ptMetaEu());if(PT.filaM&&PT.filaM.ok===1)ptEnv('pronto',{fid:PT.filaM.fid,ok:1});}}
       if(PT.conf&&!PT.fake){
         if(sou){for(const x of PT.mb.slice())if(x.pid!==PR.pid&&now-x.visto>PT_SUMIR)ptTirar(x.pid,'caiu (sem sinal)');}
         else{const l=ptM(PT.lider);if(l&&now-l.visto>PT_SUMIR)ptTirar(PT.lider,'caiu (sem sinal)');}}
+      if(sou&&PT.fila)ptFilaCheck();
+      if(!sou&&PT.filaM&&PT.filaM.ok===undefined)ptFilaAuto();
+      if(PT.aceito&&PT.aceito.ate<ag)PT.aceito=null;
       if(PT.id&&HU){
         if(S.loc!==HU.loc){ptSairHunt(HU.papel==='lider'?'A caçada da party terminou (o líder saiu).':null,true);}
         else if(HU.papel==='lider'){
           ptFlush();
+          if(HU.esp&&HU.esp.length){const t=now-HU.tEntr;HU.esp=HU.esp.filter(pid=>{const x=ptM(pid);if(!x||HU.lut.has(pid))return false;if(t>60000){log('sys',`${x.nome} não entrou na caçada.`,'o');return false;}return true;});
+            if(HU.esp.length&&now-HU.tGo>=5000){HU.tGo=now;ptEnv('go',{ep:HU.ep,loc:HU.loc,fid:HU.fid,ps:HU.esp.slice()});}}   /* confirma a entrada: reenvia o 'go' a quem ainda não virou lutador */
           for(const [pid,L] of [...HU.lut]){const x=ptM(pid);
             if(!x||(!PT.fake&&x.loc!==HU.loc&&now-(HU.tEnt[pid]||0)>8000)||(L.hp<=0&&L.morto&&W.time-L.tMorte>30000)){HU.lut.delete(pid);if(W.pl)W.pl.delete(L.y*W.w+L.x);W.aliados=(W.aliados||[]).filter(a=>a.dono!==L);}}}
         else{
