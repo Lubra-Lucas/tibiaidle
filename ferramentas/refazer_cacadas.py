@@ -50,6 +50,8 @@ class Atlas:
             self.cache[i] = float((a > 16).mean())
         return self.cache[i]
 
+ULTIMO = {}   # dados da última chamada (usados por caprichar_cacadas.py): deslocamento do recorte original e células recriadas
+
 def refazer(k, src_js, src_png, dst_js, dst_png, rng):
     cab, maps, spr = ler_js(src_js)
     if MARCA in cab: raise SystemExit(f'{k}: já refeito (use --src com os originais)')
@@ -286,6 +288,7 @@ def refazer(k, src_js, src_png, dst_js, dst_png, rng):
     cab2 = cab[:-2].rstrip() + f'; bordas {MARCA} */' if cab.endswith('*/') else cab
     out = [cab2, 'window.MAPAS=Object.assign(window.MAPAS||{},' + jdump({k: nd}) + ');',
            'window.MAPAS_SPRITES=window.MAPAS_SPRITES||{tiles:{},criaturas:{}};Object.assign(window.MAPAS_SPRITES.tiles,' + jdump(spr) + ');']
+    ULTIMO.clear(); ULTIMO.update(cx0=cx0, cy0=cy0, desc=desc, inrect=inrect, orig=(w0, h0))
     if at.novo: Image.fromarray(at.arr).save(dst_png, optimize=True)
     elif os.path.abspath(src_png) != os.path.abspath(dst_png): open(dst_png, 'wb').write(open(src_png, 'rb').read())
     open(dst_js, 'w', encoding='utf-8').write('\n'.join(out) + '\n')
