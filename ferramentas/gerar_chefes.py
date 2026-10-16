@@ -24,6 +24,7 @@ def carregar_js(p, var):
     return json.JSONDecoder().raw_decode(s[i:])[0]
 CD = carregar_js(OUT + 'cacadas100.js', 'CACADAS100')
 CB = carregar_js(OUT + 'combate15.js', 'COMB15')
+SPR_EXISTE = set(carregar_js(OUT + 'sprites15.js', 'SPR15')['criaturas'])   # criaturas que o jogo já tem folha (não sobrescrever)
 ours_by_name = {v['n'].lower(): k for k, v in CD['itens'].items()}
 ours_by_cid = {v.get('cid'): k for k, v in CD['itens'].items()}
 icones_eq = {os.path.basename(v)[:-4]: k for k, v in CD['icones'].items()}   # cid -> id do equipamento do jogo
@@ -207,7 +208,7 @@ MINIONS = {   # id do jogo: (nome Canary, GIF, classe); os que já existem no jo
 BOSSES = [   # id, nome Canary, GIF, classe, nível recomendado, mapa (caçada cujo mapa é reaproveitado), minions {id: peso}, descrição
     dict(id='orshabaal', nome='Orshabaal', gif='bosses/Orshabaal.gif', classe='Demon', lv=150, mapa='hellgore', hpMul=4, danoMul=1, minions={'demon': 3, 'hellhound': 2, 'fire_elemental': 1},
          desc='Um dos Ruthless Seven. Invoca demons, drena mana e queima tudo ao redor.'),
-    dict(id='ghazbaran', nome='Ghazbaran', gif='bosses/Ghazbaran.gif', classe='Demon', lv=250, mapa='infernal_throne', hpMul=.6, danoMul=1.5, minions={'deathslicer': 3, 'demon_skeleton': 2},
+    dict(id='ghazbaran', nome='Ghazbaran', gif='bosses/Ghazbaran.gif', classe='Demon', lv=250, mapa='infernal_throne', hpMul=.3, danoMul=1.5, minions={'deathslicer': 3, 'demon_skeleton': 2},
          desc='O Ruthless Seven da perdição: leva uma party inteira à beira da morte.'),
     dict(id='ferumbras', nome='Ferumbras', gif='bosses/Ferumbras.gif', classe='Demon', lv=350, mapa='lich_crypt', hpMul=5, danoMul=2, minions={'demon': 3, 'demon_skeleton': 2},
          desc='O arquimago renegado. Fogo, energia e veneno em área; cai com os melhores itens do jogo.'),
@@ -318,7 +319,8 @@ def build():
         equip.append(row); ids.setdefault(conj, []).append(eid)
     mobs = {}; sprites = {}
     for mid, (nome, gif, classe) in MINIONS.items():
-        mobs[mid] = montar_mob(nome, mid, classe, {'invocado': True}); sprites[mid] = folha_criatura(SPR + gif, mid)
+        mobs[mid] = montar_mob(nome, mid, classe, {'invocado': True})
+        if mid not in SPR_EXISTE: sprites[mid] = folha_criatura(SPR + gif, mid)
     chefes = {}
     for b in BOSSES:
         m = montar_mob(b['nome'], b['id'], b['classe'], {'chefe': True})
