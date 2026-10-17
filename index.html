@@ -570,7 +570,7 @@ select#wkClasse,select#wkBioma{background:#0a0c12;border:1px solid #2c3348;borde
 .ptc{padding:6px 8px;background:#0a0c12;border:1px solid var(--line2);border-radius:3px;margin-bottom:6px;font-size:11px}.ptb{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
 .anap{display:grid;grid-template-columns:1fr auto auto;gap:6px;font-size:10px;padding:2px 0;border-top:1px solid var(--line)}.anap b{color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pstw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:2px}.pst{width:100%;min-width:330px;border-collapse:collapse;font-size:10px}.pst th,.pst td{padding:2px 4px;text-align:right;border-top:1px solid var(--line);white-space:nowrap}.pst th{color:var(--mut);font-weight:normal;cursor:pointer;user-select:none;border-top:0}.pst th.on{color:#ffd84a}.pst th:first-child,.pst td:first-child{text-align:left;max-width:92px;overflow:hidden;text-overflow:ellipsis}.pst td:first-child b{color:#fff}.pst td small{display:block;color:var(--mut);font-size:9px}.pst td.top{color:#ffd84a;font-weight:bold}.pst td.top::before{content:"\265B ";font-size:9px}.pst tr.tot td{color:#cfd6e6;font-weight:bold;border-top:1px solid var(--line2)}.pst .r{color:#ff6a6a}.pst .g{color:#7fe07f}.pstt{font-size:10px;color:var(--mut);margin-top:4px}
-.pfoot.pf3{flex-wrap:wrap}.pstart{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;align-items:center}.pstart label{display:flex;gap:4px;align-items:center;font-size:11px;color:var(--mut)}.lfgInl{width:100%;order:9}.lfgInl .lfgst{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12px}.lfgInl .lfgst .bar{flex:1 1 120px;margin:0}
+.pfoot.pf3{flex-wrap:wrap}.pstart{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;align-items:center}.pstart label{display:flex;gap:4px;align-items:center;font-size:11px;color:var(--mut)}.lfgInl{width:100%;order:9}.lfgInl .lfgst{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12px}.lfgInl .lfgst .bar{flex:1 1 120px;margin:0}.pfoot.pf3{align-content:flex-start;row-gap:10px}.pfoot.pf3 .pstart{display:flex;flex-direction:column;gap:10px;width:100%;align-items:stretch;justify-content:flex-start}.pmode{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px;color:#b8c0da}.pmode b{color:#ffd76a}.pm3{display:flex;gap:6px}.pm3 .pbtn{padding:5px 12px;flex-direction:row;font-size:12px}.pm3 .pbtn:disabled{opacity:.5;cursor:default}.pop3s{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}.pop3s>.pop3{flex:1 1 200px}.pop3{display:flex;flex-direction:column;gap:4px;align-items:stretch}.pop3 .wbtn{flex:none;padding:11px 12px;font-size:13px;width:100%}.pop3 small{font-size:11px;text-align:center}.pop3 label{flex:none;justify-content:center}.lfgchip{cursor:pointer;border-color:#4a8cf0}
 .onlrow{display:flex;align-items:center;gap:10px;padding:4px 0;border-bottom:1px solid var(--line)}.onlrow .ret15{width:40px;height:40px;flex:none}.onlrow .ph{width:40px;height:40px;flex:none;display:grid;place-items:center;background:#0a0c12;border-radius:3px}
 #nuvem{display:none;width:30px;height:30px;place-items:center;color:#6fcf5f;flex:none}
 body.online #nuvem{display:grid}
@@ -3054,7 +3054,7 @@ const MODALS={
     return {wide:true,cls:'hotm',title:`🎯 Slot ${i+1} da hotbar`,body:`<div class="hotw"><div class="hotl"><div class="hbusca"><input type="search" id="hQ" placeholder="Buscar magia, runa ou palavras (ex.: exori, utani)" autocomplete="off"></div><div class="htabs" id="hAbas">${hotAbasHTML()}</div><div class="hotgrid" id="hotGrid">${hotGradeHTML()}</div></div><div class="hotr" id="hCfg">${hotCfgHTML()}</div></div>`};},
   cfg:()=>({title:'⚙️ Configurações',sm:true,body:`<p class="mut">${ON.modo==='online'?`O progresso é salvo na nuvem (conta ${esc((ON.user&&ON.user.email)||'')}) e também neste navegador, como cópia de segurança.`:'O progresso é salvo no navegador.'} Com a página fechada, o personagem continua caçando por até 12h (limitado pela stamina), com base na média da sua sessão de caça atual.</p>
     <p class="mut sm">Mapas: <b>tibia-map-data</b> (tibiamaps.io, licença MIT) — layout real de Thais e das hunts. Sprites: <b>TibiaWiki BR</b>. Tibia é uma marca da CipSoft GmbH; este é um projeto de fã.</p>
-    <label style="display:flex;gap:8px;align-items:center;margin:8px 0 4px" title="Bots são personagens simulados (marcados com um robô) que dão vida à cidade, às zonas PvP e às caçadas e completam grupos no Procurar party. Existem só no seu cliente."><input type="checkbox" data-rule="bots" ${S.rules.bots!==false?'checked':''}> Mostrar bots ${botHTML(14)} <span class="mut sm">(cidade, zonas PvP, caçadas e Procurar party)</span></label>
+    <label style="display:flex;gap:8px;align-items:center;margin:8px 0 4px" title="Bots são personagens simulados (marcados com um robô) que dão vida à cidade, às zonas PvP e às caçadas e completam grupos ao procurar party. Existem só no seu cliente."><input type="checkbox" data-rule="bots" ${S.rules.bots!==false?'checked':''}> Mostrar bots ${botHTML(14)} <span class="mut sm">(cidade, zonas PvP, caçadas e busca de party)</span></label>
     <label style="display:flex;gap:8px;align-items:center;margin:4px 0 8px" class="sm">Densidade de bots na cidade <select data-rule="botsN"><option value="0.5" ${+S.rules.botsN===.5?'selected':''}>Poucos</option><option value="1" ${!(+S.rules.botsN>0)||+S.rules.botsN===1?'selected':''}>Normal</option><option value="1.5" ${+S.rules.botsN===1.5?'selected':''}>Muitos</option></select></label>
     <div style="display:flex;gap:6px;flex-wrap:wrap">${rowBtn('Mostrar todas as janelas','showWins','')}${rowBtn('Recarregar mapas','reloadMaps','')}${ON.modo==='online'?rowBtn('Trocar de personagem','onTrocar','')+rowBtn('Sair da conta','onSairJogo',''):''}${rowBtn('Apagar personagem','reset','',false,'red')}</div>`}),
   offline:(r)=>({title:'Enquanto você estava fora...',sm:true,body:`<p>Você ficou fora por <b>${hms(r.ms)}</b>.</p>${r.est?`<div class="kv"><span>Tempo caçando</span><b>${hms(r.eff)}</b><span>Experiência</span><b>+${fmt(r.exp)}</b><span>Levels</span><b>+${r.lv}</b><span>Monstros</span><b>${fmt(r.kills)}</b><span>Gold (lucro)</span><b class="${r.gold<0?'red':'gold'}">${r.gold>=0?'+':''}${fmt(r.gold)}</b>${r.wc?`<span>Prey wildcards</span><b>+${r.wc}</b>`:''}</div><p class="mut sm">Estimativa feita a partir da média da sua sessão de caça.</p>`:'<p class="mut">Seu personagem descansou na cidade e recuperou stamina.</p>'}${r.note?`<p class="red sm">${r.note}</p>`:''}
@@ -3239,7 +3239,7 @@ function huntsModal(){
   const ks=listaCacadas(),[a,b]=lvFaixa();let corpo;
   if(HF.tab==='caca')corpo=`<div class="wtool"><input type="text" id="hFind" placeholder="Buscar por caçada, bioma ou monstro..." value="${esc(HF.q)}" autocomplete="off">
       <label class="chk"><input type="checkbox" class="wcb" id="hLv" ${HF.lv?'checked':''}> Só do meu level (Lv ${a}-${b})</label>
-      <label class="chk" title="Ao reabastecer, vai para a melhor caçada do seu level"><input type="checkbox" class="wcb" data-rule="smart" ${S.rules.smart?'checked':''}> Caçada inteligente</label><button class="wbtn" data-act="lfgAbrir" title="Fila para achar jogadores compatíveis; bots completam o grupo">🔎 Procurar party</button><span class="cnt" id="hCount">${ks.length} caçadas</span></div>
+      <label class="chk" title="Ao reabastecer, vai para a melhor caçada do seu level"><input type="checkbox" class="wcb" data-rule="smart" ${S.rules.smart?'checked':''}> Caçada inteligente</label><span class="cnt" id="hCount">${ks.length} caçadas</span></div>
     <div class="wscroll" id="hScroll" data-keep="hScroll"><div class="hgrid" id="hGrid">${ks.map(cardCaca).join('')||'<div class="wsoon">Nenhuma caçada encontrada.</div>'}</div></div>`;
   else if(HF.tab==='boss')corpo=bossLista();
   else if(HF.tab==='treino')corpo=`<div class="wscroll">${trCorpo()}</div>`;
@@ -3279,15 +3279,17 @@ function prepModal(hk){if(!HUNTS[hk])hk=S.lastHunt&&HUNTS[S.lastHunt]?S.lastHunt
         <div class="lcols"><span>PEGAR</span><span>VENDER</span></div><div class="lscroll" data-keep="loot">${lootLinhas(hk)}</div><div class="lnote">A configuração vale para todas as caçadas. Vender converte o item em gold na hora, sem ocupar peso.</div></div></div>
     <div class="pfoot pf3"><span>${esc(h.n)} · ${pn}</span>${prepStart(hk)}<div class="lfgInl" id="lfgInl">${lfgInlHtml()}</div></div>`};}
 /* os três jeitos de iniciar (todos usam o modo de pull escolhido acima): solo, party (líder) e procurar party (fila LFG com esta caçada + este modo) */
-function prepStart(hk){const h=HUNTS[hk],cid=S.loc==='city'&&!(h.boss&&chefeResta(hk)>0),busy=!!LFG.fase,pm=S.pull[hk]||'cauteloso',pn=h.boss?'':h.pull[pm].nome,dis=(b,t)=>b?` disabled title="${t}"`:'';
-  const solo=h.boss?'':`<button class="wbtn pri" data-act="hunt" data-arg="${hk}"${dis(busy,'Cancele a busca de party para caçar solo')} title="Caçar sozinho — pull ${pn}">${S.loc===hk?'Recomeçar caçada solo':cid?'Iniciar caçada solo':'Trocar para solo'}${h.pvp?' (PvP)':''}</button>`;
-  const pt=!PT.id?`<button class="wbtn"${dis(1,'Entre numa party para caçar em grupo')}>Iniciar caçada em party</button>`
-    :!ptSou()?`<button class="wbtn"${dis(1,'Só o líder inicia a caçada da party')}>Aguardando o líder</button>`
-    :PT.fila?`<button class="wbtn"${dis(1,'A fila da party já está aberta')}>Fila da party aberta</button>`
-    :PT.mb.length<2?`<button class="wbtn"${dis(1,'Convide ao menos 1 jogador')}>Iniciar caçada em party</button>`
-    :`<button class="wbtn" data-act="ptHunt" data-arg="${hk}"${dis(!cid||busy,'Volte à cidade para iniciar')} title="Abre a fila da party — pull ${pn||'do boss'}">Iniciar caçada em party</button>`;
-  const lfg=h.pvp||PT.id?'':`<button class="wbtn" data-act="lfgPrep" data-arg="${hk}"${dis(!cid||busy,busy?'Você já está na fila':'Volte à cidade para procurar party')} title="Entra na fila para ${esc(h.n)}${pn?' no modo '+pn:''}">Procurar party para esta caçada</button>${h.boss?'':`<label title="Aceita grupos de qualquer modo de pull"><input type="checkbox" data-lfg="qm" ${LFG.qm?'checked':''}${busy?' disabled':''}> qualquer modo</label>`}`;
-  return `<span class="pstart">${solo}${pt}${lfg}</span>`;}
+function prepStart(hk){const h=HUNTS[hk],cid=S.loc==='city'&&!(h.boss&&chefeResta(hk)>0),busy=!!LFG.fase,pm=S.pull[hk]||'cauteloso',pn=h.boss?'':h.pull[pm].nome,dis=(b,t)=>b?` disabled title="${t}"`:'',op=(b,x)=>`<div class="pop3">${b}${x?`<small class="${x[0]}">${x[1]}</small>`:''}</div>`;
+  const mode=h.boss?'<div class="pmode"><span>Boss: sem modo de pull</span></div>':`<div class="pmode"><span>Modo: <b>${pn}</b></span><span class="pm3">${PULL_MODOS.map(md=>`<button class="pbtn${pm===md?' on':''}" data-act="pull" data-arg="${hk}:${md}"${busy?' disabled':''} title="${h.pull[md].n*h.pull[md].k} monstros">${h.pull[md].nome}</button>`).join('')}</span></div>`;
+  const solo=h.boss?'':op(`<button class="wbtn pri" data-act="hunt" data-arg="${hk}"${dis(busy,'Cancele a busca de party para caçar solo')} title="Caçar sozinho — modo ${pn}">${S.loc===hk?'Recomeçar solo':cid?'Caçar solo':'Trocar para solo'}${h.pvp?' (PvP)':''}</button>`,['mut',`Só você · modo ${pn}`]);
+  const pt=!PT.id?op(`<button class="wbtn"${dis(1,'Convide jogadores na cidade para formar uma party')}>Caçar com minha party</button>`,['mut','Convide jogadores na cidade para formar uma party'])
+    :!ptSou()?op(`<button class="wbtn"${dis(1,'Só o líder inicia a caçada da party')}>Aguardando o líder</button>`,['mut','Só o líder da party inicia a caçada'])
+    :PT.fila?op(`<button class="wbtn"${dis(1,'A fila da party já está aberta')}>Fila da party aberta</button>`,['mut','Todos precisam ficar prontos'])
+    :PT.mb.length<2?op(`<button class="wbtn"${dis(1,'Convide ao menos 1 jogador')}>Caçar com minha party</button>`,['mut','Convide jogadores na cidade para formar uma party'])
+    :op(`<button class="wbtn pri" data-act="ptHunt" data-arg="${hk}"${dis(!cid||busy,'Volte à cidade para iniciar')} title="Abre a fila da party — ${pn?'modo '+pn:'boss'}">Caçar com minha party</button>`,['mut',`${PT.mb.length} na party${pn?' · modo '+pn:''}`]);
+  const lfgB=`<button class="wbtn${PT.id?'':' pri'}" data-act="lfgPrep" data-arg="${hk}"${dis(!cid||busy||PT.id,PT.id?'Você já está numa party':busy?'Você já está na fila':'Volte à cidade para procurar party')} title="Entra na fila para ${esc(h.n)}${pn?' no modo '+pn:''}">Procurar party</button>`,
+    lfg=h.pvp?'':`<div class="pop3">${lfgB}${h.boss?'<small class="mut">Bots completam os papéis que faltarem</small>':`<label title="Aceita grupos de qualquer modo de pull"><input type="checkbox" data-lfg="qm" ${LFG.qm?'checked':''}${busy?' disabled':''}> qualquer modo</label>`}</div>`;
+  return `<span class="pstart">${mode}<span class="pop3s">${solo}${pt}${lfg}</span></span>`;}
 
 /* ---- Prey: 3 slots (1 livre, 2 liberado com gold, 3 liberado com Tibia Coins), bônus de 1 a 10 estrelas, wildcards ---- */
 const PREY_LISTA=20*H, WC_MAX=1000, SLOT3_TC=900, PREY_TIPOS={dmg:'dano',def:'defesa',exp:'exp',loot:'loot'};
@@ -5230,9 +5232,10 @@ function drawEscudo(x,y,tipo,glow){ctx.save();if(glow){ctx.shadowColor=glow;ctx.
 const ptEscSVG=(t,f)=>{const c=ESC_COR[t===1?1:2];let r='';ESC_PX.forEach((l,j)=>{for(let k=0;k<9;k++){const q=l[k];if(q!=='.')r+=`<rect x="${k}" y="${j}" width="1" height="1" fill="${c[q]}"/>`;}});return `<svg class="pesc ${f}" viewBox="0 0 9 9" width="11" height="11" shape-rendering="crispEdges">${r}</svg>`;};
 const ptVocBadge=v=>`<span class="pv" style="background:${VOC[v].col.b}" title="${VOC[v].n}">${VOC[v].n[0]}</span>`;
 function ptRender(){const b=$('#partyBody');if(!b||!S)return;const ex=PT.id?ptExp():null,HU=PT.hunt;
-  const sig=JSON.stringify([PT.id,PT.lider,PT.expOn,PT.st,PT.mb.map(x=>[x.pid,x.nome,x.level,x.hp,x.hpMax,x.mp,x.mpMax,x.loc,x.bot]),PT.conv.map(c=>c.de),ex&&[ex.flag,ex.motivo,ex.nv],PT.huntInfo,HU&&HU.ep,S.loc,S.rules.ptAuto,S.rules.ia,PT.fila&&[PT.fila.fid,Object.keys(PT.fila.pr),Math.floor((Date.now()-PT.fila.t0)/1000)],PT.filaM&&[PT.filaM.fid,PT.filaM.ok],pvSk(),PT.mb.map(x=>pvSkPid(x.pid))]);
+  const sig=JSON.stringify([PT.id,PT.lider,PT.expOn,PT.st,PT.mb.map(x=>[x.pid,x.nome,x.level,x.hp,x.hpMax,x.mp,x.mpMax,x.loc,x.bot]),PT.conv.map(c=>c.de),ex&&[ex.flag,ex.motivo,ex.nv],PT.huntInfo,HU&&HU.ep,S.loc,LFG.fase,LFG.hunt,S.rules.ptAuto,S.rules.ia,PT.fila&&[PT.fila.fid,Object.keys(PT.fila.pr),Math.floor((Date.now()-PT.fila.t0)/1000)],PT.filaM&&[PT.filaM.fid,PT.filaM.ok],pvSk(),PT.mb.map(x=>pvSkPid(x.pid))]);
   if(sig===PT.sig)return;PT.sig=sig;let h=PT.conv.map((c,i)=>`<div class="ptc"><b>${esc(c.nome)}</b> convidou você para a party.<div class="ptb"><button class="btn go" data-act="ptAceitar" data-arg="${i}">Aceitar</button><button class="btn" data-act="ptRecusar" data-arg="${i}">Recusar</button></div></div>`).join('');
-  if(!PT.id)h+=(PT.conv.length?'':'<p class="mut sm">Você não está em uma party. Na cidade, clique em um jogador (ou bot) para convidá-lo.</p>')+`<div class="ptb"><button class="btn go" data-act="lfgAbrir" title="Entra numa fila para achar jogadores compatíveis; se faltar gente, bots completam o grupo">🔎 Procurar party</button></div>`;
+  if(LFG.fase)h+=`<div class="ptc lfgchip" data-act="lfgVer" title="Abrir a tela de preparo da caçada">🔎 <b>${LFG.fase==='form'?'Formando o grupo…':'Procurando party…'}</b> ${LFG.hunt&&HUNTS[LFG.hunt]?esc(HUNTS[LFG.hunt].n):''}<div class="ptb"><button class="btn go" data-act="lfgVer">Ver fila</button></div></div>`;
+  if(!PT.id)h+=PT.conv.length||LFG.fase?'':'<p class="mut sm">Você não está em uma party. Na cidade, clique em um jogador (ou bot) para convidá-lo, ou escolha uma caçada em Caçadas e use <b>Procurar party</b>.</p>';
   else{const sou=ptSou(),ord=PT.mb.slice().sort((a,c)=>(a.pid===PT.lider?-1:c.pid===PT.lider?1:0));
     const F=PT.fila,FM=PT.filaM;
     if(F)h+=`<div class="ptc"><b>Fila da caçada: ${esc(HUNTS[F.loc].n)}${F.pull?` · ${esc(HUNTS[F.loc].pull[F.pull].nome)}`:''}</b> <small>${Math.floor((Date.now()-F.t0)/1000)}s / ${PT_FILA_T/1000}s</small>${PT.mb.map(x=>`<div class="sm">${F.pr[x.pid]?'✓ pronto':'⏳ aguardando'} — ${esc(x.nome)}</div>`).join('')}<div class="ptb"><button class="btn red" data-act="ptFilaCancel">Cancelar fila</button></div></div>`;
@@ -5531,7 +5534,7 @@ function botPvTick(now){if(!PV.ativo||!pvNaZona())return;if(!BOT.pvOk)botPvEntra
   const lento=now-BOT.tPv>=500;if(lento)BOT.tPv=now;
   for(const B of [...PV.remotos.values()])if(B.bot)botPvIA(B,now,lento);
   if(BOT.pvResp.length&&now>=BOT.pvResp[0]){BOT.pvResp.shift();if(botPvVivos()<(BOT.pvAlvo|0))botPvNovo();}}
-/* ---- Procurar party (matchmaking) ----
+/* ---- Procurar party (matchmaking) — só dentro da tela de preparo da caçada (prepStart/lfgInlHtml); o painel Party mostra um chip que reabre essa tela ----
    Canal de presença GLOBAL 'lfg' (mesmo transporte: BroadcastChannel com ?rede=local, Supabase Realtime 'lfg:global'): cada jogador na fila publica {nome,voc,level,hunt,papel,tam,t0}. Todos calculam os mesmos grupos
    (por ordem de entrada na fila, nível compatível pela regra de 2/3 e mesma caçada, ou "qualquer"); o 1º da fila de cada grupo vira líder e convida os outros pelo próprio canal (aceite automático de quem está na fila).
    O líder fecha o grupo quando está cheio, 8 s depois da última entrada (com 2+ jogadores) ou após 25 s de espera; os papéis que faltam (bloqueio, cura, dano, lure) são preenchidos por bots do mesmo nível. */
@@ -5560,7 +5563,7 @@ function lfgIniciar(){if(!S||S.loc!=='city'||(W&&W.loading)){toast('Volte à cid
   LFG.eu={pid:PR.pid,nome:prTxt(S.name,20),voc:S.voc,level:S.level,hunt:LFG.hunt,modo:LFG.modo,papel:lfgPapel(S.voc,LFG.papel),tam:LFG.tam,t0:LFG.t0,st:'q'};
   const modo=prModoRede();if(modo){try{LFG.tr=modo==='local'?prTrLocal('lfg'):prTrRealtime((REDE_RT?'rt_':'')+'global','lfg:');LFG.tr.entrar(LFG_H,()=>LFG.eu);}catch(e){LFG.tr=null;}}
   log('sys',`🔎 Procurando party: ${LFG.hunt==='any'?'qualquer caçada no seu level':HUNTS[LFG.hunt].n+(LFG.modo==='any'?'':' ('+HUNTS[LFG.hunt].pull[LFG.modo].nome+')')}. Se não achar jogadores em ${LFG_ESPERA/1000} s, bots completam o grupo.`,'y');lfgRefresh();}
-const lfgRefresh=()=>{if(modal==='lfg')openModal('lfg',null,true);else if(modal==='prep'&&typeof modalArg==='string')openModal('prep',modalArg,true);};
+const lfgRefresh=()=>{PT.sig='';if(modal==='prep'&&typeof modalArg==='string')openModal('prep',modalArg,true);};
 /* a partir da tela de preparo: procura party para ESTA caçada e ESTE modo de pull (ou qualquer modo, se marcado) */
 function lfgPrep(hk){if(!HUNTS[hk]||HUNTS[hk].pvp||LFG.fase)return;LFG.hunt=hk;LFG.modo=HUNTS[hk].boss||LFG.qm?'any':((S.pull&&S.pull[hk])||'cauteloso');if(HUNTS[hk].boss)LFG.tam=4;lfgIniciar();}
 function lfgCompat(g,c){const all=g.concat(c),lv=all.map(a=>a.level),mn=Math.min(...lv),mx=Math.max(...lv);if(mn*3<mx*2)return false;
@@ -5593,7 +5596,7 @@ function lfgFormTick(now){if(!PT.id||!ptSou()){lfgFim('Party desfeita.');return;
   const nb=lfgPreencher();if(PT.mb.length<2){ptDesfazer();lfgFim(botOn()?'Não foi possível formar o grupo.':'Ninguém para formar o grupo e os bots estão desligados (Configurações > Mostrar bots).');return;}
   const hk=LFG.hk;ptIniciarCacada(hk,LFG.pull);const ok=!!PT.fila;LFG.fase=null;
   LFG.msg=ok?`Grupo formado (${PT.mb.length - nb} jogador${PT.mb.length-nb>1?'es':''}${nb?` + ${nb} bot${nb>1?'s':''}`:''}) para ${HUNTS[hk].n}${PT.fila.pull?` (${HUNTS[hk].pull[PT.fila.pull].nome})`:''}. Fila da party aberta: todos precisam ficar prontos.`:`Grupo formado, mas não foi possível abrir a fila de ${HUNTS[hk].n}.`;
-  lfgSairCanal();log('sys','🔎 '+LFG.msg,'y');toast('Party formada!');if(modal==='lfg')openModal('lfg',null,true);}
+  lfgSairCanal();log('sys','🔎 '+LFG.msg,'y');toast('Party formada!');}
 function lfgTick(){try{if(!LFG.fase)return;const now=Date.now();
   if((LFG.fase==='q'||LFG.fase==='form')&&(!S||S.loc!=='city')){lfgFim('Busca cancelada: você saiu da cidade.');return;}
   if(LFG.fase==='q'){
@@ -5604,35 +5607,13 @@ function lfgTick(){try{if(!LFG.fase)return;const now=Date.now();
       if(full||now-LFG.t0>=LFG_ESPERA||(g.length>=2&&now-mt>=LFG_GRACE))lfgFormar(g);}
     else if(now-LFG.t0>LFG_ESPERA+10000)LFG.indep=true;}   /* o líder do meu grupo nunca me chamou: sigo sozinho (com bots) */
   else if(LFG.fase==='form')lfgFormTick(now);
-  if(modal==='lfg'){const sig=LFG.fase+'|'+Math.floor((now-LFG.t0)/1000)+'|'+LFG.ads.size+'|'+(LFG.G?LFG.G.g.length:0);if(sig!==LFG.sig){LFG.sig=sig;openModal('lfg',null,true);}}
   const li=$('#lfgInl');if(li)li.innerHTML=lfgInlHtml();
 }catch(e){}}
 /* status da fila dentro da tela de preparo da caçada (atualizado a cada 500 ms sem refazer a tela) */
 function lfgInlHtml(){if(!LFG.fase)return '';const el=Math.floor((Date.now()-LFG.t0)/1000),rest=Math.max(0,Math.ceil(LFG_ESPERA/1000)-el),n=LFG.G?LFG.G.g.length:1,H=HUNTS[LFG.hunt],md=LFG.modo;
   return `<div class="lfgst"><b>${LFG.fase==='form'?'Formando o grupo…':'🔎 Procurando party…'}</b><span>${H?esc(H.n):'qualquer caçada no meu level'}${H&&!H.boss?' · '+(md!=='any'&&H.pull[md]?'pull '+esc(H.pull[md].nome):'qualquer modo'):''}</span><span>${el}s · ${n}/${LFG.tam} no grupo</span><span class="bar"><i style="width:${Math.min(100,Math.round(el/(LFG_ESPERA/1000)*100))}%"></i></span><span class="sm mut">${LFG.fase==='form'?'Convites enviados…':rest>0?`bots completam em ${rest} s`:'completando o grupo…'}</span><button class="wbtn" data-act="lfgCancelar">Cancelar</button></div>`;}
 setInterval(lfgTick,500);
-document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.lfg&&!LFG.fase){LFG[t.dataset.lfg]=t.dataset.lfg==='tam'?clamp(+t.value||4,2,4):t.dataset.lfg==='qm'?!!t.checked:t.value;if(t.dataset.lfg==='hunt'&&modal==='lfg')openModal('lfg',null,true);}});
-Object.assign(MODALS,{lfg:hk=>{if(hk&&HUNTS[hk]&&!LFG.fase&&!HUNTS[hk].boss&&!HUNTS[hk].pvp)LFG.hunt=hk;if(!LFG.fase&&HUNTS[LFG.hunt]&&HUNTS[LFG.hunt].boss)LFG.hunt='any';
-  const modoT=k=>k==='any'?'qualquer modo':HUNTS[LFG.hunt]&&HUNTS[LFG.hunt].pull[k]?HUNTS[LFG.hunt].pull[k].nome:k;
-  const nome=k=>k==='any'?'qualquer caçada no meu level':HUNTS[k].n,papT=p=>IA_ROL_TXT[p],sel=(a,b)=>a===b?'selected':'';
-  let body;
-  if(LFG.fase==='q'||LFG.fase==='form'){const el=Math.floor((Date.now()-LFG.t0)/1000),rest=Math.max(0,Math.ceil(LFG_ESPERA/1000)-el),G=LFG.G,lista=[LFG.eu,...[...LFG.ads.values()].filter(a=>a.st==='q')];
-    body=`<div class="lfgst"><b>${LFG.fase==='form'?'Formando o grupo…':'🔎 Procurando party…'}</b><div class="sm mut">${esc(nome(LFG.hunt))}${LFG.hunt!=='any'&&!HUNTS[LFG.hunt].boss?' · '+esc(modoT(LFG.modo)):''} · papel: ${papT(lfgPapel(S.voc,LFG.papel))} · grupo de ${LFG.tam}</div>
-      <div class="bar"><i style="width:${Math.min(100,Math.round(el/(LFG_ESPERA/1000)*100))}%"></i></div>
-      <div class="sm">${LFG.fase==='form'?'Convites enviados; os bots completam o que faltar.':rest>0?`Em ${rest} s os bots ${botHTML(12)} completam os papéis que faltarem.`:'Completando o grupo…'}</div></div>
-      <h4 style="margin:10px 0 2px">Jogadores na fila (${lista.length})</h4>`+lista.map(a=>`<div class="sm">${esc(a.nome)}${a.pid===PR.pid?' (você)':''} · ${esc(VOC[a.voc].n)} Lv ${a.level} · ${esc(nome(a.hunt))}${a.hunt!=='any'&&!HUNTS[a.hunt].boss?' · '+esc(a.modo==='any'?'qualquer modo':HUNTS[a.hunt].pull[a.modo].nome):''}${G&&G.g.some(x=>x.pid===a.pid)&&a.pid!==PR.pid?' <b style="color:#7fe07f">✓ compatível</b>':''}</div>`).join('')+
-      `<div style="margin-top:10px;text-align:right"><button class="btn red" data-act="lfgCancelar">Cancelar busca</button></div>`;}
-  else{
-    body=`<div class="lfgbox"><p class="mut sm">Entre numa fila para achar jogadores com level compatível (regra de exp compartilhada de 2/3) na mesma caçada. Se não aparecer ninguém, ${botHTML(12)} <b>bots</b> completam os papéis que faltam (bloqueio, cura, dano, lure) — eles contam para o bônus de vocações, mas não recebem exp nem loot.</p>
-      ${LFG.msg?`<div class="lfgst"><b>Resultado:</b> ${esc(LFG.msg)}</div>`:''}
-      <label>Caçada<select data-lfg="hunt"><option value="any" ${sel(LFG.hunt,'any')}>Qualquer caçada no meu level</option>${lfgHunts().map(k=>`<option value="${k}" ${sel(LFG.hunt,k)}>Lv ${HUNTS[k].lv}+ · ${esc(HUNTS[k].n)}</option>`).join('')}</select></label>
-      <label>Modo de pull<select data-lfg="modo" ${LFG.hunt==='any'?'disabled':''}><option value="any" ${sel(LFG.modo,'any')}>Qualquer modo</option>${LFG.hunt!=='any'?PULL_MODOS.map(k=>`<option value="${k}" ${sel(LFG.modo,k)}>${esc(modoT(k))}</option>`).join(''):''}</select></label>
-      <label>Papel<select data-lfg="papel"><option value="auto" ${sel(LFG.papel,'auto')}>Automático (${papT(IA_ROL[S.voc]||'dano')})</option>${LFG_ROLES.map(r=>`<option value="${r}" ${sel(LFG.papel,r)}>${papT(r)}</option>`).join('')}</select></label>
-      <label>Tamanho do grupo<select data-lfg="tam">${[2,3,4].map(n=>`<option value="${n}" ${LFG.tam===n?'selected':''}>${n} membros</option>`).join('')}</select></label>
-      ${!botOn()?'<p class="red sm">Bots desligados (Configurações > Mostrar bots): só formará grupo com jogadores reais.</p>':''}
-      ${PT.id?'<p class="red sm">Você já está numa party.</p>':S.loc!=='city'?'<p class="red sm">Volte à cidade para procurar party.</p>':''}
-      <div style="text-align:right"><button class="btn go" data-act="lfgIniciar" ${PT.id||S.loc!=='city'?'disabled':''}>Entrar na fila</button></div></div>`;}
-  return {title:'🔎 Procurar party',sm:true,body};}});
+document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.lfg&&!LFG.fase){LFG[t.dataset.lfg]=t.dataset.lfg==='tam'?clamp(+t.value||4,2,4):t.dataset.lfg==='qm'?!!t.checked:t.value}});
 /* ---- relógio dos bots (100 ms; pausa com a aba escondida) ---- */
 function botLimpar(){BOT.cid.clear();BOT.hunt.length=0;for(const [k,r] of [...PV.remotos])if(r.bot){PV.remotos.delete(k);if(PV.alvo===k){PV.alvo=null;PV.alvoAuto=false;}}BOT.pvOk=false;BOT.init=false;}
 function botReset(){BOT.cid.clear();BOT.hunt.length=0;BOT.init=false;BOT.poi=null;BOT.poiW=null;BOT.huntProx=performance.now()+rnd(5e3,25e3);BOT.tSync=0;BOT.pvOk=false;}
@@ -5644,7 +5625,7 @@ function botTick(){try{
   else if(!W.city&&S.loc!=='arena'&&S.loc!=='treino'){botHuntTick(now);botPvTick(now);}
 }catch(e){}}
 setInterval(botTick,100);
-const BOTACT={botPerfil:a=>{hideCtx();openModal('botPerfil',a);},botConvidar:a=>botConvidar(a),lfgAbrir:a=>openModal('lfg',a||null),lfgPrep:a=>lfgPrep(a),lfgIniciar:()=>lfgIniciar(),
+const BOTACT={botPerfil:a=>{hideCtx();openModal('botPerfil',a);},botConvidar:a=>botConvidar(a),lfgPrep:a=>lfgPrep(a),lfgVer:()=>{const hk=LFG.hunt;if(LFG.fase&&HUNTS[hk])openModal('prep',hk);},
   lfgCancelar:()=>{if(LFG.fase==='form'&&PT.id&&ptSou())ptDesfazer();lfgFim('Busca cancelada.');}};
 
 /* ======================= BOSSES EM GRUPO =======================
