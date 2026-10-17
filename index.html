@@ -554,7 +554,7 @@ select#wkClasse,select#wkBioma{background:#0a0c12;border:1px solid #2c3348;borde
 #cidGhost{position:fixed;z-index:60;pointer-events:none;display:none;opacity:.85;left:-99px;top:-99px}#cidGhost .sp{width:32px;height:32px}#cidGhost .n{position:absolute;right:-2px;bottom:-2px;font-size:10px;font-weight:bold;color:#fff;text-shadow:0 0 2px #000}#cidGhost .tag{background:rgba(10,12,18,.9);border:1px solid #ffe34a;border-radius:3px;padding:2px 6px;font-size:11px;color:#fff}
 .cidq{position:fixed;z-index:70;left:50%;top:40%;transform:translate(-50%,-50%);background:var(--ui2);border:1px solid #000;box-shadow:inset 0 0 0 1px var(--line2),0 6px 18px #000;border-radius:3px;padding:10px 12px;min-width:240px}.cidq .ttl{color:#fff;font-weight:bold;margin-bottom:8px}.cidq .r{display:flex;gap:8px;align-items:center}.cidq .r input[type=range]{flex:1}.cidq .r input[type=number]{width:74px}.cidq .b{display:flex;gap:6px;justify-content:flex-end;margin-top:10px}
 #cidOf{position:fixed;z-index:50;top:56px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;max-width:92vw}#cidOf.hidden{display:none}#cidOf .of{background:var(--ui2);border:1px solid #000;box-shadow:inset 0 0 0 1px var(--line2),0 6px 18px #000;border-radius:3px;padding:7px 10px;color:#fff;text-align:center}#cidOf .of div{margin-top:5px;display:flex;gap:6px;justify-content:center}
-#condCid{position:fixed;z-index:20;top:8px;left:50%;transform:translateX(-50%);display:flex;gap:8px;font-size:11px;color:#ffd84a;text-shadow:0 1px 2px #000;background:rgba(10,12,18,.7);border:1px solid var(--line);border-radius:3px;padding:2px 8px}#condCid.hidden{display:none}
+#condCid{position:fixed;z-index:20;top:8px;left:50%;transform:translateX(-50%);display:flex;gap:8px;font-size:11px;color:#ffd84a;text-shadow:0 1px 2px #000;background:rgba(10,12,18,.7);border:1px solid var(--line);border-radius:3px;padding:2px 8px}#condCid.hidden{display:none}#condCid.caca{top:62px}
 .ptm{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line)}
 .ptm .ret15,.ptm .ph{width:40px;height:40px;flex:none}.ptm .ph{display:grid;place-items:center;background:#0a0c12;border-radius:3px}
 .pti{flex:1;min-width:0}.ptn{display:flex;align-items:center;gap:5px;font-size:11px}.ptn b{color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ptn small{color:var(--mut);white-space:nowrap}
@@ -752,6 +752,7 @@ button.lnk:hover{color:var(--gold)}
 <script src="tibia-assets/chefes.js"></script>
 <script src="tibia-assets/mapas15/arena.js"></script>
 <script src="tibia-assets/outfits15.js"></script>
+<script src="tibia-assets/avatares15.js"></script>
 <script>
 'use strict';
 /* ---- online (Supabase): só a chave publicável; as regras de acesso ficam no banco (RLS) ---- */
@@ -1280,7 +1281,8 @@ function danoMagia15(m,dmg,el,atraso,proc){if(!W.mobs.includes(m))return;ef15(me
 function procsBot(L){const t=Math.min(5,Math.floor(L/25)),st=[0,.05,.1,.15].slice(0,1+Math.min(3,Math.floor(L/40)));
   return {crit:pick(st),critX:.5,fatal:rint(0,t)*.015,ruse:rint(0,t)*.015,agonia:L>=100?pick([0,0,.05,.1]):0};}
 function procAtaque15(f,x,y,d){const p=f&&f.procs;if(!p||d<=0)return {d,extra:0,tipo:null};let tipo=null;
-  if(Math.random()<p.crit){d*=1+p.critX;tipo='crit';ef15(me15('critical_damage'),x,y);}
+  const av=f.c&&f.c.buffs&&f.c.buffs.avatar,avOn=!!av&&av.ate>W.time;   /* Avatar: 100% de crítico (+critX do avatar) */
+  if(avOn||Math.random()<p.crit){d*=1+(avOn?Math.max(p.critX,.5)+AVT15.critX:p.critX);tipo='crit';ef15(me15('critical_damage'),x,y);}
   if(Math.random()<p.fatal){d*=1.6;tipo='fatal';ef15(me15('fatal'),x,y);}
   let extra=0;if(Math.random()<p.agonia){extra=Math.max(1,Math.round(d*.25));ef15(me15('agony'),x,y);}
   return {d,extra,tipo};}
@@ -1319,6 +1321,7 @@ function ataque15(m,d,tg){const p=tg||W.p,D=m.d;
   for(const a of D.atq15){
     if(a.name==='melee'){if(d<=1){const r=hurtAlvo(tg,rint(0,Math.abs(a.maxDamage||0)),'phys',m);ef15(me15(r>0?'drawblood':r===0?'poff':'blockhit'),p.x,p.y);}continue;}
     if(Math.random()*100>=(a.chance||0))continue;
+    if(m.dist1>W.time&&d>1&&Math.max(a.range||0,a.length||0)>1)continue;   /* Chivalrous Challenge / Divine Dazzle: só ataca de perto */
     const alc=a.range||0,tipo=a.type||'phys',v=rint(Math.abs(a.minDamage||0),Math.abs(a.maxDamage||0));
     if(a.name==='combat'&&a.length){   /* feixe na direção do jogador */
       if((m.x!==p.x&&m.y!==p.y)||d>a.length)continue;const dir=dirPara(m,p);m.face=dir;const ts=[];
@@ -1359,6 +1362,14 @@ function drawEf15(now){if(!CB)return;
 const MAGIAS15={},RUNAS15={},ANI15=(CB&&CB.ani)||{};
 if(CB)for(const m of CB.magias){try{if(m.f)m.fn=new Function('player',...m.fparams,m.f);}catch(e){m.fn=null;}
   if(m.runa)RUNAS15['runa_'+m.item]=m;else if(m.voc.length)MAGIAS15[m.id]=m;}
+/* suportes reais do Canary (data/scripts/spells/support) que o gerador marca como 'util': ganham motor próprio em lancar15 (só nas caçadas; a arena não muda).
+   Avatar (steel/light/storm/nature): 15 s, 100% de crítico (+50% do crítico do jogo +10% do avatar) e −10% de dano recebido (Wheel of Destiny estágio 2); recarga real 2 h → 30 min de caçada.
+   Divine Empowerment: campo 3x3 por 5 s, +10% de dano enquanto o paladin fica em cima (estágio 2), recarga 32 s. Chivalrous Challenge: até 5 monstros à distância passam a atacar o knight por 12 s.
+   Divine Dazzle: até 3 monstros à distância só atacam de perto por 12 s. Conjure Arrow/Bolt/Royal Star/Enchant Spear: o jogo não modela munição, então seguem ocultas. */
+const AVT15={dur:15000,red:10,critX:.1,emp:{dur:5000,f:1.1,r:1},ch:{n:5,dur:12000,raio:9},dz:{n:3,dur:12000,raio:9}};
+if(CB){const T15={uteta_res_eq:'avatar',uteta_res_sac:'avatar',uteta_res_ven:'avatar',uteta_res_dru:'avatar',utevo_grav_san:'empower',exeta_amp_res:'desafio',exana_amp_res:'ofuscar'};
+  for(const [id,t] of Object.entries(T15)){const m=MAGIAS15[id];if(!m)continue;m.t=t;m.soCaca=1;if(SP[id])SP[id].t=SP[id].t15=t;
+    if(t==='avatar'){m.dur=AVT15.dur;m.cd=30*60000;m.padrao=1;if(SP[id])SP[id].cd=m.cd;}else if(t==='empower'){m.ef=me15('divine_empowerment');m.padrao=1;}}}
 const runaPorNome=n=>Object.keys(RUNAS15).find(k=>RUNAS15[k].nome.toLowerCase()===n);
 const RESERVA_COMBO=new Set(['exevo_gran_mas_vis','exevo_gran_mas_flam','exevo_gran_mas_tera','exevo_gran_mas_frigo','exori_max_vis','exori_max_flam','exori_max_frigo','exori_max_tera',
   'exori_gran_vis','exori_gran_flam','exori_gran_frigo','exori_gran_tera','exori_gran_con','exevo_mas_san','exori_gran','exori_gran_ico','exevo_gran_frigo_hur','exevo_gran_flam_hur','exevo_tempo_mas_san','exori_amp_kor','exori_amp_vis']);
@@ -1371,6 +1382,7 @@ function mods(L){const c=L.c,T=W.time,r={melee:1,dist:1,escudo:1,feito:1,recebid
   for(const k in c.buffs){const b=c.buffs[k];if(b.ate<=T){delete c.buffs[k];continue;}
     if(b.melee)r.melee*=b.melee/100;if(b.dist)r.dist*=b.dist/100;if(b.escudo)r.escudo*=b.escudo/100;if(b.feito)r.feito*=b.feito/100;if(b.recebido)r.recebido*=b.recebido/100;
     if(b.sem_defesa)r.semDef=true;if(b.haste)r.vel*=b.haste;if(b.lento_self)r.vel*=Math.max(.3,b.lento_self);if(b.pacifico)r.pacifico=true;}
+  if(c.emp&&c.emp.ate>T&&Math.max(Math.abs(L.x-c.emp.x),Math.abs(L.y-c.emp.y))<=AVT15.emp.r)r.feito*=c.emp.f;   /* Divine Empowerment: +dano em cima do campo */
   if(c.rapido&&c.rapido.ate>T)r.vel*=c.rapido.f;if(c.lento&&c.lento.ate>T)r.vel*=c.lento.f;return r;}
 function valor15(L,m){if(!m.fn)return 0;const md=mods(L);let r;
   try{if(m.ftipo==='sk'){const sk=Math.round(L.skill*(L.voc==='knight'?md.melee:md.dist));r=m.fn(Object.assign({level:L.nivel,ml:L.ml},PL15),sk,L.atkArma,1);}
@@ -1463,6 +1475,16 @@ function lancar15(L,m,s,dry){const T=W.time,g=GRUPO15(m),v=s.v||0,hp=L.hp/L.max*
       paga();const q=Math.min(a.max-a.hp,Math.round(valor15(L,m)));a.hp+=q;ef15(m.ef,a.x,a.y);if(q)fxt(a.x,a.y,'+'+q,'#7fe07f');ok=true;break;}
     case 'util':{if(m.id!=='exeta_res'||dry||!W.pl||!iaTat15(L))return false;const ap=L.eJog?W.p:L,ms=W.mobs.filter(x=>x.aggro&&x.d.hostil&&cheb(x,L)<=1&&x.alvo!==ap);   /* exeta res: puxa o alvo dos monstros colados */
       if(ms.length<2)return false;paga();for(const x of ms){x.alvo=ap;x.reav=T+6000;}ef15(m.ef,L.x,L.y);ok=true;break;}
+    case 'avatar':{if(W.arena||dry)return false;const b=L.c.buffs.avatar;if(b&&b.ate>T)return false;   /* Avatar: solta com ≥v monstros agressivos, chefe por perto ou HP baixo no meio da luta */
+      const a=ini.filter(t=>t.mob.aggro||cheb(L,t)<=3);if(!a.length||!(a.length>=Math.max(1,v||4)||a.some(t=>t.mob.chefe)||hp<35))return false;
+      paga();L.c.buffs.avatar={id:m.id,recebido:100-AVT15.red,ate:T+m.dur};ef15(m.ef,L.x,L.y);fxt(L.x,L.y-.9,'AVATAR','#ffd84a',true);if(!quiet&&window.AVATAR15&&AVATAR15[L.voc])folhaImg(AVATAR15[L.voc].src);ok=true;break;}
+    case 'empower':{if(W.arena||dry)return false;const e=L.c.emp;if(e&&e.ate>T)return false;   /* Divine Empowerment: campo 3x3 de 5 s, +dano em cima dele */
+      const a=ini.filter(t=>t.mob.aggro||cheb(L,t)<=3);if(!a.length||a.length<Math.max(1,v||2)||(v>1&&mp<40))return false;
+      paga();L.c.emp={x:L.x,y:L.y,f:AVT15.emp.f,ate:T+AVT15.emp.dur,pulso:T};ef15(m.ef,L.x,L.y);fxt(L.x,L.y-.9,'+'+Math.round((AVT15.emp.f-1)*100)+'% dano','#ffe36a');ok=true;break;}
+    case 'desafio':case 'ofuscar':{if(W.arena||dry)return false;const dz=m.t==='ofuscar',cf=dz?AVT15.dz:AVT15.ch,kk=dz?'dz':'ch';   /* monstros à distância (sem chefes e invocações) vêm lutar de perto; o desafio ainda fixa o alvo em quem lançou */
+      const rg=ini.map(t=>t.mob).filter(x=>x.d.hostil&&!x.chefe&&!x.inv&&!iaCorpo(x)&&cheb(L,x)<=cf.raio&&!((x[kk]||0)>T+3000)).sort((a,b)=>cheb(L,a)-cheb(L,b)).slice(0,cf.n);
+      if(rg.length<Math.max(1,v||1))return false;
+      paga();const ap=L.eJog?W.p:L;for(const x of rg){ef15(m.ef,x.x,x.y);x[kk]=x.dist1=T+cf.dur;if(!dz){x.alvo=ap;x.reav=T+cf.dur;}x.aggro=true;x.cdAtk=Math.max(x.cdAtk||0,T+1000);}ok=true;break;}
     case 'regen':{if(hp>=(v||80)||L.c.regen)return false;paga();L.c.regen={hp:m.regen[0],iv:m.regen[1],prox:T+m.regen[1],ate:T+m.dur};ef15(m.ef,L.x,L.y);ok=true;break;}
     case 'cura_cond':{const els=(m.dispel||[]).map(d=>DISPEL_EL[d]).filter(Boolean);if(!L.c.dots.some(q=>els.includes(q.el)))return false;paga();L.c.dots=L.c.dots.filter(q=>!els.includes(q.el));ef15(m.ef,L.x,L.y);ok=true;break;}
     case 'haste':{const r=L.c.rapido,arranque=m.haste>=1.8;   /* Charge: só para fechar distância */
@@ -1488,7 +1510,7 @@ function lancar15(L,m,s,dry){const T=W.time,g=GRUPO15(m),v=s.v||0,hp=L.hp/L.max*
       paga();virar15(L,tg);ef15(m.ef,tg.x,tg.y);tg.condicao('lento',{f:m.lento>0?m.lento:.35,dur:m.dur||6000});L.cd.paralyze=T+12000;if(W.arena&&W.arena.stat)W.arena.stat.para++;ok=true;break;}
     default:return false;}
   if(ok){L.cd[g]=T+(m.gcd||1000);L.cd[m.id]=Math.max(L.cd[m.id]||0,T+(m.cd||0));if(m.focus)L.cd.focus=T+m.focus;
-    if(L.eJog&&['alvo','onda','self','area','dot'].includes(m.t))log('cmb',`Você usou ${m.nome}.`,'m');}
+    if(L.eJog&&['alvo','onda','self','area','dot','avatar','empower','desafio','ofuscar'].includes(m.t))log('cmb',`Você usou ${m.nome}.`,'m');}
   return ok;}
 function virar15(L,t){if(t)L.dir=dirPara(L,t);}
 function usarPocao15(L,it,s){const T=W.time;if((L.cd.pot||0)>T||!(L.bag[it.id]>0)||L.nivel<it.lv||(it.voc&&!it.voc.includes(L.voc)))return false;
@@ -1535,7 +1557,8 @@ function usarHotbar15(L,fl){const usados={},atk=[],nc=fl&&fl.nc,na=fl&&fl.na;   
 function tickCond15(L){const T=W.time,c=L.c;
   if(c.regen){if(T>c.regen.ate)c.regen=null;else if(T>=c.regen.prox){c.regen.prox+=c.regen.iv;const q=Math.min(L.max-L.hp,c.regen.hp);if(q>0){L.hp+=q;fxt(L.x,L.y,'+'+q,'#7fe07f');}}}
   for(const q of c.dots.slice()){if(T<q.prox)continue;q.prox+=q.iv;L.receber(q.fila.shift(),q.el,0,q.fonte,true);if(!q.fila.length)c.dots.splice(c.dots.indexOf(q),1);}
-  if(c.escudo&&c.escudo.ate<=T)c.escudo=null;}
+  if(c.escudo&&c.escudo.ate<=T)c.escudo=null;
+  if(c.emp){if(T>=c.emp.ate)c.emp=null;else if(T>=c.emp.pulso){c.emp.pulso=T+1200;ef15(me15('divine_empowerment'),c.emp.x,c.emp.y);}}}   /* campo do Divine Empowerment: repete o efeito enquanto dura */
 /* campos no chão (runas e monstros): queimam quem fica em cima a cada 2 s */
 const CAMPO_DANO={fire:20,energy:30,earth:10};
 function tickCampos15(alvos){const T=W.time;W.campos=W.campos.filter(c=>c.ate>T);if((W.campoT||0)>T)return;W.campoT=T+2000;
@@ -1607,19 +1630,21 @@ function pintarRetratos(){
 function retratoPronto(){if(document.querySelector('canvas.ret15:not([data-ok])'))pintarRetratos();}
 /* ---- hotbar padrão por vocação e level (a mesma regra para o jogador e para os adversários) ---- */
 const HOT_PADRAO={
-  knight:[[['ultimate_hp','ghp_pot','shp_pot','hp_pot'],40],[['exura_gran_ico','exura_ico'],60],[['exura_ico'],80],[['mp_pot'],25],[['utura_gran','utura'],90],[['utamo_tempo'],35],[['utani_tempo_hur'],0],[['utani_hur'],0],
-    [['exori_gran','exori'],2],[['exori_mas'],3],[['exori_min'],1],[['exori_gran_ico'],20],[['exori_hur'],15],[['exori_ico'],10],[['utori_kor'],30],[['exori_amp_kor'],20],[['utito_tempo'],80]],
-  paladin:[[['gsp_pot','shp_pot','hp_pot'],40],[['exura_gran_san','exura_san','exura_gran'],55],[['smp_pot','mp_pot'],30],[['utura_gran','utura'],85],[['utani_hur'],0],[['utito_tempo_san'],80],
-    [['exevo_tempo_mas_san','exevo_mas_san'],2],[['exori_gran_con','exori_con'],15],[['exori_san'],15],[['utori_san'],30],[['runa:sudden death rune'],0],[['runa:great fireball rune'],2],[['runa:ultimate healing rune'],45],[['exori_con'],10]],
+  knight:[[['ultimate_hp','ghp_pot','shp_pot','hp_pot'],40],[['exura_gran_ico','exura_ico'],60],[['exura_ico'],80],[['mp_pot'],25],[['utura_gran','utura'],90],[['utamo_tempo'],35],[['utani_tempo_hur'],0],[['utani_hur'],0],[['uteta_res_eq'],4],[['exeta_amp_res'],2],
+    [['exori_gran','exori'],2],[['exori_mas'],3],[['exori_gran_ico'],20],[['exori_ico'],10],[['utori_kor'],30],[['exori_amp_kor'],20],[['utito_tempo'],80]],
+  paladin:[[['gsp_pot','shp_pot','hp_pot'],40],[['exura_gran_san','exura_san','exura_gran'],55],[['smp_pot','mp_pot'],30],[['utura_gran','utura'],85],[['utani_hur'],0],[['utito_tempo_san'],80],[['uteta_res_sac'],4],[['utevo_grav_san'],3],[['exana_amp_res'],1],
+    [['exevo_tempo_mas_san','exevo_mas_san'],2],[['exori_gran_con','exori_con'],15],[['exori_san'],15],[['utori_san'],30],[['runa:sudden death rune'],0],[['runa:great fireball rune'],2],[['runa:ultimate healing rune'],45]],
   sorcerer:[[['hp_pot'],35],[['exura_vita','exura_gran'],55],[['utamo_vita'],30],[['gmp_pot','smp_pot','mp_pot'],35],[['utani_gran_hur','utani_hur'],0],[['utevo_gran_res_ven','utevo_res'],0],
     [['exevo_gran_mas_vis'],3],[['exevo_gran_mas_flam'],3],[['exevo_gran_flam_hur','exevo_vis_hur'],2],[['utori_vis'],30],[['utori_mort','utori_flam'],30],
-    [['exori_max_vis','exori_gran_vis','exori_vis'],20],[['exori_amp_vis','exori_gran_flam'],15],[['runa:sudden death rune'],0],[['exori_mort'],10],[['runa:great fireball rune'],2]],
-  druid:[[['hp_pot'],35],[['exura_vita','exura_gran'],55],[['exura_sio'],75],[['utamo_vita'],30],[['gmp_pot','smp_pot','mp_pot'],35],[['utani_gran_hur','utani_hur'],0],[['utevo_gran_res_dru','utevo_res'],0],
-    [['exevo_gran_mas_frigo'],3],[['exevo_gran_mas_tera'],3],[['exevo_gran_frigo_hur','exevo_frigo_hur','exevo_tera_hur'],2],[['utori_pox'],30],[['runa:paralyze rune'],0],
-    [['exori_max_frigo','exori_gran_frigo','exori_frigo'],20],[['exori_max_tera','exori_gran_tera','exori_tera'],15],[['runa:sudden death rune'],0],[['runa:avalanche rune'],2],[['exori_frigo'],10]]};
-function hotPadrao(voc,nivel,ml){const s=new Array(16).fill(null);let i=0;
-  for(const [ops,v] of HOT_PADRAO[voc]){if(i>=16)break;
-    const id=ops.map(o=>o.startsWith('runa:')?runaPorNome(o.slice(5)):o).find(o=>{if(!o)return false;const m=MAGIAS15[o]||RUNAS15[o];if(m)return m.runa?(ml>=m.ml&&nivel>=m.lv):(m.voc.includes(voc)&&nivel>=m.lv&&!m.aprender);const it=ITEMS[o];return it&&(!it.lv||nivel>=it.lv)&&(!it.voc||it.voc.includes(voc));});
+    [['exori_max_vis','exori_gran_vis','exori_vis'],20],[['exori_amp_vis','exori_gran_flam'],15],[['runa:sudden death rune'],0],[['uteta_res_ven'],4],[['runa:great fireball rune'],2]],
+  druid:[[['hp_pot'],35],[['exura_vita','exura_gran'],55],[['exura_sio'],75],[['uteta_res_dru'],4],[['utamo_vita'],30],[['gmp_pot','smp_pot','mp_pot'],35],[['utani_gran_hur','utani_hur'],0],[['utevo_gran_res_dru','utevo_res'],0],
+    [['exevo_gran_mas_frigo'],3],[['exevo_gran_mas_tera'],3],[['exevo_gran_frigo_hur','exevo_frigo_hur','exevo_tera_hur'],2],[['runa:paralyze rune'],0],
+    [['exori_max_frigo','exori_gran_frigo','exori_frigo'],20],[['exori_max_tera','exori_gran_tera','exori_tera'],15],[['runa:sudden death rune'],0],[['runa:avalanche rune'],2]]};
+/* arena=true: a arena não usa os suportes novos (avatar, desafio, campo): fora deles, volta ao final da lista o que eles tiraram da hotbar */
+const HOT_ARENA={knight:[[['exori_min'],1],[['exori_hur'],15]],paladin:[[['exori_con'],10]],sorcerer:[[['exori_mort'],10]],druid:[[['utori_pox'],30],[['exori_frigo'],10]],};
+function hotPadrao(voc,nivel,ml,arena){const s=new Array(16).fill(null);let i=0;
+  for(const [ops,v] of arena?[...HOT_PADRAO[voc].filter(([o])=>!o.some(x=>MAGIAS15[x]&&MAGIAS15[x].soCaca)),...HOT_ARENA[voc]]:HOT_PADRAO[voc]){if(i>=16)break;
+    const id=ops.map(o=>o.startsWith('runa:')?runaPorNome(o.slice(5)):o).find(o=>{if(!o)return false;const m=MAGIAS15[o]||RUNAS15[o];if(m)return m.runa?(ml>=m.ml&&nivel>=m.lv):(m.voc.includes(voc)&&nivel>=m.lv&&(!m.aprender||m.padrao));const it=ITEMS[o];return it&&(!it.lv||nivel>=it.lv)&&(!it.voc||it.voc.includes(voc));});
     if(id)s[i++]={a:id,v};}
   return s;}
 /* ---- adversários: gerados com regras de jogador (level, skills, equipamento, hotbar, outfit) ---- */
@@ -1645,7 +1670,7 @@ function lutadorBot(op,base){const v=VOC[op.voc],L=op.nivel,eq=(base&&base.eq)||
     arm,def:df,shielding:sk.shielding,hp:max,max,mp:maxMp,maxMp,x:0,y:0,fx:0,fy:0,mt:1,dir:3,stepMs:300,c:{buffs:{},dots:[]},cd:{},bag:{},op,
     folha:(base&&base.folha)||null,get alvo(){const A=W.arena;if(!A)return this.cacada?ptAlvoLut(this):null;if(this._alvoTmp)return this._alvoTmp;if(this.voc==='knight'&&A.modo==='equipe'){const g=grudeKnight(this);if(g&&cheb(this,g)<=1){const f0=A.foco[this.time];return A.execOn&&A.execOn[this.time]&&f0&&f0.hp>0&&cheb(this,f0)<=1?f0:g;}}const f=A.foco[this.time];return f&&f.hp>0?f:maisPerto(this,A.times[1-this.time].filter(L=>L.hp>0));},
     receber(v2,el,at,f,puro){return receberLutador(this,v2,el,at,f,puro);},condicao(t,d){condicaoLutador(this,t,d);},resist(){return 1},vivo(){return this.hp>0}};
-  B.slots=(base&&base.slots)||hotPadrao(op.voc,L,sk.magic);B.bag=kitArena(B.slots,op.voc);B.procs=(base&&base.procs)||procsBot(L);
+  B.slots=(base&&base.slots)||hotPadrao(op.voc,L,sk.magic,true);B.bag=kitArena(B.slots,op.voc);B.procs=(base&&base.procs)||procsBot(L);
   Object.defineProperty(B,'aliados',{get(){return (W.aliados||[]).filter(a=>a.dono===B)}});return B;}
 /* a ficha do jogador para a arena: level, skills, equipamento (com refino), hotbar e roupa de verdade */
 /* outfit do jogador com as cores do time azul (4x4) */
@@ -1793,7 +1818,7 @@ function arenaFim(venceu){const A=W.arena,E=arenaEstado(),op=A.op,esp=1/(1+Math.
   log('sys',`⚔️ ${venceu?'Vitória':'Derrota'} contra ${op.nome}! ${dp>=0?'+':''}${dp} pontos${ouro?`, +${fmt(ouro)} gold`:''}.`,venceu?'g':'r');toast(venceu?`🏆 Vitória! ${dp>=0?'+':''}${dp} pts`:`💀 Derrota ${dp} pts`);
   save();}
 /* desenho: lutadores, placar, tempo e aviso de combo */
-function drawLutador(L,X,Y){if(!L.folha&&L.op.outfit)L.folha=comporOutfit(L.op.outfit);if(!L.folha)return null;return drawFolha15(L.folha,L,L.dir,X,Y);}
+function drawLutador(L,X,Y){const av=drawAvatar15(L,L,L.dir,X,Y);if(av)return av;if(!L.folha&&L.op.outfit)L.folha=comporOutfit(L.op.outfit);if(!L.folha)return null;return drawFolha15(L.folha,L,L.dir,X,Y);}
 function drawArenaHud(){const A=W.arena;if(!A)return;const T=W.time;ctx.save();ctx.setTransform(DPR,0,0,DPR,0,0);ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='#000';
   const esc2=(t,y,f,c)=>{ctx.font=f;ctx.strokeText(t,(VW-SBW)/2,y);ctx.fillStyle=c;ctx.fillText(t,(VW-SBW)/2,y);};
   const seg=Math.max(0,Math.ceil((180000-Math.max(0,T-A.t0))/1000)),txt=A.fim?(A.fim.venceu?'🏆 VITÓRIA':'💀 DERROTA'):T<A.t0?'Prepare-se…':`${Math.floor(seg/60)}:${String(seg%60).padStart(2,'0')}`;
@@ -1958,6 +1983,10 @@ function iaMagiasPT(L){if(!W.pl||!iaTat15(L))return;
   if(L.voc==='druid'){if(L.hp/L.max<.4)return;const ms=MAGIAS15.exura_gran_mas_res,sio=MAGIAS15.exura_sio;
     if(ms&&lancar15(L,ms,{a:ms.id,v:60,massa:1}))return;if(sio)lancar15(L,sio,{a:sio.id,v:75});}
   else if(L.voc==='knight'){const e=MAGIAS15.exeta_res;if(e)lancar15(L,e,{a:e.id,v:0});}}
+/* suportes novos que não estão na hotbar (hotbar salva antiga ou cheia): Avatar com 4+ monstros ou chefe (todos), Chivalrous Challenge (knight: puxa os monstros à distância) e Divine Dazzle (paladin: lure) */
+const IA_AVATAR={knight:'uteta_res_eq',paladin:'uteta_res_sac',sorcerer:'uteta_res_ven',druid:'uteta_res_dru'};
+function iaSup15(L){if(!iaTat15(L))return;const sl=L.slots.filter(Boolean).map(s=>s.a),usa=(id,v)=>{const m=MAGIAS15[id];return m&&m.voc.includes(L.voc)&&!sl.includes(id)&&lancar15(L,m,{a:id,v});};
+  if(usa(IA_AVATAR[L.voc],4))return;if(L.voc==='knight')usa('exeta_amp_res',1);else if(L.voc==='paladin')usa('exana_amp_res',1);}
 function playerLogic(dt){
   const p=W.p;p.mt=Math.min(1,p.mt+dt/p.stepMs);
   tickCond15(JOG);tickCampos15([JOG,...W.mobs.map(alvoMob),...(W.pl?ptLutVivos():[])]);aliadosLogic(dt);if(S.hp<=0)return;
@@ -1969,6 +1998,7 @@ function playerLogic(dt){
   const puxa=AUTO('aCave')?lureLogic():(W.lure=null);   /* lure: true enquanto está puxando monstros (sem ataque pesado) */
   const HR=ia?iaRoles():null,rol=HR&&HR.pp[PR.pid],apoio=!!rol&&rol!=='bloqueio'&&!!HR.bq&&HR.bq!==JOG;   /* party: apoio fica atrás do knight */
   if(HR)iaMagiasPT(JOG);
+  if(ia&&AUTO('aCura'))iaSup15(JOG);
   runHot();
   if(andarMao()||!AUTO('aCave')){if(p.target&&cheb(p,p.target)<=V().range&&W.time>=p.cdAtk){autoAttack(p.target);p.cdAtk=W.time+2000;}return;}   /* cavebot desligado: nunca anda sozinho */
   const tg=puxa?null:p.target,R=V().range;
@@ -2010,7 +2040,7 @@ function mobLogic(dt){
       else if(W.time>=m.cdAtk){
         /* ataques reais do monstro: corpo a corpo + magias com a chance do Canary (a cada 2s) */
         let usou=false;
-        for(const s of m.d.spells){if(d<=s.r&&Math.random()<s.c){if(s.tiro||s.r>1)proj(m,p,ELC[s.el]);hurtAlvo(p,rint(s.min,s.max),s.el,m);usou=true;break;}}
+        for(const s of m.d.spells){if(d<=s.r&&Math.random()<s.c&&!(m.dist1>W.time&&d>1&&s.r>1)){if(s.tiro||s.r>1)proj(m,p,ELC[s.el]);hurtAlvo(p,rint(s.min,s.max),s.el,m);usou=true;break;}}
         if(!usou&&d<=1&&m.d.hit>0){hurtAlvo(p,rint(0,m.d.hit),'phys',m);usou=true;}
         if(usou||d<=Math.max(1,...m.d.spells.map(s=>s.r)))m.cdAtk=W.time+2000;
       }
@@ -2221,7 +2251,10 @@ function drawCriatura(m,X,Y){const f=SPL.criaturas[m.id];
   const andando=andandoNaTela(m)||m.mt<1;
   return drawQuadro(f,andando?quadroNoTempo(f,performance.now()+(m.fase||0)):0,X,Y,m.dir>0,m.d.ox||0,m.d.oy||0);}
 /* personagem: a roupa tem 4 direções (0=sul 1=leste 2=norte 3=oeste); ao andar, um balanço leve */
+/* avatar ativo: o personagem (ou lutador da party) é desenhado com o outfit do avatar (lookType 1593–1596) enquanto o buff dura */
+function drawAvatar15(L,e,dir,X,Y){const b=L.c&&L.c.buffs&&L.c.buffs.avatar,f=b&&b.ate>W.time&&window.AVATAR15&&AVATAR15[L.voc];return f?drawFolha15(f,e,dir,X,Y):null;}
 function drawJogador(X,Y){const p=W.p,R74=window.ROUPAS74&&ROUPAS74[S.voc],R15=SP15.roupas[S.voc];
+  const av=drawAvatar15(JOG,p,[2,1,0,3][p.face??0],X,Y);if(av)return av;
   if(S.outfit){const fo=comporOutfit(S.outfit);if(fo)return drawFolha15(fo,p,[2,1,0,3][p.face??0],X,Y);}   /* outfit escolhido (colorido em canvas) */
   if(R15&&S.roupa!=='moderna'){const f=R15[S.addon??3]||R15[0];if(f)return drawFolha15(f,p,[2,1,0,3][p.face??0],X,Y);}
   if(R74&&S.roupa!=='moderna'){const im=folhaImg(R74.src);if(!im)return null;const now=performance.now();
@@ -2394,11 +2427,11 @@ function conjuntoSugerido(modo,hk){const voc=S.voc,nv=S.level,ml=S.skills.magic.
   const top=(fn,n)=>c.filter(fn).sort((a,b)=>b.v-a.v).slice(0,n);
   const ataques=[...top(x=>x.t==='self'&&!x.m.runa,2),...top(x=>x.t==='area'&&x.m.runa,2),...top(x=>x.t==='alvo'&&x.m.runa,1),...top(x=>x.t==='alvo'&&!x.m.runa,3),...top(x=>x.t==='onda',2),...top(x=>x.t==='dot'&&!x.m.runa,1)]
     .map(x=>({a:x.m.id,v:x.t==='alvo'||x.t==='dot'?(x.m.runa?0:x.t==='dot'?30:20):x.t==='area'?2:(caca?3:2)}));
-  const fixos=hotPadrao(voc,nv,ml).filter(sl=>{if(!sl)return false;const m=MAGIAS15[sl.a]||RUNAS15[sl.a];return !m||GRUPO15(m)!=='atk';});
+  const fixos=hotPadrao(voc,nv,ml,!caca).filter(sl=>{if(!sl)return false;const m=MAGIAS15[sl.a]||RUNAS15[sl.a];return !m||GRUPO15(m)!=='atk';});
   if(!caca&&voc==='druid'){const pk=runaPorNome('paralyze rune');if(pk&&ml>=RUNAS15[pk].ml&&nv>=RUNAS15[pk].lv)fixos.push({a:pk,v:0});}
   const out=[...fixos.slice(0,9),...ataques].filter((sl,i,a)=>a.findIndex(y=>y.a===sl.a)===i).slice(0,16);while(out.length<16)out.push(null);return out;}
 function condSug(sl){const m=MAGIAS15[sl.a]||RUNAS15[sl.a],it=ITEMS[sl.a];if(it&&it.type==='pot')return it.hp?`HP<${sl.v}%`:`MP<${sl.v}%`;if(!m)return '';
-  if(m.t==='cura'||m.t==='regen')return `HP<${sl.v}%`;if(m.t==='alvo'||m.t==='dot')return sl.v?`MP≥${sl.v}%`:'';if(['onda','self','area'].includes(m.t))return `${sl.v}+ alvos`;if(m.t==='escudo')return `<${sl.v}%`;if(m.t==='cura_amigo')return `Aliado<${sl.v}%`;if(m.t==='conjurar'||m.t==='invocar')return `MP≥${sl.v}%`;return '';}
+  if(m.t==='cura'||m.t==='regen')return `HP<${sl.v}%`;if(m.t==='alvo'||m.t==='dot')return sl.v?`MP≥${sl.v}%`:'';if(['onda','self','area'].includes(m.t))return `${sl.v}+ alvos`;if(m.t==='escudo')return `<${sl.v}%`;if(['avatar','empower'].includes(m.t))return `${sl.v}+ alvos`;if(m.t==='desafio'||m.t==='ofuscar')return `${sl.v}+ à distância`;if(m.t==='cura_amigo')return `Aliado<${sl.v}%`;if(m.t==='conjurar'||m.t==='invocar')return `MP≥${sl.v}%`;return '';}
 function sugestaoHTML(modo,hk,prep){const set=conjuntoSugerido(modo,hk).filter(Boolean),nome=modo==='caca'?'Caçada':'Arena';
   const ic=set.map(sl=>{const sp=SP[sl.a],it=ITEMS[sl.a],a=sp||it;if(!a)return '';return `<div class="slot" title="${esc(a.n)}\nCondição: ${esc(condSug(sl))}">${sp?si(sp):ii(it)}<span class="cond">${esc(condSug(sl))}</span></div>`;}).join('');
   let info='Burst para o PvP: SD, GFB/avalanche, paralyze (druid), as magias “mas”, golpes máximos, curas e Magic Shield.',sel='';
@@ -2437,7 +2470,7 @@ function desenharPrevia(){const c=$('#outPrev');if(!c||modal!=='outfit'||!outRas
 /* ======== Configuração da hotbar: catálogo por aba, controles por tipo de ação, prioridade (s.p: 1 alta · 2 normal · 3 baixa) ======== */
 const HOT_ABAS=[['cura','💚','Cura'],['atk','⚔️','Ataque'],['sup','✨','Suporte'],['runa','🔮','Runas'],['pot','🧪','Poções']];
 const HOT_PRIO=[[1,'Alta'],[2,'Normal'],[3,'Baixa']];
-const HOT_TIPO={alvo:'Alvo',dot:'Alvo · DoT',onda:'Onda',self:'Área · Self',area:'Área',campo:'Campo',cura:'Self',regen:'Self · Regen',cura_cond:'Self',cura_amigo:'Aliado',escudo:'Self',buff:'Self',haste:'Self',conjurar:'Conjurar',invocar:'Invocar',familiar:'Invocar',debuff:'Área',lento:'Alvo',hp:'Poção HP',mp:'Poção Mana'};
+const HOT_TIPO={avatar:'Self · Avatar',empower:'Self · Campo',desafio:'Desafio',ofuscar:'Desafio',alvo:'Alvo',dot:'Alvo · DoT',onda:'Onda',self:'Área · Self',area:'Área',campo:'Campo',cura:'Self',regen:'Self · Regen',cura_cond:'Self',cura_amigo:'Aliado',escudo:'Self',buff:'Self',haste:'Self',conjurar:'Conjurar',invocar:'Invocar',familiar:'Invocar',debuff:'Área',lento:'Alvo',hp:'Poção HP',mp:'Poção Mana'};
 let HU={i:0,tab:'cura',q:'',a:null,v:50,p:2},HOTCAT={};
 const hotKind=id=>{const m=MAGIAS15[id]||RUNAS15[id],it=ITEMS[id];return m?m.t:(it&&it.type==='pot'?(it.hp?'hp':'mp'):'');};
 /* o que o parâmetro v significa em cada tipo de ação (o motor lê o mesmo v em lancar15/usarPocao15) */
@@ -2447,6 +2480,9 @@ function hotSpec(id){const m=MAGIAS15[id]||RUNAS15[id],k=hotKind(id),P=(lab,def,
   if(k==='cura_amigo')return P('Curar o aliado quando o HP dele estiver abaixo de',60,v=>`um aliado ficar com HP abaixo de ${v}%`);
   if((k==='alvo'||k==='dot')&&!(m&&m.runa))return P('Usar no alvo se a mana estiver acima de',30,v=>`houver um alvo e sua mana estiver acima de ${v}%`);
   if(k==='onda'||k==='self'||k==='area')return {tp:'n',lab:'Mínimo de monstros na área',def:2,sum:v=>`houver ${v} ou mais monstros ao alcance`};
+  if(k==='avatar')return {tp:'n',lab:'Mínimo de monstros agressivos (ou chefe, ou HP abaixo de 35%)',def:4,sum:v=>`houver ${v} ou mais monstros agressivos, um chefe ou seu HP cair abaixo de 35% (só nas caçadas)`};
+  if(k==='empower')return {tp:'n',lab:'Mínimo de monstros agressivos',def:2,sum:v=>`houver ${v} ou mais monstros agressivos e a mana estiver acima de 40% (só nas caçadas)`};
+  if(k==='desafio'||k==='ofuscar')return {tp:'n',lab:'Mínimo de monstros à distância',def:1,sum:v=>`houver ${v} ou mais monstros à distância fora do desafio (só nas caçadas)`};
   if(k==='escudo')return P('Relançar quando o escudo estiver abaixo de',30,v=>`o escudo estiver abaixo de ${v}%`);
   if(k==='buff')return P('Ofensivo: HP acima de · defensivo: HP abaixo de',60,v=>`a situação pedir (referência de HP ${v}%)`);
   if(k==='conjurar')return P('Conjurar quando a mana estiver acima de',90,v=>`sua mana estiver acima de ${v}%`);
@@ -3173,7 +3209,7 @@ const TABS_WK=[['mob','Monstros'],['item','Itens'],['mag','Magias'],['caca','Ca�
 const EL_NOME={phys:'Físico',energy:'Energia',earth:'Terra',fire:'Fogo',ice:'Gelo',holy:'Sagrado',death:'Morte',drown:'Afogamento',lifedrain:'Drenar vida',manadrain:'Drenar mana',poison:'Veneno'};
 const EL_COR=Object.assign({},ELC,{drown:'#5aa0e8',lifedrain:'#e06a8a',manadrain:'#6a8ae0'});
 const EL_ORDEM=['phys','fire','ice','energy','earth','holy','death','drown','lifedrain','manadrain'];
-const MAG_TIPO={cura:'Cura',alvo:'Ataque em alvo',self:'Self',onda:'Onda / área',escudo:'Escudo',conjurar:'Conjuração',util:'Utilitário',buff:'Buff',cura_cond:'Cura de condição',haste:'Velocidade',dot:'Dano contínuo',debuff:'Debuff',cura_amigo:'Cura em amigo',regen:'Regeneração',familiar:'Familiar',invocar:'Invocação',area:'Área',atk:'Ataque'};
+const MAG_TIPO={avatar:'Avatar (15 s)',empower:'Campo de dano',desafio:'Desafio',ofuscar:'Desafio à distância',cura:'Cura',alvo:'Ataque em alvo',self:'Self',onda:'Onda / área',escudo:'Escudo',conjurar:'Conjuração',util:'Utilitário',buff:'Buff',cura_cond:'Cura de condição',haste:'Velocidade',dot:'Dano contínuo',debuff:'Debuff',cura_amigo:'Cura em amigo',regen:'Regeneração',familiar:'Familiar',invocar:'Invocação',area:'Área',atk:'Ataque'};
 const MAG_GRUPO={attack:'Ataque',healing:'Cura',support:'Suporte'};
 const BIOMA_NOME={grama:'Grama',caverna:'Caverna',deserto:'Deserto',neve:'Neve e gelo',pantano:'Pântano',lava:'Lava e inferno',tumba:'Tumba',costa:'Costa',construcao:'Construção'};
 function wkMobs(){const q=WK.q.trim().toLowerCase();
@@ -4007,6 +4043,7 @@ function cidMagiaPor(t){const w=String(t).toLowerCase().replace(/\s+/g,' ').trim
 function cidFala(txt,mag){const now=performance.now();PR.fala={txt,ate:now+4000,mag:mag?1:0};PR.tFala=now;if(cidOk()&&PR.ativo&&PR.tr)PR.tr.enviar('fala',{nome:prTxt(S.name,20),txt,mag:mag?1:0});}
 function cidLancar(m){const T=W.time,g=GRUPO15(m),p=W.p,L=JOG,pagar=()=>{S.mp-=m.mana;train('magic',m.mana);};
   if(!m.voc.includes(S.voc))return cidMsg('Sua vocação não pode usar esta magia.');
+  if(m.soCaca)return cidMsg('Só em caçadas: esta magia precisa de monstros.');
   if(S.level<m.lv)return cidMsg(`Você precisa do level ${m.lv} para usar esta magia.`);
   if(S.mp<m.mana)return cidMsg('Você não tem mana suficiente.');
   if((W.cd[g]||0)>T||(W.cd[m.id]||0)>T)return cidMsg('Você está exausto.');
@@ -4024,7 +4061,11 @@ function cidCond(ok){let el=$('#condCid');if(!el){el=document.createElement('div
   const T=ok?W.time:0,c=ok?JOG.c:{},fmt2=ms=>{const s=Math.ceil(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');},out=[];
   if(ok&&c.rapido&&c.rapido.ate>T)out.push(`<span title="Haste: +${Math.round((c.rapido.f-1)*100)}% de velocidade">⚡ Haste ${fmt2(c.rapido.ate-T)}</span>`);
   if(ok&&CID.luz>T)out.push(`<span title="Luz">💡 Luz ${fmt2(CID.luz-T)}</span>`);
-  const h=out.join('');if(h!==CID.sigCond){CID.sigCond=h;el.innerHTML=h;el.classList.toggle('hidden',!h);}}
+  if(!ok&&emCaca()){const Th=W.time,ch=JOG.c;   /* nas caçadas: haste, avatar e campo de dano */
+    if(ch.rapido&&ch.rapido.ate>Th)out.push(`<span title="Haste: +${Math.round((ch.rapido.f-1)*100)}% de velocidade">⚡ Haste ${fmt2(ch.rapido.ate-Th)}</span>`);
+    const av=ch.buffs.avatar;if(av&&av.ate>Th)out.push(`<span title="Avatar: 100% de crítico (+${Math.round((.5+AVT15.critX)*100)}% de dano) e −${AVT15.red}% de dano recebido">🌟 Avatar ${fmt2(av.ate-Th)}</span>`);
+    if(ch.emp&&ch.emp.ate>Th)out.push(`<span title="Divine Empowerment: +${Math.round((ch.emp.f-1)*100)}% de dano em cima do campo">✨ Campo ${fmt2(ch.emp.ate-Th)}</span>`);}
+  el.classList.toggle('caca',!ok);const h=out.join('');if(h!==CID.sigCond){CID.sigCond=h;el.innerHTML=h;el.classList.toggle('hidden',!h);}}
 /* ---- arrastar e soltar (mouse e toque: pointer events) ---- */
 function cidGhost(d){let g=$('#cidGhost');if(!g){g=document.createElement('div');g.id='cidGhost';document.body.appendChild(g);}
   if(d.tipo==='char')g.innerHTML=`<span class="tag">${esc(d.r?d.r.nome:S.name)}</span>`;
@@ -4359,7 +4400,7 @@ function ptLider(dt){const HU=PT.hunt;if(!HU||HU.papel!=='lider'||S.loc!==HU.loc
       const rol=HR&&HR.pp[L.pid];
       if(rol)iaAlvoLut(L,HR);   /* IA por papel: alvo que morre mais rápido */
       else if(!ptAlvoLut(L)){L.tgM=null;let b=null,bd=1e9;for(const m of W.mobs){if(!m.d.hostil)continue;const d=cheb(L,m);if(d<=8&&d<bd){bd=d;b=m;}}L.tgM=b;}
-      const h0=(L.cd.cura||0)+(L.cd.pot||0);if(rol)iaMagiasPT(L);usarHotbar15(L);const O=L.alvo;if(O)basico15(L,O);if((L.cd.cura||0)+(L.cd.pot||0)!==h0)ATK_T[L.pid]=T;
+      const h0=(L.cd.cura||0)+(L.cd.pot||0);if(rol){iaMagiasPT(L);iaSup15(L);}usarHotbar15(L);const O=L.alvo;if(O)basico15(L,O);if((L.cd.cura||0)+(L.cd.pot||0)!==h0)ATK_T[L.pid]=T;
       ptMover(L,rol?(L.mt>=1?iaPassoLut(L,rol,HR):null):undefined);}
     finally{ATKR='eu';}}
   for(const L of HU.lut.values()){const x=ptM(L.pid);if(x){x.hp=Math.max(0,Math.round(L.hp));x.hpMax=L.max;x.mp=Math.round(L.mp);x.mpMax=L.maxMp;}}}

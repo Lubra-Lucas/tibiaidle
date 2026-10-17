@@ -10,7 +10,7 @@ Equipamento que o modelo do jogo entende (espada de 1 mão, arco/besta, armadura
   loot_faltante.py CANARY_DIR [--out tibia-assets]"""
 import sys, os, re, json, glob, argparse, struct
 
-ap = argparse.ArgumentParser(); ap.add_argument('canary'); ap.add_argument('--out', default='tibia-assets'); ap.add_argument('--dry', action='store_true')
+ap = argparse.ArgumentParser(); ap.add_argument('canary'); ap.add_argument('--out', default='tibia-assets'); ap.add_argument('--dry', action='store_true'); ap.add_argument('--pular-sem-preco', action='store_true', help='itens sem comprador de NPC nem estimativa (lixo cosmético, comida, troféus...) ficam de fora em vez de abortar')
 A = ap.parse_args(); CAN = A.canary.rstrip('/') + '/'; OUT = A.out.rstrip('/') + '/'
 
 def carregar(p, var):
@@ -186,5 +186,5 @@ print('itens novos:', len(novos), '| entradas de loot novas:', tot, '| mobs alte
 print('sem ícone (rode o extrator):', sorted(sem_icone)); print('sem preço:', falta_preco)
 for t in novos: print(*t)
 for mk, l in adds.items(): print(mk, [(x[0], x[1], x[2]) for x in l])
-if not A.dry and not sem_icone and not falta_preco:
+if not A.dry and not sem_icone and (not falta_preco or A.pular_sem_preco):
     gravar(OUT + 'cacadas100.js', 'CACADAS100', sc, ic, jc, CD); gravar(OUT + 'chefes.js', 'CHEFES', sh, ih, jh, CH)
