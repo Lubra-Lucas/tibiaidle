@@ -89,6 +89,57 @@ img.ui{width:24px;height:24px;image-rendering:pixelated;flex:none}
 .win-h{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:linear-gradient(#273047,#1a2032);color:var(--title);font-weight:bold;cursor:move;border-bottom:1px solid #000;user-select:none;touch-action:none}
 .win-h button{background:none;border:0;color:var(--mut);cursor:pointer;font-size:13px;padding:0 2px}
 .win-b{padding:8px;overflow:auto}
+/* barra lateral fixa (estilo cliente atual do Tibia): equipamento, mochila e painéis acoplados */
+:root{--sbw:0px;--chw:0px}
+#side{display:none}
+.win.dock{position:relative;z-index:auto;flex:none;border-radius:0;box-shadow:inset 0 0 0 1px var(--line);background:#161a26}
+.win.dock .win-h{cursor:default;padding:4px 6px;font:700 10px 'Cinzel',Georgia,serif;letter-spacing:.03em;text-transform:uppercase;background:linear-gradient(#2a3248,#1a2032);gap:2px;touch-action:auto}
+.win.dock .win-h>span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.win.dock .win-h button{width:18px;height:18px;line-height:16px;text-align:center;padding:0;border-radius:2px;color:var(--mut);font-size:12px}
+.win.dock .win-h button:hover{background:#3a425c;color:#fff}
+.win.dock.fold .win-b,.win.dock.fold>.win-x{display:none}
+.win.dock.fold .win-h{border-bottom:0}
+.win.dock .win-b{padding:6px;max-height:34vh}
+.win.dock .bag{max-height:none;overflow:visible}
+#w-inv .win-b{max-height:none;overflow:visible;padding:6px 8px 8px}
+#w-inv .bagwrap{margin-top:8px}
+#w-inv .bag{max-height:208px;overflow:auto;background:#0a0c12;box-shadow:inset 0 0 0 1px #000,inset 0 0 0 2px #232a3d;padding:4px;gap:3px;grid-template-columns:repeat(auto-fill,38px);min-height:46px}
+.eqrow{display:flex;gap:10px;align-items:flex-start;justify-content:center}
+.eqgrid{grid-template-columns:repeat(3,40px);gap:3px;padding:5px;background:#0a0c12;box-shadow:inset 0 0 0 1px #000,inset 0 0 0 2px #232a3d}
+.eqgrid .slot{width:40px;height:40px}
+.eqgrid .slot.empty{opacity:.18;cursor:default;background:#10131c}
+.eqst{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;font-size:10px;color:var(--mut)}
+.eqst div{display:flex;justify-content:space-between;align-items:center;background:#0a0c12;box-shadow:inset 0 0 0 1px #000,inset 0 0 0 2px #232a3d;padding:3px 6px;text-transform:uppercase;letter-spacing:.04em}
+.eqst b{color:#fff;font-size:12px}.eqst .gold b{color:var(--gold)}
+#w-inv .capbar{margin-top:6px}
+#w-chat.dock{position:fixed;left:8px;bottom:8px;width:calc(var(--chw) - 16px);height:190px;z-index:5;border-radius:3px;box-shadow:inset 0 0 0 1px var(--line),0 6px 18px #000b}
+#w-chat.dock .win-b{display:contents}
+#side.open #sideTabs{display:flex}
+#sideTabs,#sideBtn{display:none}
+@media(min-width:900px){
+  :root{--sbw:clamp(236px,14vw,284px)}
+  #side{display:flex;flex-direction:column;position:fixed;top:54px;right:0;bottom:0;width:var(--sbw);z-index:4;background:#0d1019;border-left:1px solid #000;box-shadow:inset 1px 0 0 #2c3248,-4px 0 14px #0009;overflow-y:auto;overflow-x:hidden;gap:3px;padding:3px;scrollbar-width:thin}
+  body #toast{left:calc((100vw - var(--sbw))/2)}
+  body #hudwrap{left:calc((100vw - var(--sbw))/2)}
+}
+@media(min-width:1260px){
+  :root{--chw:360px}
+  body #hudwrap{left:calc((100vw - var(--sbw) + var(--chw))/2)}
+  body:has(#w-chat.hidden) #hudwrap{left:calc((100vw - var(--sbw))/2)}
+}
+@media(max-width:1259px){#w-chat.dock{left:8px;top:62px;bottom:auto;width:min(320px,calc(100vw - 16px));height:180px}}
+@media(max-width:899px){
+  #side{display:flex;flex-direction:column;position:fixed;top:54px;right:0;bottom:0;width:min(88vw,320px);z-index:7;background:#0d1019;border-left:1px solid #000;box-shadow:-6px 0 20px #000c;overflow-y:auto;gap:3px;padding:3px;transform:translateX(105%);transition:transform .2s}
+  #side.open{transform:none}
+  #sideBtn{display:grid;place-items:center;position:fixed;right:6px;top:60px;width:40px;height:40px;z-index:8;background:linear-gradient(#323a54,#1d2232);border:1px solid #000;box-shadow:inset 0 0 0 1px #8a6a2a,0 3px 8px #000a;border-radius:3px;cursor:pointer;color:var(--title);font-size:20px;padding:0}
+  #sideBtn.open{right:min(88vw,320px);margin-right:4px}
+  #sideTabs{display:flex;gap:3px;position:sticky;top:0;z-index:2;background:#0d1019;padding-bottom:2px}
+  #sideTabs button{flex:1;background:#10131c;border:1px solid #000;box-shadow:inset 0 0 0 1px var(--line);color:var(--mut);font:700 11px Verdana,sans-serif;padding:7px 2px;cursor:pointer;border-radius:2px}
+  #sideTabs button.on{color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
+  #side[data-tab="inv"] .win.dock:not([data-tab="inv"]),#side[data-tab="caca"] .win.dock:not([data-tab="caca"]),#side[data-tab="loot"] .win.dock:not([data-tab="loot"]){display:none}
+  .win.dock .win-b{max-height:none}
+  #w-chat.dock{width:calc(100vw - 56px);height:150px}
+}
 .slot{width:38px;height:38px;background:#0d0f16;border:1px solid #000;box-shadow:inset 0 0 0 1px #2c3248;border-radius:2px;position:relative;display:grid;place-items:center;font-size:20px;cursor:pointer;user-select:none}
 .slot:hover{box-shadow:inset 0 0 0 1px var(--gold)}
 .slot.raro{box-shadow:inset 0 0 0 1px #ffd84a,0 0 7px #ffd84a77}
@@ -103,7 +154,7 @@ img.ui{width:24px;height:24px;image-rendering:pixelated;flex:none}
 .bag{display:grid;grid-template-columns:repeat(auto-fill,38px);gap:4px;max-height:176px;overflow:auto;padding-right:2px}
 .capbar{height:14px;background:#0a0c12;border:1px solid #000;position:relative;margin-top:8px;border-radius:2px;overflow:hidden}
 .capbar div{height:100%;background:linear-gradient(#3a9a3a,#226a22)}
-.capbar span{position:absolute;inset:0;display:flex;justify-content:space-between;padding:0 5px;font-size:10px;font-weight:bold;align-items:center;text-shadow:1px 1px 0 #000}
+.capbar>span{position:absolute;inset:0;display:flex;justify-content:space-between;padding:0 5px;font-size:10px;font-weight:bold;align-items:center;text-shadow:1px 1px 0 #000}
 .ana{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}
 .ana small{display:block;color:var(--mut);font-size:9px;text-transform:uppercase}
 .ana b{color:#fff;font-size:12px}
@@ -120,8 +171,8 @@ img.ui{width:24px;height:24px;image-rendering:pixelated;flex:none}
 #hudwrap{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);z-index:5;display:flex;flex-direction:column;align-items:center;gap:6px;max-width:calc(100vw - 16px)}
 #cityBtns{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
 #cityBtns.hidden{display:none}
-#trPanel{position:fixed;left:12px;top:142px;width:272px;z-index:5;background:rgba(22,26,38,.95);border:1px solid #000;box-shadow:inset 0 0 0 1px var(--line),0 8px 24px #000b;border-radius:3px;padding:9px 11px;font-size:12px;max-width:calc(100vw - 24px)}
-#trPanel.hidden{display:none}
+#trPanel{font-size:12px}#trPanel .win-b{padding:6px 8px}
+#trPanel.hidden{display:none}#trPanel h4{display:none}
 #trPanel h4{margin:0 0 6px;font:700 13px 'Cinzel',Georgia,serif;color:#f0dcb0;letter-spacing:.05em}
 #trPanel .trw{display:flex;gap:8px;align-items:center;margin-bottom:6px}
 #trPanel .trw img.sp{width:32px;height:32px;image-rendering:pixelated}
@@ -135,8 +186,8 @@ img.ui{width:24px;height:24px;image-rendering:pixelated;flex:none}
 .bars{width:210px;display:flex;flex-direction:column;gap:4px;justify-content:center}
 .bar{height:16px;background:#07080c;border:1px solid #000;position:relative;border-radius:2px;overflow:hidden}
 .bar>div{height:100%;transition:width .25s}
-.bar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:bold;text-shadow:1px 1px 0 #000;white-space:nowrap}
-.bar span.lr{justify-content:space-between;padding:0 5px}
+.bar>span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:bold;text-shadow:1px 1px 0 #000;white-space:nowrap}
+.bar>span.lr{justify-content:space-between;padding:0 5px}
 #bHp{background:linear-gradient(#5fe05f,#24a024)}
 #bMp{background:linear-gradient(#6a8cff,#2a52d0)}
 #bXp{background:linear-gradient(#f0b840,#b07a10)}
@@ -147,6 +198,13 @@ img.ui{width:24px;height:24px;image-rendering:pixelated;flex:none}
 .hot .cd{position:absolute;left:0;right:0;bottom:0;background:#000a;pointer-events:none}
 .hot .cond{position:absolute;left:1px;right:1px;top:0;font-size:8px;font-weight:bold;text-align:center;color:#fff;text-shadow:1px 1px 0 #000,-1px -1px 0 #000;line-height:1.1;z-index:1}
 .hot .slot.add{font-size:16px;color:#4a5370}
+.hot .fk{position:absolute;left:1px;bottom:0;font-size:8px;font-weight:bold;line-height:1;color:#ffd84a;text-shadow:1px 1px 0 #000,-1px -1px 0 #000;pointer-events:none;z-index:1}
+#autoBar{display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:center;background:rgba(20,24,35,.92);border:1px solid #000;border-radius:4px;padding:3px 6px;box-shadow:inset 0 0 0 1px var(--line)}#autoBar.hidden{display:none}
+#autoBar .ab{display:flex;align-items:center;gap:3px;background:#0d0f16;color:#8a93ab;border:1px solid #000;box-shadow:inset 0 0 0 1px #2c3248;border-radius:3px;padding:3px 7px;font:inherit;font-size:11px;font-weight:bold;cursor:pointer;opacity:.7}
+#autoBar .ab.on{color:#d8f3d0;box-shadow:inset 0 0 0 1px #3f8a32;opacity:1}#autoBar .ab small{font-size:10px}
+#autoBar .master{min-width:68px;justify-content:center;letter-spacing:.04em;opacity:1}#autoBar .master.on{background:linear-gradient(#3f8a32,#235a1b);color:#fff}#autoBar .master.man{background:#2a2f40;color:#cfd6e6}#autoBar .master.mix{background:linear-gradient(#9a7a22,#5e4710);color:#fff}
+#autoBar .abKeys{font-size:10px;color:var(--mut);margin-left:4px}#autoBar .abNote{flex-basis:100%;text-align:center;font-size:11px;color:#ffd84a}
+@media(max-width:820px){#autoBar .ab small{display:none}#autoBar .ab{padding:5px 9px;font-size:14px}#autoBar .abKeys{display:none}}
 .ctl{display:flex;flex-direction:column;gap:5px;justify-content:center;min-width:190px}
 .ctl label{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--mut);text-transform:uppercase}
 .ctl select{flex:1;background:#0a0c12;color:#fff;border:1px solid var(--line2);border-radius:2px;padding:3px;font:inherit;font-weight:bold}
@@ -580,6 +638,7 @@ button.lnk:hover{color:var(--gold)}
       <button data-open="bestiary"><img class="ui" src="tibia-assets/sprites15/ui/bestiario.png" alt=""><span>Bestiário e Charms</span></button>
       <button data-win="w-ana"><img class="ui" src="tibia-assets/sprites15/ui/analisador.png" alt=""><span>Analisador de caçada</span></button>
       <button data-win="w-loot"><img class="ui" src="tibia-assets/sprites15/ui/loot.png" alt=""><span>Loot da sessão</span></button>
+      <button data-win="w-chat"><img class="ui" src="tibia-assets/sprites15/ui/regras.png" alt=""><span>Chat</span></button>
       <button data-win="w-party"><img class="ui" src="tibia-assets/sprites15/ui/personagem.png" alt=""><span>Party<small>grupo e exp compartilhada</small></span></button>
       <button data-open="rules"><img class="ui" src="tibia-assets/sprites15/ui/regras.png" alt=""><span>Regras automáticas<small>lure, volta, reabastecer</small></span></button>
     </div></div>
@@ -615,36 +674,45 @@ button.lnk:hover{color:var(--gold)}
   <button class="cfgbtn" data-open="cfg" title="Configurações"><img class="ui" src="tibia-assets/sprites15/ui/config.png" alt=""></button>
 </div>
 
-<div class="win" id="w-loot" style="left:10px;top:66px;width:230px">
-  <div class="win-h"><span>Loot da sessão</span><button data-close="w-loot">✕</button></div>
-  <div class="win-b"><div class="bag" id="lootGrid"></div></div>
+<button id="sideBtn" data-act="sideToggle" title="Equipamento e mochila">🎒</button>
+<aside id="side" data-tab="inv">
+<div id="sideTabs"><button data-act="sideTab" data-arg="inv" class="on">Mochila</button><button data-act="sideTab" data-arg="caca">Caçada</button><button data-act="sideTab" data-arg="loot">Loot</button></div>
+<div class="win dock" id="w-inv" data-tab="inv">
+  <div class="win-h"><span>Equipamento</span><button data-fold="w-inv" title="Recolher">–</button></div>
+  <div class="win-b"><div id="eqBody"></div><div class="bagwrap"><h4>Mochila</h4><div id="invBody"></div></div></div>
 </div>
 
-<div class="win" id="w-inv" style="right:10px;top:66px;width:390px">
-  <div class="win-h"><span>Inventário</span><button data-close="w-inv">✕</button></div>
-  <div class="win-b" id="invBody"></div>
+<div class="win dock hidden" id="trPanel" data-tab="caca">
+  <div class="win-h"><span>Treino</span><button data-fold="trPanel" title="Recolher">–</button></div>
+  <div class="win-b" id="trBody"></div>
 </div>
 
-<div class="win" id="w-ana" style="right:10px;bottom:10px;width:250px">
-  <div class="win-h"><span>Analisador de caçada</span><button data-act="resetSess" title="Zerar sessão">↺</button></div>
+<div class="win dock" id="w-ana" data-tab="caca">
+  <div class="win-h"><span>Analisador de caçada</span><button data-act="resetSess" title="Zerar sessão">↺</button><button data-fold="w-ana" title="Recolher">–</button></div>
   <div class="win-b"><div class="ana" id="anaBody"></div><div id="anaParty"></div></div>
 </div>
 
-<div class="win hidden" id="w-party" style="left:250px;top:66px;width:290px;max-height:62vh">
-  <div class="win-h"><span>Party</span><button data-close="w-party">✕</button></div>
+<div class="win dock hidden" id="w-party" data-tab="caca">
+  <div class="win-h"><span>Party</span><button data-fold="w-party" title="Recolher">–</button><button data-close="w-party" title="Fechar">✕</button></div>
   <div class="win-b" id="partyBody"></div>
 </div>
 
-<div class="win" id="w-chat" style="left:10px;bottom:10px;width:360px;height:200px">
+<div class="win dock" id="w-loot" data-tab="loot">
+  <div class="win-h"><span>Loot da sessão</span><button data-fold="w-loot" title="Recolher">–</button><button data-close="w-loot" title="Fechar">✕</button></div>
+  <div class="win-b"><div class="bag" id="lootGrid"></div></div>
+</div>
+</aside>
+
+<div class="win dock" id="w-chat">
   <div class="win-h"><span>Chat</span><button data-close="w-chat">✕</button></div>
   <div class="chat-tabs"><button data-chat="sys" class="on">Sistema</button><button data-chat="loot">Loot</button><button data-chat="cmb">Combate</button><button data-chat="cid">Cidade</button></div>
   <div class="chat-log" id="chatLog"></div>
   <div class="chat-in hidden" id="chatIn"><input type="text" id="chatTxt" maxlength="120" placeholder="Fale ou digite uma magia (ex.: utani hur) e tecle Enter" autocomplete="off"></div>
 </div>
 
-<div id="trPanel" class="hidden"></div>
 <div id="hudwrap">
   <div id="arenaBtns" class="hidden"><button class="cbtn" id="combarBtn" data-act="combarAgora" title="O time inteiro dispara o melhor golpe no foco agora (recarga de 20 s). Clique num inimigo no mapa para escolher o foco por 10 s.">⚡ Combar agora</button></div>
+  <div id="autoBar" class="hidden"></div>
   <div id="cityBtns">
     <button class="cbtn" data-open="depot"><img class="ui" src="tibia-assets/sprites15/ui/depot.png" alt="">DEPOT</button>
     <button class="cbtn" data-act="quickSell"><img class="ui" src="tibia-assets/sprites15/ui/venda.png" alt="">VENDA RÁPIDA</button>
@@ -717,7 +785,7 @@ const ii=(it,c)=>it.icone?`<img class="sp ${c||''}" src="${encodeURI(it.icone)}"
 
 /* ======================= DADOS ======================= */
 const VOC={
-  knight:{n:'Knight',hp:15,mp:5,cap:25,main:'melee',wt:'sword',range:1,hpReg:.006,mpReg:.004,dmg:1,mult:{melee:1.1,distance:1.4,shielding:1.1,magic:3},
+  knight:{n:'Knight',hp:15,mp:5,cap:25,main:'sword',wt:'sword',range:1,hpReg:.006,mpReg:.004,dmg:1,mult:{melee:1.1,distance:1.4,shielding:1.1,magic:3},
     outfit:'Outfit_Knight_Male',col:{b:'#9aa0aa',d:'#60656e',h:'#5a3a1a',w:'sword'},desc:'Muita vida e defesa. Luta corpo a corpo.'},
   paladin:{n:'Paladin',hp:10,mp:15,cap:20,main:'distance',wt:'distance',range:4,hpReg:.005,mpReg:.006,dmg:1.05,mult:{melee:1.2,distance:1.1,shielding:1.1,magic:1.4},
     outfit:'Outfit_Hunter_Male',col:{b:'#3a5fc8',d:'#26408a',h:'#e2b232',w:'bow'},desc:'Ataca à distância com arcos e lanças.'},
@@ -726,7 +794,10 @@ const VOC={
   druid:{n:'Druid',hp:5,mp:30,cap:10,main:'magic',wt:'rod',range:3,hpReg:.004,mpReg:.01,spellMul:1,healMul:1.35,mult:{melee:2,distance:2,shielding:1.5,magic:1.1},
     outfit:'Outfit_Druid_Male',col:{b:'#2f7a3a',d:'#1d5226',h:'#a05a2a',w:'staff',o:'#70e0ff'},desc:'Magias de gelo e as melhores curas.'},
 };
-const SKN={magic:'Nível mágico',melee:'Espada',distance:'Distância',shielding:'Escudo'};
+const SKN={magic:'Nível mágico',sword:'Espada',axe:'Machado',club:'Clava',distance:'Distância',shielding:'Escudo'};
+/* Knight: 3 skills de arma (espada/machado/clava); o skill que treina e dá dano é o do tipo da arma equipada. Saves antigos tinham 'melee' (migrado em carregarSave). */
+const MELEE=['sword','axe','club'],skW=(voc,wt)=>voc==='knight'?(MELEE.includes(wt)?wt:'sword'):VOC[voc].main,okWt=(voc,wt)=>voc==='knight'?MELEE.includes(wt):wt===VOC[voc].wt;
+let SHOPWT='';   /* filtro de tipo de arma na loja do Knight ('' = todas) */
 const stage=L=>L<20?4:L<50?3:L<100?2:1.5;
 
 const ITEMS={};
@@ -736,7 +807,7 @@ const DROPV={short_sword:5,spear:3,wand_vortex:5,rod_snake:5,leather_helmet:4,le
   demon_shield:30000,golden_legs:30000,magic_plate_armor:90000};
 [
  ['short_sword','Short Sword','🗡️','weapon',{atk:11},30,0,'sword'],['carlin_sword','Carlin Sword','🗡️','weapon',{atk:15},250,3,'sword'],['spike_sword','Spike Sword','🗡️','weapon',{atk:24},1500,10,'sword'],
- ['battle_hammer','Battle Hammer','🔨','weapon',{atk:24},0,10,'sword'],['dragon_hammer','Dragon Hammer','🔨','weapon',{atk:32},0,25,'sword'],['fire_sword','Fire Sword','🗡️','weapon',{atk:35},6000,25,'sword'],
+ ['battle_hammer','Battle Hammer','🔨','weapon',{atk:24},0,10,'club'],['dragon_hammer','Dragon Hammer','🔨','weapon',{atk:32},0,25,'club'],['fire_sword','Fire Sword','🗡️','weapon',{atk:35},6000,25,'sword'],
  ['giant_sword','Giant Sword','⚔️','weapon',{atk:46},20000,45,'sword'],['magic_longsword','Magic Longsword','⚔️','weapon',{atk:55},70000,70,'sword'],['mystic_blade','Mystic Blade','⚔️','weapon',{atk:62},180000,100,'sword'],['warlord_sword','Warlord Sword','⚔️','weapon',{atk:70},400000,140,'sword'],
  ['spear','Spear','🔱','weapon',{atk:15},30,0,'distance'],['bow','Bow','🏹','weapon',{atk:22},1200,10,'distance'],['crossbow','Crossbow','🏹','weapon',{atk:30},5000,22,'distance'],['royal_spear','Royal Spear','🔱','weapon',{atk:38},12000,35,'distance'],
  ['assassin_star','Assassin Star','✴️','weapon',{atk:46},25000,50,'distance'],['arbalest','Arbalest','🏹','weapon',{atk:55},70000,75,'distance'],['warsinger_bow','Warsinger Bow','🏹','weapon',{atk:62},180000,100,'distance'],['eldritch_bow','Eldritch Bow','🏹','weapon',{atk:70},400000,140,'distance'],
@@ -808,6 +879,16 @@ const CH=window.CHEFES||{itens:{},eq:[],mobs:{},chefes:{}};
 Object.assign(CD.itens,CH.itens);Object.assign(CD.mobs,CH.mobs);
 /* equipamentos de topo (Falcon, Sanguine, Soul...): só caem de bosses (price 0 = fora da loja); estatísticas do Canary convertidas ao modelo do jogo; voc = vocações que podem usar */
 for(const e of CH.eq)ITEMS[e.id]=Object.assign({id:e.id,n:e.n,i:'✨',slot:e.slot,price:0,lv:e.lv,wt:e.wt||undefined,type:'eq',w:e.w,v:e.v,icone:e.icone,voc:e.voc,raro:1},e.st);
+/* machados e clavas (e mais espadas) reais do Canary para o Knight: [id = chave de loot, ataque, preço NPC (0 = só drop), level, tipo]. Nome, ícone do cliente 15.10 e peso vêm do loot do mesmo item
+   (CD.itens) e o drop dos monstros passa a ser o equipamento (LOOT_ID por nome). Ataque/level do items.xml até 46 (como as espadas da loja); acima disso 46+(real-46)*2.2. Armas de 2 mãos valem como 1 mão (o jogo não tem 2 mãos). */
+[['axe',12,40,0,'axe'],['hatchet',15,250,3,'axe'],['battle_axe',25,1500,10,'axe'],['knight_axe',33,5000,25,'axe'],['noble_axe',39,9000,35,'axe'],['warrior_s_axe',42,14000,40,'axe'],['war_axe',50,40000,65,'axe'],['ruthless_axe',55,70000,75,'axe'],
+ ['obsidian_lance',34,0,20,'axe'],['double_axe',35,0,25,'axe'],['halberd',35,0,25,'axe'],['glorious_axe',40,0,30,'axe'],['beastslayer_axe',35,0,30,'axe'],['titan_axe',43,0,40,'axe'],['mino_lance',40,0,45,'axe'],['butcher_s_axe',41,0,45,'axe'],['hive_scythe',46,0,70,'axe'],
+ ['bone_club',12,40,0,'club'],['mace',16,250,3,'club'],['morning_star',25,1500,10,'club'],['clerical_mace',28,3500,20,'club'],['crystal_mace',38,9000,35,'club'],['war_hammer',45,24000,50,'club'],['hammer_of_wrath',50,45000,65,'club'],['heavy_mace',53,60000,70,'club'],
+ ['taurus_mace',30,0,20,'club'],['spiky_club',31,0,20,'club'],['brutetamer_s_staff',35,0,25,'club'],['diamond_sceptre',34,0,25,'club'],['skull_staff',36,0,30,'club'],['sapphire_hammer',37,0,30,'club'],['dragonbone_staff',35,0,30,'club'],['spiked_squelcher',41,0,30,'club'],['shadow_sceptre',39,0,35,'club'],
+ ['chaos_mace',44,0,45,'club'],['ogre_klubba',45,0,50,'club'],['bonebreaker',46,0,55,'club'],['metal_bat',44,0,55,'club'],['abyss_hammer',49,0,60,'club'],['jade_hammer',46,0,70,'club'],
+ ['two_handed_sword',30,0,20,'sword'],['crystal_sword',35,0,25,'sword'],['wyvern_fang',32,0,25,'sword'],['epee',37,0,30,'sword'],['haunted_blade',40,0,30,'sword'],['mercenary_sword',43,0,40,'sword'],['assassin_dagger',40,0,40,'sword'],['dragon_slayer',44,0,45,'sword'],
+ ['relic_sword',42,0,50,'sword'],['demonrage_sword',49,0,60,'sword'],['twiceslicer',49,0,58,'sword'],['crystalline_sword',49,0,62,'sword'],['nightmare_blade',46,0,70,'sword']
+].forEach(([id,atk,price,lv,wt])=>{const l=CD.itens[id];if(!l||ITEMS[id])return;ITEMS[id]={id,n:l.n,i:{axe:'🪓',club:'🔨',sword:'🗡️'}[wt],slot:'weapon',price,lv,wt,type:'eq',w:Math.min(80,l.w||SLOTW.weapon),v:price?Math.round(price*.25):(l.v||0),icone:l.icone,atk};});
 /* ECONOMIA: multiplicador único das moedas (gold/platinum/crystal coin) que caem dos monstros. O Canary dá as contagens reais, mas o jogo abate bem menos monstros por hora que um jogador real de Tibia (~300/h contra ~1000/h): 1,5 aproxima o gold/h do jogo real sem mexer no loot de itens. */
 const OURO_X=1.5;
 const tituloCase=s=>s.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
@@ -895,7 +976,7 @@ function hotForte(v){
 /* personagem inicial forte: level 100, skills de quem já treinou, melhor equipamento até o level e todas as magias */
 function personagemForte(s){
   const v=s.voc,L=100;s.level=L;s.exp=expFor(L);s.addon=3;s.gold=100000;
-  const sk={knight:{melee:85,distance:30,shielding:80,magic:9},paladin:{melee:30,distance:90,shielding:70,magic:22},sorcerer:{melee:20,distance:20,shielding:30,magic:80},druid:{melee:20,distance:20,shielding:30,magic:80}}[v];
+  const sk={knight:{sword:85,axe:50,club:50,distance:30,shielding:80,magic:9},paladin:{sword:30,distance:90,shielding:70,magic:22},sorcerer:{sword:20,distance:20,shielding:30,magic:80},druid:{sword:20,distance:20,shielding:30,magic:80}}[v];
   for(const k in sk)s.skills[k]={lv:sk[k],t:0};
   for(const slot of Object.keys(s.eq)){const op=Object.values(ITEMS).filter(i=>i.type==='eq'&&i.slot===slot&&i.price>0&&i.lv<=L&&(slot!=='weapon'||i.wt===VOC[v].wt)).sort((a,b)=>b.price-a.price);if(op[0])s.eq[slot]={id:op[0].id,t:0};}
   const pot={knight:{ghp_pot:300,mp_pot:200},paladin:{gsp_pot:300,smp_pot:200},sorcerer:{gmp_pot:200,hp_pot:60},druid:{gmp_pot:200,hp_pot:60}}[v];
@@ -907,7 +988,7 @@ function personagemForte(s){
 }
 function newState(name,voc){
   const s={v:1,name,voc,level:1,exp:0,hp:150,mp:55,gold:200,deaths:0,
-    skills:{magic:{lv:0,t:0},melee:{lv:10,t:0},distance:{lv:10,t:0},shielding:{lv:10,t:0}},
+    skills:{magic:{lv:0,t:0},sword:{lv:10,t:0},axe:{lv:10,t:0},club:{lv:10,t:0},distance:{lv:10,t:0},shielding:{lv:10,t:0}},
     eq:{weapon:{id:STARTER[voc],t:0},helmet:{id:'leather_helmet',t:0},armor:{id:'leather_armor',t:0},legs:{id:'leather_legs',t:0},boots:{id:'leather_boots',t:0},shield:{id:'wooden_shield',t:0}},
     bag:{hp_pot:20,mp_pot:voc==='knight'?5:20},depot:{},
     sets:{'Default':defaultHot(voc),'Set 2':defaultHot(voc),'Set 3':new Array(16).fill(null)},set:'Default',target:'near',
@@ -915,7 +996,7 @@ function newState(name,voc){
     prey:[0,1,2].map(i=>({opts:null,mob:null,type:null,val:0,est:1,ms:0,auto:false,trava:false,livreEm:0,lib:i===0})),wildcards:0,wcAcc:0,tc:0,favs:{},
     best:{},bestClaim:{},charmPts:0,charms:{dmg:0,exp:0,loot:0,def:0},
     bless:false,stamina:STAM_MAX,loc:'city',lastHunt:null,pull:{},lootCfg:{},recordes:{},
-    rules:{autoReturn:true,cap:90,minHp:5,minMp:5,autoSell:true,keepMats:true,sellEq:true,refill:[{id:'hp_pot',q:50},{id:'mp_pot',q:voc==='knight'?10:50}],autoBless:false,autoBack:true,smart:false,backAfterDeath:false,lure:0,ia:true},
+    rules:{autoReturn:true,cap:90,minHp:5,minMp:5,autoSell:true,keepMats:true,sellEq:true,refill:[{id:'hp_pot',q:50},{id:'mp_pot',q:voc==='knight'?10:50}],autoBless:false,autoBack:true,smart:false,backAfterDeath:false,lure:0,ia:true,aCave:true,aAlvo:true,aCura:true,aAtk:true},
     sess:null,lastTick:Date.now(),ui:{}};
   s.sess=newSess(null);return s;
 }
@@ -926,6 +1007,7 @@ const maxHp=()=>145+5*Math.min(S.level,8)+V().hp*Math.max(0,S.level-8);
 const maxMp=()=>50+5*Math.min(S.level,8)+V().mp*Math.max(0,S.level-8);
 const maxCap=()=>400+V().cap*S.level;
 const eqi=k=>ITEMS[S.eq[k].id]||ITEMS[STARTER[S.voc]];
+const mainSk=()=>skW(S.voc,eqi('weapon').wt);   /* skill que a arma equipada treina e usa no dano (Knight: sword/axe/club) */
 function capUsed(){let w=0;for(const [k,c] of Object.entries(S.bag)){const it=ITEMS[parseKey(k).id];if(it)w+=it.w*c;}return w;}
 const capFree=()=>maxCap()-capUsed();
 function atk(){const it=eqi('weapon'),t=S.eq.weapon.t;return (it.atk||0)+2*t;}
@@ -1068,17 +1150,17 @@ function bfs(sx,sy,goal,forMob,maxN=3200){
 }
 
 /* ======================= COMBATE ======================= */
-function need(k,lv){const m=V().mult[k];return k==='magic'?Math.round(150*m**lv):Math.round(30*m**(lv-10));}
-function train(k,n){const s=S.skills[k];s.t+=n;S.sess.tries[k]=(S.sess.tries[k]||0)+n;let up=false;while(s.t>=need(k,s.lv)){s.t-=need(k,s.lv);s.lv++;up=true;}
+function need(k,lv){const m=V().mult[k]??V().mult.melee;return k==='magic'?Math.round(150*m**lv):Math.round(30*m**(lv-10));}
+function train(k,n){if(k==='melee')k=mainSk();const s=S.skills[k];if(!s)return;s.t+=n;S.sess.tries[k]=(S.sess.tries[k]||0)+n;let up=false;while(s.t>=need(k,s.lv)){s.t-=need(k,s.lv);s.lv++;up=true;}
   if(up){log('sys',k==='magic'?`Você avançou para o nível mágico ${s.lv}.`:`Você avançou para ${SKN[k]} nível ${s.lv}.`,'w');}}
 function gainExp(n){S.exp+=n;S.sess.exp+=n;const b=S.level;while(S.exp>=expFor(S.level+1))S.level++;
   if(S.level>b){S.hp=maxHp();S.mp=maxMp();log('sys',`Você avançou do Level ${b} para o Level ${S.level}.`,'w');toast(`⬆ Level ${S.level}!`);if(W)fxt(W.p.x,W.p.y,'LEVEL UP','#ffd84a',1);}}
 function healP(n){const r=Math.min(Math.round(n),maxHp()-S.hp);if(r>0){ATK_T.eu=W.time;S.hp+=r;fxt(W.p.x,W.p.y,'+'+r,'#66ff66');}}
 function manaP(n){const r=Math.min(Math.round(n),maxMp()-S.mp);if(r>0){S.mp+=r;fxt(W.p.x,W.p.y,'+'+r,'#7aa2ff');}}
-function healBase(){const L=S.level,ml=S.skills.magic.lv;if(S.voc==='knight')return L*.4+S.skills.melee.lv*.6+10;if(S.voc==='paladin')return L*.3+ml*1.5+12;return (L*.2+ml*1.6+10)*(V().healMul||1);}
+function healBase(){const L=S.level,ml=S.skills.magic.lv;if(S.voc==='knight')return L*.4+S.skills[mainSk()].lv*.6+10;if(S.voc==='paladin')return L*.3+ml*1.5+12;return (L*.2+ml*1.6+10)*(V().healMul||1);}
 function spellDmg(s){const L=S.level,ml=S.skills.magic.lv;
   if(MAGES.includes(S.voc))return rnd(L*.2+ml*1.6+8,L*.2+ml*2.6+16)*s.mul*V().spellMul;
-  const sk=S.skills[V().main].lv;return rnd(.6,1)*(0.085*atk()*sk*V().dmg+L/5)*s.mul;}
+  const sk=S.skills[mainSk()].lv;return rnd(.6,1)*(0.085*atk()*sk*V().dmg+L/5)*s.mul;}
 function dmgMult(m){const st=bestStage(m.id);return 1+charmV('dmg')+preyB(m.id,'dmg')+(st>=3?.1:st>=2?.05:0);}
 let ATKR='eu';const ATK_T={};   /* quem causou o dano (party): 'eu' ou o pid do lutador */
 function hitMob(m,dmg,col,fisico,proc){
@@ -1321,7 +1403,7 @@ function condicaoLutador(L,t,d){const c=L.c;if(t==='dot'){c.dots=c.dots.filter(q
 /* ---- o jogador como lutador (lê e escreve em S e W.p) ---- */
 const JOG={ehLutador:true,eJog:true,
   get nome(){return S.name},get voc(){return S.voc},get nivel(){return S.level},get ml(){return S.skills.magic.lv},
-  get skill(){const k=V().main;return S.skills[k==='magic'?'melee':k].lv},get atkArma(){return atk()},get arma(){return eqi('weapon')},
+  get skill(){const k=mainSk();return S.skills[k==='magic'?'sword':k].lv},get atkArma(){return atk()},get arma(){return eqi('weapon')},
   get wt(){return V().wt},get alcance(){return V().range},get dmgV(){return V().dmg||1},get arm(){return armor()},get def(){return def()},get shielding(){return S.skills.shielding.lv},
   get hp(){return S.hp},set hp(v){S.hp=v},get max(){return maxHp()},get mp(){return S.mp},set mp(v){S.mp=v},get maxMp(){return maxMp()},
   get x(){return W.p.x},get y(){return W.p.y},get dir(){return [2,1,0,3][W.p.face??0]},set dir(d){W.p.face=[2,1,0,3][d]},
@@ -1442,10 +1524,10 @@ function escolherAtaque15(L,lista,exec){const eq=W.arena&&W.arena.modo==='equipe
   return best;}
 /* a hotbar de qualquer lutador: no máximo uma ação de cada grupo (ataque, cura, suporte, poção) por tick.
    Cura e suporte seguem a ordem dos slots; o ataque escolhe o mais forte entre os elegíveis. */
-function usarHotbar15(L){const usados={},atk=[];
+function usarHotbar15(L,fl){const usados={},atk=[],nc=fl&&fl.nc,na=fl&&fl.na;   /* fl: modo manual (nc = sem cura/suporte/poção automáticos, na = sem ataque automático com magias) */
   for(const s of L.slots.filter(Boolean).sort((a,b)=>(a.p||2)-(b.p||2))){   /* prioridade do slot (1 alta·2 normal·3 baixa; sem p = 2): sort estável mantém a ordem dos slots dentro da mesma prioridade */const m=MAGIAS15[s.a]||RUNAS15[s.a],it=ITEMS[s.a];
-    if(m){if(!m.runa&&!m.voc.includes(L.voc))continue;const g=GRUPO15(m);if(g==='atk'){atk.push({m,s});continue;}if(usados[g])continue;if(lancar15(L,m,s))usados[g]=1;continue;}
-    if(it&&it.type==='pot'&&!usados.pot&&usarPocao15(L,it,s))usados.pot=1;}
+    if(m){if(!m.runa&&!m.voc.includes(L.voc))continue;const g=GRUPO15(m);if(g==='atk'){if(!na)atk.push({m,s});continue;}if(nc||usados[g])continue;if(lancar15(L,m,s))usados[g]=1;continue;}
+    if(it&&it.type==='pot'&&!nc&&!usados.pot&&usarPocao15(L,it,s))usados.pot=1;}
   if(!atk.length||(L.cd.atk||0)>W.time||(L===JOG&&W.lure&&W.lure.fase==='puxar'))return;   /* lure: puxando monstros, sem ataque pesado */
   const exec=execucao15(L);if(L.segura&&!exec)return;   /* segurando para o combo do time */
   const b=escolherAtaque15(L,atk,exec);if(b)lancar15(L,b.m,b.ok?b.s:{a:b.s.a,v:b.hits});}
@@ -1545,11 +1627,12 @@ const SILABAS=['ka','ra','tor','mi','vel','dra','ven','lo','sa','ri','gor','tha'
 const TITULOS=['','','','Sir ','Lady ','Dark ','Lord ','Mestre ','El ','Lil '];
 function nomeBot(){let n='';const k=rint(2,3);for(let i=0;i<k;i++)n+=pick(SILABAS);n=n[0].toUpperCase()+n.slice(1);return pick(TITULOS)+n+(Math.random()<.3?' '+pick(SILABAS).replace(/^./,c=>c.toUpperCase())+pick(SILABAS):'');}
 function skillsBot(voc,L){   /* mesma tabela do personagem inicial (level 100), escalada pelo level, com ±3 de variação */
-  const ref={knight:{melee:85,distance:30,shielding:80,magic:9},paladin:{melee:30,distance:90,shielding:70,magic:22},sorcerer:{melee:20,distance:20,shielding:30,magic:80},druid:{melee:20,distance:20,shielding:30,magic:80}}[voc];
+  const ref={knight:{sword:85,axe:85,club:85,distance:30,shielding:80,magic:9},paladin:{sword:30,axe:30,club:30,distance:90,shielding:70,magic:22},sorcerer:{sword:20,axe:20,club:20,distance:20,shielding:30,magic:80},druid:{sword:20,axe:20,club:20,distance:20,shielding:30,magic:80}}[voc];
   const f=Math.pow(L/100,.75),o={};for(const k in ref)o[k]=Math.max(1,Math.round(ref[k]*f+rint(-3,3)));return o;}
-function equipBot(voc,L){const eq={};for(const slot of ['weapon','helmet','armor','legs','boots','shield']){
-    const op=Object.values(ITEMS).filter(i=>i.type==='eq'&&i.slot===slot&&i.price>0&&i.lv<=L&&(slot!=='weapon'||i.wt===VOC[voc].wt)).sort((a,b)=>b.price-a.price);
+function equipBot(voc,L){const eq={},wtb=voc==='knight'?pick(MELEE):VOC[voc].wt;for(const slot of ['weapon','helmet','armor','legs','boots','shield']){   /* knight bot: espada, machado ou clava ao acaso */
+    const op=Object.values(ITEMS).filter(i=>i.type==='eq'&&i.slot===slot&&i.price>0&&i.lv<=L&&(slot!=='weapon'||i.wt===wtb)).sort((a,b)=>b.price-a.price);
     eq[slot]=op[0]||(slot==='weapon'?ITEMS[STARTER[voc]]:null);}return eq;}
+const skArma=(voc,sk,arma)=>sk[skW(voc,arma&&arma.wt)]??(MELEE.includes(skW(voc,arma&&arma.wt))?sk.melee:undefined)??1;   /* skill do lutador pelo tipo da arma; ficha antiga com 'melee' vale para os três */
 function gerarOponente(nv,pts,vocFixa){const voc=vocFixa||pick(Object.keys(VOC)),nivel=Math.max(20,Math.round(nv*rnd(.85,1.15))),looks=Object.keys(OUTF15),sexo=Math.random()<.5?'m':'f';
   const lista=looks.filter(k=>OUTF15[k].sexo===sexo),look=+pick(lista.length?lista:looks);
   return {nome:nomeBot(),voc,nivel,pontos:Math.max(500,Math.round(pts+rnd(-140,140))),outfit:{look,cores:[rint(0,132),rint(0,132),rint(0,132),rint(0,132)],addons:rint(0,3)},sk:skillsBot(voc,nivel)};}
@@ -1558,7 +1641,7 @@ function gerarOponente(nv,pts,vocFixa){const voc=vocFixa||pick(Object.keys(VOC))
 function lutadorBot(op,base){const v=VOC[op.voc],L=op.nivel,eq=(base&&base.eq)||equipBot(op.voc,L),sk=op.sk,arma=eq.weapon;
   const arm=['helmet','armor','legs','boots'].reduce((a,k)=>a+((eq[k]&&eq[k].arm)||0)+((base&&base.t&&base.t[k])||0),0),df=((eq.shield&&eq.shield.def)||0)+((base&&base.t&&base.t.shield)||0);
   const max=145+5*Math.min(L,8)+v.hp*Math.max(0,L-8),maxMp=50+5*Math.min(L,8)+v.mp*Math.max(0,L-8);
-  const B={ehLutador:true,bot:!base,jogador:!!base,nome:op.nome,voc:op.voc,nivel:L,ml:sk.magic,skill:op.voc==='knight'?sk.melee:sk.distance,atkArma:((arma&&arma.atk)||0)+((base&&base.t&&base.t.weapon)||0)*2,arma,wt:v.wt,alcance:v.range,dmgV:v.dmg||1,
+  const B={ehLutador:true,bot:!base,jogador:!!base,nome:op.nome,voc:op.voc,nivel:L,ml:sk.magic,skill:op.voc==='knight'?skArma('knight',sk,arma):sk.distance,atkArma:((arma&&arma.atk)||0)+((base&&base.t&&base.t.weapon)||0)*2,arma,wt:v.wt,alcance:v.range,dmgV:v.dmg||1,
     arm,def:df,shielding:sk.shielding,hp:max,max,mp:maxMp,maxMp,x:0,y:0,fx:0,fy:0,mt:1,dir:3,stepMs:300,c:{buffs:{},dots:[]},cd:{},bag:{},op,
     folha:(base&&base.folha)||null,get alvo(){const A=W.arena;if(!A)return this.cacada?ptAlvoLut(this):null;if(this._alvoTmp)return this._alvoTmp;if(this.voc==='knight'&&A.modo==='equipe'){const g=grudeKnight(this);if(g&&cheb(this,g)<=1){const f0=A.foco[this.time];return A.execOn&&A.execOn[this.time]&&f0&&f0.hp>0&&cheb(this,f0)<=1?f0:g;}}const f=A.foco[this.time];return f&&f.hp>0?f:maisPerto(this,A.times[1-this.time].filter(L=>L.hp>0));},
     receber(v2,el,at,f,puro){return receberLutador(this,v2,el,at,f,puro);},condicao(t,d){condicaoLutador(this,t,d);},resist(){return 1},vivo(){return this.hp>0}};
@@ -1569,14 +1652,14 @@ function lutadorBot(op,base){const v=VOC[op.voc],L=op.nivel,eq=(base&&base.eq)||
 function outJogTime(){const A=arenaEstado();return S.outfit?{look:S.outfit.look,cores:CORES_TIME[0].slice(),addons:S.outfit.addons}:vestir({outfit:{look:+Object.keys(OUTF15).find(k=>OUTF15[k].sexo==='m')}},A.meuUniforme,CORES_TIME[0]).outfit;}
 function lutadorJogador(){const eq={},t={};for(const k of ['weapon','helmet','armor','legs','boots','shield']){eq[k]=ITEMS[S.eq[k].id]||null;t[k]=S.eq[k].t||0;}
   const R=SP15.roupas[S.voc],f=R&&(R[S.addon??3]||R[0]);
-  return lutadorBot({nome:S.name,voc:S.voc,nivel:S.level,outfit:S.outfit||undefined,sk:{melee:S.skills.melee.lv,distance:S.skills.distance.lv,shielding:S.skills.shielding.lv,magic:S.skills.magic.lv}},
+  return lutadorBot({nome:S.name,voc:S.voc,nivel:S.level,outfit:S.outfit||undefined,sk:{sword:S.skills.sword.lv,axe:S.skills.axe.lv,club:S.skills.club.lv,distance:S.skills.distance.lv,shielding:S.skills.shielding.lv,magic:S.skills.magic.lv}},
     {eq,t,procs:JOG.procs,slots:(S.sets['Arena']||S.sets[S.set]||[]).map(x=>x&&{a:x.a,v:x.v,p:x.p}),folha:S.outfit?null:f});}   /* set 'Arena' (conjunto sugerido) tem prioridade */
 /* ---- ataque básico de lutador (arma corpo a corpo, distância, wand/rod) ---- */
 function basico15(L,t){const T=W.time;if((L.cd.basico||0)>T||!t.vivo())return;const d=cheb(L,t),md=mods(L);if(d>L.alcance||md.pacifico)return;L.cd.basico=T+2000;virar15(L,t);
   if(L.wt==='wand'||L.wt==='rod'){const w=L.arma;if(!w||L.mp<(w.mana||0))return;L.mp-=w.mana||0;const el=L.wt==='wand'?'energy':'ice',at=tiro15(L.wt==='wand'?ANI15.energy:ANI15.smallice,L,t);t.receber(rint(w.min||5,w.max||10)*md.feito,el,at,L);return;}
   const sk=L.skill*(L.voc==='knight'?md.melee:md.dist);let at=0;if(L.alcance>1)at=tiro15(L.voc==='paladin'?ANI15.spear:ANI15.arrow,L,t);
   const arco=W.arena&&L.alcance>1?.7:1;   /* arena: o jogo ainda não modela munição, então o arco sozinho daria dano demais */
-  if(L.eJog&&!W.arena)train(V().main,1);t.receber(rnd(.3,1)*(0.085*L.atkArma*sk*L.dmgV+L.nivel/5)*md.feito*arco,'phys',at,L);}
+  if(L.eJog&&!W.arena)train(mainSk(),1);t.receber(rnd(.3,1)*(0.085*L.atkArma*sk*L.dmgV+L.nivel/5)*md.feito*arco,'phys',at,L);}
 /* ---- movimento: knight cola no adversário; paladin e magos mantêm 3 tiles ---- */
 function passoLutador(L,O){if(L.mt<1)return;const A=W.arena,lz=L.c.lento;let n;if(lz&&lz.ate>W.time&&lz.f<=.35)return;   /* paralisado: não anda */
   if(L.voc==='knight'||!A||A.modo!=='equipe')n=passoPara(L,L.voc==='knight'&&A&&A.modo==='equipe'?grudeKnight(L)||O:O,L.voc==='knight'?1:3);
@@ -1712,7 +1795,7 @@ function arenaFim(venceu){const A=W.arena,E=arenaEstado(),op=A.op,esp=1/(1+Math.
 /* desenho: lutadores, placar, tempo e aviso de combo */
 function drawLutador(L,X,Y){if(!L.folha&&L.op.outfit)L.folha=comporOutfit(L.op.outfit);if(!L.folha)return null;return drawFolha15(L.folha,L,L.dir,X,Y);}
 function drawArenaHud(){const A=W.arena;if(!A)return;const T=W.time;ctx.save();ctx.setTransform(DPR,0,0,DPR,0,0);ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='#000';
-  const esc2=(t,y,f,c)=>{ctx.font=f;ctx.strokeText(t,VW/2,y);ctx.fillStyle=c;ctx.fillText(t,VW/2,y);};
+  const esc2=(t,y,f,c)=>{ctx.font=f;ctx.strokeText(t,(VW-SBW)/2,y);ctx.fillStyle=c;ctx.fillText(t,(VW-SBW)/2,y);};
   const seg=Math.max(0,Math.ceil((180000-Math.max(0,T-A.t0))/1000)),txt=A.fim?(A.fim.venceu?'🏆 VITÓRIA':'💀 DERROTA'):T<A.t0?'Prepare-se…':`${Math.floor(seg/60)}:${String(seg%60).padStart(2,'0')}`;
   const vivos=A.times.map(t=>t.filter(L=>L.hp>0).length);
   esc2(`${A.times[0].length>1?'Seu time':S.name} (${vivos[0]})  vs  ${A.op.nome} (${vivos[1]})`,70,'bold 13px Verdana','#ffd84a');
@@ -1721,13 +1804,13 @@ function drawArenaHud(){const A=W.arena;if(!A)return;const T=W.time;ctx.save();c
   if(A.flash&&T<A.flash.ate)esc2(A.flash.txt,140,'bold 20px Verdana',A.flash.cor);
   ctx.restore();}
 function castOk(s){return s.voc.includes(S.voc)&&S.level>=s.lv&&S.mp>=s.mana&&!(W.cd[s.id]>W.time);}
-function runHot(){if(S.sets[S.set])usarHotbar15(JOG);}
+function runHot(){if(S.sets[S.set])usarHotbar15(JOG,{nc:!AUTO('aCura'),na:!AUTO('aAtk')});}
 function autoAttack(tg){
   const p=W.p,v=V();virarPara(tg);
   const md=mods(JOG);if(md.pacifico)return;
   if(v.wt==='wand'||v.wt==='rod'){const w=eqi('weapon');if(S.mp<w.mana)return;S.mp-=w.mana;train('magic',w.mana);const tf=1+.08*S.eq.weapon.t;proj(p,tg,v.wt==='wand'?ELC.energy:ELC.ice);hitMob(tg,rint(w.min,w.max)*tf*md.feito,'#ff4d4d',false,true);return;}
-  const sk=S.skills[v.main].lv*(v.main==='melee'?md.melee:md.dist);if(v.range>1)proj(p,tg,'#c8a060');
-  train(v.main,1);hitMob(tg,rnd(.3,1)*(0.085*atk()*sk*v.dmg+S.level/5)*md.feito,null,true,true);
+  const mk=mainSk(),sk=S.skills[mk].lv*(mk==='distance'?md.dist:md.melee);if(v.range>1)proj(p,tg,'#c8a060');
+  train(mk,1);hitMob(tg,rnd(.3,1)*(0.085*atk()*sk*v.dmg+S.level/5)*md.feito,null,true,true);
 }
 function chooseTarget(){
   const p=W.p;let c=W.mobs.filter(m=>m.d.hostil&&cheb(p,m)<=8);if(!c.length)return null;
@@ -1744,6 +1827,12 @@ function stepPlayer(nx,ny){const p=W.p;
   const diag=p.fx!==nx&&p.fy!==ny;p.stepMs=(260-Math.min(90,S.level*.9))*(diag?1.4:1)*(p.lentoAte>W.time?2.2:1)/mods(JOG).vel;if(!quiet)iniciarPasso(p,p.stepMs);}
 /* WASD: anda à mão; o automático só volta 3 s depois da última tecla */
 function andarMao(){const p=W.p,mao=Object.keys(TECLAS).find(k=>TECLAS[k]);
+  if(mao)p.vai=null;
+  if(!mao&&p.vai){const v=p.vai,alvo=v.mob,R=V().range;p.maoAte=performance.now()+(AUTO('aCave')?1500:0);   /* clique no mapa: anda até o tile (ou até ficar ao alcance do monstro clicado) */
+    if(alvo&&!W.mobs.includes(alvo)){p.vai=null;return true;}
+    if(p.mt>=1){const nx=bfs(p.x,p.y,alvo?(x,y)=>{const d=Math.max(Math.abs(x-alvo.x),Math.abs(y-alvo.y));return d>=1&&d<=R;}:(x,y)=>x===v.x&&y===v.y,false);
+      if(!nx||nx==='here')p.vai=null;else stepPlayer(nx[0],nx[1]);}
+    return true;}
   if(!mao&&performance.now()>=(p.maoAte||0))return false;
   if(mao){p.maoAte=performance.now()+3000;if(p.mt>=1){const [dx,dy]=TECLA_DIR[mao],nx=p.x+dx,ny=p.y+dy;
     if(walk(nx,ny)&&!W.occ[ny*W.w+nx])cidPasso(nx,ny);else p.face=dy>0?0:dx>0?1:dy<0?2:3;}}
@@ -1874,13 +1963,14 @@ function playerLogic(dt){
   tickCond15(JOG);tickCampos15([JOG,...W.mobs.map(alvoMob),...(W.pl?ptLutVivos():[])]);aliadosLogic(dt);if(S.hp<=0)return;
   if(p.target&&(p.target.hp<=0||!W.mobs.includes(p.target)||cheb(p,p.target)>11))p.target=null;
   const ia=iaOn();
-  if(!p.target)p.target=chooseTarget();
-  else if(ia&&S.target==='near'&&W.time>=(W.iaT||0)){W.iaT=W.time+1200;const b=chooseTarget();if(b)p.target=b;}   /* IA: reavalia o alvo (o que morre mais rápido) */
-  const puxa=lureLogic();   /* lure: true enquanto está puxando monstros (sem ataque pesado) */
+  if(p.tgMan&&p.tgMan!==p.target)p.tgMan=null;
+  if(!p.target){if(AUTO('aAlvo'))p.target=chooseTarget();}   /* auto-alvo desligado: só ataca o monstro clicado (ou escolhido com Tab/hotkey) */
+  else if(ia&&S.target==='near'&&!p.tgMan&&AUTO('aAlvo')&&W.time>=(W.iaT||0)){W.iaT=W.time+1200;const b=chooseTarget();if(b)p.target=b;}   /* IA: reavalia o alvo (o que morre mais rápido) */
+  const puxa=AUTO('aCave')?lureLogic():(W.lure=null);   /* lure: true enquanto está puxando monstros (sem ataque pesado) */
   const HR=ia?iaRoles():null,rol=HR&&HR.pp[PR.pid],apoio=!!rol&&rol!=='bloqueio'&&!!HR.bq&&HR.bq!==JOG;   /* party: apoio fica atrás do knight */
   if(HR)iaMagiasPT(JOG);
   runHot();
-  if(andarMao()){if(p.target&&cheb(p,p.target)<=V().range&&W.time>=p.cdAtk){autoAttack(p.target);p.cdAtk=W.time+2000;}return;}
+  if(andarMao()||!AUTO('aCave')){if(p.target&&cheb(p,p.target)<=V().range&&W.time>=p.cdAtk){autoAttack(p.target);p.cdAtk=W.time+2000;}return;}   /* cavebot desligado: nunca anda sozinho */
   const tg=puxa?null:p.target,R=V().range;
   if(puxa&&p.target&&cheb(p,p.target)<=R&&W.time>=p.cdAtk){autoAttack(p.target);p.cdAtk=W.time+2000;}   /* ataque leve enquanto puxa */
   if(ia&&!puxa&&!apoio&&rol!=='bloqueio'&&R>1&&p.mt>=1&&!(p.lentoAte>W.time)){const k=iaKite(JOG,R,p.target);if(k)stepPlayer(k[0],k[1]);}   /* kite: paladin/mago recuam de quem cola */
@@ -2024,7 +2114,7 @@ function refill(){
 }
 const blessPrice=()=>S.level<=30?2000:2000+200*(S.level-30);
 function buyBless(auto){const p=blessPrice();if(S.bless)return;if(S.gold<p){if(!auto)toast('Gold insuficiente');return;}S.gold-=p;S.bless=true;log('sys',`Você recebeu as blessings (${fmt(p)} gp).`,'y');dirty.all=true;}
-function canEquip(it){if(it.type!=='eq')return false;if(S.level<it.lv)return false;if(it.slot==='weapon'&&it.wt!==V().wt)return false;if(it.voc&&!it.voc.includes(S.voc))return false;return true;}
+function canEquip(it){if(it.type!=='eq')return false;if(S.level<it.lv)return false;if(it.slot==='weapon'&&!okWt(S.voc,it.wt))return false;if(it.voc&&!it.voc.includes(S.voc))return false;return true;}
 function bagKey(id,t){return t?id+'#'+t:id;}
 function parseKey(k){const [id,t]=String(k).split('#');return {id,t:+t||0};}
 function equip(key){const {id,t}=parseKey(key),it=ITEMS[id];if(!it||!canEquip(it))return;
@@ -2066,7 +2156,8 @@ function offline(ms){
 
 /* ======================= RENDER (CANVAS) ======================= */
 const cv=$('#world'),ctx=cv.getContext('2d');let VW=0,VHt=0,ZOOM=2,DPR=1;
-function resize(){DPR=window.devicePixelRatio||1;VW=innerWidth;VHt=innerHeight;cv.width=VW*DPR;cv.height=VHt*DPR;ZOOM=VW>1600?2:VW>1100?1.75:VW>700?1.4:1.15;}
+let SBW=0;/* largura da barra lateral fixa (0 no celular): o mundo centraliza na área livre */
+function resize(){DPR=window.devicePixelRatio||1;VW=innerWidth;VHt=innerHeight;SBW=VW>=900?($('#side')||{}).offsetWidth||0:0;cv.width=VW*DPR;cv.height=VHt*DPR;ZOOM=VW>1600?2:VW>1100?1.75:VW>700?1.4:1.15;}
 addEventListener('resize',resize);
 cv.addEventListener('click',e=>{const A=W&&W.arena;if(!A||A.fim||A.modo!=='equipe'||!W.cam)return;
   const wx=(e.clientX/ZOOM+W.cam.x)/TS,wy=(e.clientY/ZOOM+W.cam.y)/TS;let b=null,bd=1.15;
@@ -2152,14 +2243,14 @@ function draw(){
   ctx.setTransform(DPR,0,0,DPR,0,0);ctx.fillStyle='#000';ctx.fillRect(0,0,VW,VHt);
   if(!W||!S)return;ctx.imageSmoothingEnabled=false;
   const now=performance.now(),pp=rpos(W.arena?W.arena.jog:W.p);
-  const camX=pp.x*TS+TS/2-VW/2/ZOOM,camY=pp.y*TS+TS/2-(VHt+54-110)/2/ZOOM;
+  const camX=pp.x*TS+TS/2-(VW-SBW)/2/ZOOM,camY=pp.y*TS+TS/2-(VHt+54-110)/2/ZOOM;
   W.cam={x:camX,y:camY};
   const sx=x=>(x-camX)*ZOOM,sy=y=>(y-camY)*ZOOM;
   ctx.setTransform(DPR*ZOOM,0,0,DPR*ZOOM,-camX*DPR*ZOOM,-camY*DPR*ZOOM);
   const x0=Math.max(0,Math.floor(camX/TS)-1),y0=Math.max(0,Math.floor(camY/TS)-1),x1=Math.min(W.w-1,Math.ceil((camX+VW/ZOOM)/TS)+1),y1=Math.min(W.h-1,Math.ceil((camY+VHt/ZOOM)/TS)+1);
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const i=y*W.w+x,k=W.k[i];if(!k)continue;if(W.proprio){drawTile74(W.tl[i][0],x,y,1);continue;}if(W.under&&!W.walk[i]&&k!==8&&k!==10&&!nearWalk(x,y))continue;const n=floorName(k),im=spr(n);
     if(im)ctx.drawImage(im,x*TS,y*TS,32,32);else{ctx.fillStyle=KCOL[k];ctx.fillRect(x*TS,y*TS,32,32);}}
-  drawCampos15(now);if(W.city)drawCid(now);
+  drawCampos15(now);if(W.city)drawCid(now);else drawMarca(now);
   for(let i=W.corpses.length-1;i>=0;i--){const c=W.corpses[i],age=now-c.b;if(age>15000){W.corpses.splice(i,1);continue;}
     ctx.globalAlpha=Math.min(1,(15000-age)/2000);const X=c.x*TS,Y=c.y*TS;
     const cad=SP15.criaturas[c.id]&&SP15.cadaveres[SP15.criaturas[c.id].cad],ci=cad&&folhaImg(cad.src);
@@ -2224,10 +2315,9 @@ function renderInv(){
     return `<div class="slot${imb?' imb':''}" data-eq="${k}" title="${esc(it.n+(e.t?' +'+e.t:'')+'\n'+itemTip(it,e.t))}">${ii(it)}${e.t?`<span class="t">+${e.t}</span>`:''}</div>`;}).join('');
   const bag=Object.entries(S.bag).map(([k,c])=>slotHTML(k,c,`data-bag="${k}"`)).join('')||'<div class="mut sm" style="grid-column:1/-1">Mochila vazia</div>';
   const cu=capUsed(),mc=maxCap();
-  $('#invBody').innerHTML=`<div class="inv"><div><div class="eqgrid">${eq}</div><div class="mut sm" style="margin-top:6px">Arm <b style="color:#fff">${armor()}</b> · Def <b style="color:#fff">${def()}</b></div></div>
-    <div class="bagwrap"><h4>Mochila</h4><div class="bag">${bag}</div></div></div>
-    <div class="capbar"><div style="width:${Math.min(100,cu/mc*100)}%;${cu/mc>.9?'background:linear-gradient(#c04a2a,#80200a)':''}"></div><span><span>Capacidade</span><span>${cu.toFixed(1)} / ${mc} oz</span></span></div>
-    <div style="text-align:right;margin-top:5px" class="gold">${fmt(S.gold)} ${ico('Gold_Coin','💰','s24')}</div>`;
+  $('#eqBody').innerHTML=`<div class="eqrow"><div class="eqgrid">${eq}</div><div class="eqst"><div>Arm <b>${armor()}</b></div><div>Def <b>${def()}</b></div><div class="gold">${ico('Gold_Coin','💰','s24')}<b>${fmt(S.gold)}</b></div></div></div>
+    <div class="capbar" title="Capacidade: ${cu.toFixed(1)} / ${mc} oz"><div style="width:${Math.min(100,cu/mc*100)}%;${cu/mc>.9?'background:linear-gradient(#c04a2a,#80200a)':''}"></div><span><span>Cap</span><span>${cu.toFixed(1)} / ${mc} oz</span></span></div>`;
+  $('#invBody').innerHTML=`<div class="bag">${bag}</div>`;
 }
 function renderLoot(){const sig=JSON.stringify(S.sess.items);if(sigs.loot===sig)return;sigs.loot=sig;
   const e=Object.entries(S.sess.items);$('#lootGrid').innerHTML=e.length?e.map(([k,c])=>slotHTML(k,c)).join(''):'<div class="mut sm" style="grid-column:1/-1">Nenhum loot nesta sessão.</div>';}
@@ -2242,14 +2332,14 @@ function renderChat(){if(!logDirty)return;logDirty=false;const el=$('#chatLog'),
 function condTxt(s){const c=condSug(s);if(c)return c;const sp=SP[s.a],it=ITEMS[s.a];if(sp&&!(MAGIAS15[s.a]||RUNAS15[s.a])){if(sp.t==='heal')return `HP<${s.v}%`;if(sp.t==='atk')return `MP≥${s.v}%`;return `${s.v}+ alvos`;}if(it&&it.type==='pot')return it.hp?`HP<${s.v}%`:`MP<${s.v}%`;return '';}
 function renderHot(){
   const slots=S.sets[S.set],T=W?W.time:0;
-  const parts=slots.map((s,i)=>{if(!s)return {k:'e'+i,h:`<div class="slot add" data-hot="${i}" title="Adicionar ação">+</div>`};
-    const sp=SP[s.a],it=ITEMS[s.a];const a=sp||it;if(!a)return {k:'e'+i,h:`<div class="slot add" data-hot="${i}">+</div>`};
+  const parts=slots.map((s,i)=>{if(!s)return {k:'e'+i,h:`<div class="slot add" data-hot="${i}" title="Adicionar ação (${hotNome(i)})">+<span class="fk">${hotNome(i)}</span></div>`};
+    const sp=SP[s.a],it=ITEMS[s.a];const a=sp||it;if(!a)return {k:'e'+i,h:`<div class="slot add" data-hot="${i}">+<span class="fk">${hotNome(i)}</span></div>`};
     const lock=sp?(!sp.voc.includes(S.voc)||S.level<sp.lv):(S.level<it.lv||(it.voc&&!it.voc.includes(S.voc)));
     let cdp=0;if(W&&sp){const end=Math.max(W.cd[sp.id]||0,(sp.t==='heal'?W.cd.heal:W.cd.atk)||0);const tot=sp.t==='heal'?Math.max(1000,sp.cd):Math.max(2000,sp.cd);cdp=clamp((end-T)/tot,0,1);}
     else if(W&&it){cdp=clamp(((W.cd.pot||0)-T)/1000,0,1);}
     const cnt=it?(S.bag[it.id]||0):'';
     const key=[i,s.a,s.v,s.p,lock,cnt].join('|');
-    return {k:key,cdp,h:`<div class="slot${lock?' lock':''}" data-hot="${i}" title="${esc(a.n)}${sp?` · ${sp.mana} mana · Lv ${sp.lv}`:''}\nCondição: ${condTxt(s)}${s.p===1?' · prioridade alta':s.p===3?' · prioridade baixa':''}\nClique para editar">${sp?si(sp):ii(it)}<span class="cond">${condTxt(s)}</span>${s.p===1?'<span class="pri">▲</span>':s.p===3?'<span class="pri baixa">▼</span>':''}${it?`<span class="n">${cnt}</span>`:''}<div class="cd"></div></div>`};});
+    return {k:key,cdp,h:`<div class="slot${lock?' lock':''}" data-hot="${i}" title="${esc(a.n)}${sp?` · ${sp.mana} mana · Lv ${sp.lv}`:''}\nCondição: ${condTxt(s)}${s.p===1?' · prioridade alta':s.p===3?' · prioridade baixa':''}\nClique ou ${hotNome(i)}: usar agora · botão direito / segurar (toque) / Shift+clique: configurar">${sp?si(sp):ii(it)}<span class="cond">${condTxt(s)}</span>${s.p===1?'<span class="pri">▲</span>':s.p===3?'<span class="pri baixa">▼</span>':''}${it?`<span class="n">${cnt}</span>`:''}<span class="fk">${hotNome(i)}</span><div class="cd"></div></div>`};});
   const sig=parts.map(p=>p.k).join(';');
   if(sigs.hot!==sig){sigs.hot=sig;$('#hot').innerHTML=parts.map(p=>p.h).join('');}
   const els=$('#hot').children;parts.forEach((p,i)=>{const cd=els[i]&&els[i].querySelector('.cd');if(cd)cd.style.height=((p.cdp||0)*100)+'%';});
@@ -2263,7 +2353,7 @@ const mh=maxHp(),mm=maxMp();
   $('#bHp').style.width=clamp(S.hp/mh*100,0,100)+'%';$('#sHp').textContent=`${Math.max(0,Math.round(S.hp))}/${mh}`;
   $('#bMp').style.width=clamp(S.mp/mm*100,0,100)+'%';$('#sMp').textContent=`${Math.round(S.mp)}/${mm}`;
   const a=expFor(S.level),b=expFor(S.level+1),ep=clamp((S.exp-a)/(b-a)*100,0,100);
-  $('#bXp').style.width=ep+'%';$('#sXp').innerHTML=`<span>LV ${S.level}</span><span>${ep.toFixed(1)}%</span>`;
+  $('#bXp').style.width=ep+'%';$('#sXp').textContent=`Lv ${S.level} · ${ep.toFixed(1).replace('.',',')}%`;
   $('#bSt').style.width=(S.stamina/STAM_MAX*100)+'%';$('#sSt').textContent=`Stamina ${hm(S.stamina)}`;
   const city=S.loc==='city';$('#cityBtns').classList.toggle('hidden',!city);
   const ar=!!(W&&W.arena&&!W.arena.fim&&W.arena.modo==='equipe'&&S.loc==='arena');$('#arenaBtns').classList.toggle('hidden',!ar);
@@ -2272,20 +2362,19 @@ const mh=maxHp(),mm=maxMp();
   const ui=n=>`<img class="ui" src="tibia-assets/sprites15/ui/${n}.png" alt="">`;let st;if(W&&W.loading)st=`${ui('regras')} <b>Carregando mapa...</b>`;else if(city)st=W&&W.routine?`${ui('venda')} <b>Reabastecendo em ${CITY.n}...</b>`:`${ui('cidade')} <b>${CITY.n}</b> — descansando`;else if(S.loc==='treino')st=`${ui('personagem')} <b>Sala de treino</b> — ${trStatus()}`;else if(S.loc==='arena')st=`${ui('arena')} <b>Arena</b>${W&&W.arena?' — contra '+esc(W.arena.op.nome):''}`;else{const n=W.mobs.filter(m=>m.aggro).length;st=`${ui('cacadas')} Caçando em <b>${HUNTS[S.loc].n}</b>${n?` · ${n} monstro${n>1?'s':''} atacando`:''}`;}
   $('#tStatus').innerHTML=`<span class="dot"></span>${st}`;
   if($('#selSet').value!==S.set)$('#selSet').value=S.set;if($('#selTarget').value!==S.target)$('#selTarget').value=S.target;
-  renderHot();renderInv();renderLoot();renderAna();renderChat();trHud();
+  renderHot();renderAuto();renderInv();renderLoot();renderAna();renderChat();trHud();
   if(dirty.all&&modal&&['shop','depot','imbue','forge','bless','char'].includes(modal)){openModal(modal,modalArg,true);}
   dirty.all=false;
 }
 
 /* ---------- janelas ---------- */
 function setupWins(){
-  $$('.win').forEach(w=>{if(w.dataset.ready)return;w.dataset.ready=1;const pos=S&&S.ui&&S.ui[w.id];if(pos){Object.assign(w.style,{left:pos.l+'px',top:pos.t+'px',right:'auto',bottom:'auto'});if(pos.h)w.classList.add('hidden');}
-    else if(innerWidth<900&&w.id!=='w-chat')w.classList.add('hidden');
-    const h=w.querySelector('.win-h');h.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;const r=w.getBoundingClientRect(),ox=e.clientX-r.left,oy=e.clientY-r.top;h.setPointerCapture(e.pointerId);
-      const mv=ev=>{const l=clamp(ev.clientX-ox,0,innerWidth-60),t=clamp(ev.clientY-oy,54,innerHeight-30);Object.assign(w.style,{left:l+'px',top:t+'px',right:'auto',bottom:'auto'});};
-      const up=()=>{h.removeEventListener('pointermove',mv);h.removeEventListener('pointerup',up);saveWin(w);};h.addEventListener('pointermove',mv);h.addEventListener('pointerup',up);});});
+  /* painéis acoplados na barra lateral: sem arrastar; só estado aberto/fechado e recolhido (posições antigas são ignoradas) */
+  $$('.win').forEach(w=>{if(w.dataset.ready)return;w.dataset.ready=1;const pos=S&&S.ui&&S.ui[w.id];if(pos){if(pos.h&&w.id!=='trPanel')w.classList.add('hidden');if(pos.c){w.classList.add('fold');const fb=w.querySelector('[data-fold]');if(fb)fb.textContent='+';}}
+    else if(innerWidth<1260&&w.id==='w-chat')w.classList.add('hidden');});
+  const sd=$('#side');if(sd){sd.classList.remove('open');$('#sideBtn').classList.remove('open');}resize();
 }
-function saveWin(w){if(!S)return;const r=w.getBoundingClientRect();S.ui[w.id]={l:r.left,t:r.top,h:w.classList.contains('hidden')};}
+function saveWin(w){if(!S)return;S.ui[w.id]={h:w.classList.contains('hidden'),c:w.classList.contains('fold')};}
 
 /* ---------- conjuntos sugeridos (caçada e arena) ---------- */
 const EL_PT={phys:'físico',fire:'fogo',energy:'energia',earth:'terra',ice:'gelo',holy:'sagrado',death:'morte'};
@@ -2432,7 +2521,7 @@ const MODALS={
   shop:(tab='weapon')=>{
     const tabs=[['weapon','Armas'],['armor','Equipamentos'],['pot','Poções'],['runa','Runas'],['other','Outros'],['treino','Treino']];const ord=['helmet','armor','legs','boots','shield'];
     let list=[];
-    if(tab==='weapon')list=Object.values(ITEMS).filter(i=>i.type==='eq'&&i.slot==='weapon'&&i.wt===V().wt&&i.price>0);
+    if(tab==='weapon')list=Object.values(ITEMS).filter(i=>i.type==='eq'&&i.slot==='weapon'&&(S.voc==='knight'?!SHOPWT||i.wt===SHOPWT:i.wt===V().wt)&&okWt(S.voc,i.wt)&&i.price>0).sort((a,b)=>S.voc==='knight'?MELEE.indexOf(a.wt)-MELEE.indexOf(b.wt)||a.price-b.price:0);
     if(tab==='armor')list=Object.values(ITEMS).filter(i=>i.type==='eq'&&i.slot!=='weapon'&&i.price>0).sort((a,b)=>ord.indexOf(a.slot)-ord.indexOf(b.slot)||a.price-b.price);
     if(tab==='pot')list=POTS.map(k=>ITEMS[k]);
     if(tab==='runa')list=Object.keys(RUNAS15).map(k=>ITEMS[k]).filter(i=>i&&RUNAS15[i.id].t!=='util').sort((a,b)=>a.lv-b.lv);
@@ -2442,12 +2531,12 @@ const MODALS={
         return `<div class="row"><div class="ic">${ii(it)}</div><div class="grow"><b>${it.n}</b> <span class="mut sm">${stat}</span> ${ns>cs?'<span class="green sm">▲</span>':ns<cs?'<span class="red sm">▼</span>':''}<div class="sm ${lock?'red':'mut'}">Level ${it.lv} · ${fmt(it.price)} gp</div></div>${cur?'<span class="mut sm">Equipado</span>':rowBtn('Comprar e equipar','buy',it.id+':1',lock||S.gold<it.price)}</div>`;}
       return `<div class="row"><div class="ic">${ii(it)}</div><div class="grow"><b>${it.n}</b> <span class="mut sm">${itemTip(it).split('\n')[0]}</span><div class="sm ${lock?'red':'mut'}">${it.lv?'Level '+it.lv+' · ':''}${fmt(it.price)} gp · você tem ${S.bag[it.id]||0}</div></div>
         <div style="display:flex;gap:4px">${[1,10,100].map(q=>rowBtn('+'+q,'buy',it.id+':'+q,lock||S.gold<it.price*q)).join('')}</div></div>`;}).join('');
-    return {title:'🏪 Loja',body:`<div class="tabs">${tabs.map(([k,n])=>`<button class="${k===tab?'on':''}" data-act="shopTab" data-arg="${k}">${n}</button>`).join('')}</div><div class="mut sm" style="margin-bottom:6px">Seu gold: <b class="gold">${fmt(S.gold)}</b> · Capacidade livre: ${capFree().toFixed(0)} oz</div>${tab==='treino'?trLojaHTML():rows}`};
+    return {title:'🏪 Loja',body:`<div class="tabs">${tabs.map(([k,n])=>`<button class="${k===tab?'on':''}" data-act="shopTab" data-arg="${k}">${n}</button>`).join('')}</div>${tab==='weapon'&&S.voc==='knight'?`<div class="tabs">${[['','Todas'],...MELEE.map(k=>[k,SKN[k]])].map(([k,n])=>`<button class="${k===SHOPWT?'on':''}" data-act="shopWt" data-arg="${k}">${n}${k?` <small>${S.skills[k].lv}</small>`:''}</button>`).join('')}</div>`:''}<div class="mut sm" style="margin-bottom:6px">Seu gold: <b class="gold">${fmt(S.gold)}</b> · Capacidade livre: ${capFree().toFixed(0)} oz</div>${tab==='treino'?trLojaHTML():rows}`};
   },
-  char:()=>{const sk=Object.keys(SKN).map(k=>{const s=S.skills[k],p=s.t/need(k,s.lv)*100;return `<div class="row"><div class="grow">${SKN[k]}<div class="prog"><div style="width:${p}%"></div></div></div><b style="font-size:16px">${s.lv}</b></div>`;}).join('');
+  char:()=>{const sk=Object.keys(SKN).map(k=>{const s=S.skills[k],p=s.t/need(k,s.lv)*100;return `<div class="row"><div class="grow">${SKN[k]}${k===mainSk()&&k!=='magic'?' <span class="green sm" title="Skill da arma equipada: é o que treina e dá dano">● em uso</span>':''}<div class="prog"><div style="width:${p}%"></div></div></div><b style="font-size:16px">${s.lv}</b></div>`;}).join('');
     return {title:'👤 Personagem',body:`<div style="display:flex;gap:14px;align-items:flex-start"><div><div style="width:64px;height:64px">${S.outfit?ret15(S.outfit):ico(V().outfit,'🧑','m64')}</div><div style="margin-top:6px"><button class="btn" data-open="outfit">🎨 Outfit</button></div></div><div class="kv" style="flex:1"><span>Nome</span><b>${esc(S.name)}</b><span>Vocação</span><b>${V().n}</b><span>Level</span><b>${S.level}</b><span>Experiência</span><b>${fmt(S.exp)}</b>
       <span>HP / Mana</span><b>${maxHp()} / ${maxMp()}</b><span>Capacidade</span><b>${maxCap()} oz</b><span>Ataque${V().wt==='wand'||V().wt==='rod'?' (wand/rod)':''}</span><b>${eqi('weapon').atk?atk():eqi('weapon').min+'-'+eqi('weapon').max}</b>
-      <span>Armadura / Defesa</span><b>${armor()} / ${def()}</b><span>Taxa de exp</span><b>${stage(S.level)}x</b><span>Blessings</span><b class="${S.bless?'green':'red'}">${S.bless?'Ativas':'Nenhuma'}</b><span>Mortes</span><b>${S.deaths}</b>
+      ${S.voc==='knight'?`<span>Arma / skill</span><b>${eqi('weapon').n} · ${SKN[mainSk()]} ${S.skills[mainSk()].lv}</b>`:''}<span>Armadura / Defesa</span><b>${armor()} / ${def()}</b><span>Taxa de exp</span><b>${stage(S.level)}x</b><span>Blessings</span><b class="${S.bless?'green':'red'}">${S.bless?'Ativas':'Nenhuma'}</b><span>Mortes</span><b>${S.deaths}</b>
       <span>Roubo de vida / mana</span><b>${Math.round(imbVal('vamp')*100)}% / ${Math.round(imbVal('void')*100)}%</b><span>Crítico (Strike)</span><b>${Math.round(imbVal('strike')*100)}% · +50%</b><span>Fatal (Onslaught)</span><b>${((S.eq.weapon.t||0)*1.5).toFixed(1)}% · +60%</b><span>Esquiva (Ruse)</span><b>${((S.eq.armor.t||0)*1.5).toFixed(1)}%</b><span>Agonia</span><b>${Math.round(imbVal('agonia')*100)}% · +25%</b></div></div><h3>Skills</h3>${sk}`};},
   bestiary:(sel)=>{const ids=[...MOB_CACADA].filter(k=>MOBS[k]&&MOBS[k].hostil).sort((a,b)=>MOBS[a].exp-MOBS[b].exp||MOBS[a].n.localeCompare(MOBS[b].n));sel=sel||ids[0];const m=MOBS[sel],st=bestStage(sel),th=bestTh(sel),k=S.best[sel]||0;
     const cards=ids.map(id=>{const s=bestStage(id),kk=S.best[id]||0,t=bestTh(id);return `<div class="card${id===sel?' on':''}" data-act="bestSel" data-arg="${id}" style="cursor:pointer;padding:6px;text-align:center"><div style="height:48px;${kk?'':'filter:brightness(0)'}">${mi(MOBS[id],'m48')}</div><div class="sm">${kk?MOBS[id].n:'???'}</div><div class="prog"><div style="width:${Math.min(100,kk/t[2]*100)}%"></div></div><div class="mut sm">${'★'.repeat(s)}${'☆'.repeat(3-s)}</div></div>`;}).join('');
@@ -2462,7 +2551,9 @@ const MODALS={
   rules:()=>{const r=S.rules;const chk=(k,l)=>`<label style="display:flex;gap:8px;align-items:center;margin:6px 0"><input type="checkbox" data-rule="${k}" ${r[k]?'checked':''}> ${l}</label>`;
     const num=(k,l,min,max)=>`<label style="display:flex;justify-content:space-between;align-items:center;margin:6px 0;gap:10px"><span>${l}</span><input type="number" data-rule="${k}" value="${r[k]}" min="${min}" max="${max}" style="width:80px"></label>`;
     const potOpts=sel=>POTS.map(k=>`<option value="${k}" ${k===sel?'selected':''}>${ITEMS[k].n}</option>`).join('');
-    return {title:'🤖 Regras automáticas',body:`<h3>Voltar para a cidade quando</h3>${chk('autoReturn','Ativar volta automática')}${num('cap','Capacidade usada ≥ (%)',10,100)}${num('minHp','Poções de vida da hotbar &lt;',0,999)}${num('minMp','Poções de mana da hotbar &lt;',0,999)}
+    return {title:'🤖 Regras automáticas',body:`<h3>Modo automático / manual</h3><label style="display:flex;gap:8px;align-items:center;margin:6px 0"><input type="checkbox" data-rule="aCave" ${r.aCave!==false?'checked':''}> 🧭 Cavebot (anda, puxa e se posiciona sozinho)</label><label style="display:flex;gap:8px;align-items:center;margin:6px 0"><input type="checkbox" data-rule="aAlvo" ${r.aAlvo!==false?'checked':''}> 🎯 Auto-alvo</label><label style="display:flex;gap:8px;align-items:center;margin:6px 0"><input type="checkbox" data-rule="aCura" ${r.aCura!==false?'checked':''}> 💚 Auto-cura (cura, suporte e poções)</label><label style="display:flex;gap:8px;align-items:center;margin:6px 0"><input type="checkbox" data-rule="aAtk" ${r.aAtk!==false?'checked':''}> ⚔️ Auto-ataque com magias e runas</label>
+      <div class="mut sm">Desligado = você usa WASD/setas ou clica no mapa, F1–F12 nos slots da hotbar, Tab troca de alvo e Esc limpa. O ataque básico da arma no alvo atual sempre acontece. Offline (aba fechada) o progresso continua automático como sempre. Os mesmos botões ficam acima da hotbar.</div>
+      <h3>Voltar para a cidade quando</h3>${chk('autoReturn','Ativar volta automática')}${num('cap','Capacidade usada ≥ (%)',10,100)}${num('minHp','Poções de vida da hotbar &lt;',0,999)}${num('minMp','Poções de mana da hotbar &lt;',0,999)}
       <div class="mut sm">Também volta quando sobram menos de 10 min de stamina, e foge quando o HP fica abaixo de 12% sem poções.</div>
       <h3>Na cidade</h3>${chk('autoSell','Venda rápida automática')}${chk('keepMats','Não vender materiais de imbuement')}${chk('sellEq','Vender equipamentos da mochila na venda rápida')}${chk('autoBless','Comprar blessings automaticamente')}
       <div style="margin:8px 0">Reabastecer até:</div>${r.refill.map((f,i)=>`<div style="display:flex;gap:6px;margin:4px 0"><select data-refill="${i}" style="flex:1">${potOpts(f.id)}</select><input type="number" data-refillq="${i}" value="${f.q}" min="0" max="2000" style="width:80px"></div>`).join('')}
@@ -2500,22 +2591,22 @@ const MODALS={
 };
 /* ======================= TREINO: exercise weapons + sala de treino =======================
    Exercise weapons do Tibia (sword 28552, axe 28553, club 28554, bow 28555, rod 28556, wand 28557; durable +6727; lasting +6733).
-   Cada arma tem cargas; 1 carga = 1 ataque no boneco a cada 2 s (500 cargas = 16 min 40 s; durable 1.800 = 1 h; lasting 14.400 = 8 h). O jogo só tem um skill de corpo a corpo,
-   então sword/axe/club treinam todos o Melee. Mago não gasta mana: a carga vale tentativas de nível mágico direto.
+   Cada arma tem cargas; 1 carga = 1 ataque no boneco a cada 2 s (500 cargas = 16 min 40 s; durable 1.800 = 1 h; lasting 14.400 = 8 h). O Knight tem 3 skills de arma (sword/axe/club):
+   cada arma de exercício treina o seu (TR_G/TR_TRIES valem iguais para os três). Mago não gasta mana: a carga vale tentativas de nível mágico direto.
    FÓRMULA (por carga): tentativas = TR_G[skill](nível) × need(skill,nível) / 500  (com teto TR_TRIES×TR_BONUS só abaixo do skill 50).  TR_G = níveis ganhos por 500 cargas (arma regular), interpolados em escala log entre âncoras:
    melee/dist 20:5 · 50:1,75 · 80:0,5 · 100:0,25 · 115:0,12 · 130:0,05 · 135:0,03 · 150:0,01;  magic 50:1 · 80:0,4 · 100:0,2 · 120:0,06 · 130:0,03 · 150:0,008 (mago chega a ML 120-130 no nível 1000). Fácil no começo e cada vez mais difícil;
    como multiplica need(), o ganho em níveis independe da curva da vocação. Durable (1.800) ≈ 3,6× e Lasting (14.400) ≈ 28,8× a regular em cargas. Abaixo do skill 50 vale ainda o teto TR_TRIES×TR_BONUS (7,7 melee/dist; 15,4 magic = ganho antigo por carga), para o começo nunca ficar mais fácil que antes.
    knight/paladin ganham ainda Escudo: 1 × 1,1 × (tentativas do skill principal ÷ TR_TRIES×TR_BONUS) por carga (proporcional). train()/need() da caçada não mudam. Cada lote de TR_CH cargas recalcula pelo nível atual. As tentativas entram em train() e sobem de nível com need(k,lv) da vocação, como na caçada.
    Offline/aba oculta: usa o tempo decorrido (S.lastTick), não contagem de ticks. Cargas ficam em S.exerc=[{id,c}] (peças com cargas parciais persistem); S.trn guarda a seleção. */
-const TR_MS=2000,TR_BONUS=1.1,TR_TRIES={melee:7,distance:7,magic:14},TR_CH=10,TR_G={melee:[[10,8],[20,5],[50,1.75],[80,.5],[100,.25],[115,.12],[130,.05],[135,.03],[150,.01],[250,.0005]],magic:[[0,8],[10,6],[30,2.5],[50,1],[80,.4],[100,.2],[120,.06],[130,.03],[150,.008],[250,.0003]]},TR_ESC=1,TR_OFF_MAX=24*H,TR_OX=24,TR_OY=18,TR_DX=[3,6,9,12].map(x=>x+TR_OX);   /* a sala fica no meio de um mapa bem maior (areia em volta: nunca aparece preto) */
-const TRSK={melee:'Melee',distance:'Distância',magic:'Nível mágico',shielding:'Escudo'};
-const TR_TIPOS={sword:{n:'Sword',sk:'melee',voc:'knight',cid:28552,nm:'espada'},axe:{n:'Axe',sk:'melee',voc:'knight',cid:28553,nm:'machado'},club:{n:'Club',sk:'melee',voc:'knight',cid:28554,nm:'clava'},
+const TR_MS=2000,TR_BONUS=1.1,TR_TRIES={melee:7,sword:7,axe:7,club:7,distance:7,magic:14},TR_CH=10,TR_G={melee:[[10,8],[20,5],[50,1.75],[80,.5],[100,.25],[115,.12],[130,.05],[135,.03],[150,.01],[250,.0005]],magic:[[0,8],[10,6],[30,2.5],[50,1],[80,.4],[100,.2],[120,.06],[130,.03],[150,.008],[250,.0003]]},TR_ESC=1,TR_OFF_MAX=24*H,TR_OX=24,TR_OY=18,TR_DX=[3,6,9,12].map(x=>x+TR_OX);   /* a sala fica no meio de um mapa bem maior (areia em volta: nunca aparece preto) */
+const TRSK={melee:'Melee',sword:'Espada',axe:'Machado',club:'Clava',distance:'Distância',magic:'Nível mágico',shielding:'Escudo'};
+const TR_TIPOS={sword:{n:'Sword',sk:'sword',voc:'knight',cid:28552,nm:'espada'},axe:{n:'Axe',sk:'axe',voc:'knight',cid:28553,nm:'machado'},club:{n:'Club',sk:'club',voc:'knight',cid:28554,nm:'clava'},
   bow:{n:'Bow',sk:'distance',voc:'paladin',cid:28555,nm:'arco'},rod:{n:'Rod',sk:'magic',voc:'druid',cid:28556,nm:'rod'},wand:{n:'Wand',sk:'magic',voc:'sorcerer',cid:28557,nm:'wand'}};
 const TR_TIERS=[{k:'',pre:'',c:500,gp:262500,tc:25,off:0},{k:'_d',pre:'Durable ',c:1800,gp:945000,tc:90,off:35279-28552},{k:'_l',pre:'Lasting ',c:14400,gp:7560000,tc:720,off:35285-28552}];
 const TREX={};
 for(const [tp,t] of Object.entries(TR_TIPOS))TR_TIERS.forEach((r,i)=>{const id='ex_'+tp+r.k;
   TREX[id]={id,tipo:tp,tier:i,n:`${r.pre}Exercise ${t.n}`,sk:t.sk,voc:t.voc,c:r.c,gp:r.gp,tc:r.tc,icone:`tibia-assets/sprites15/itens/${t.cid+r.off}.png`,
-    desc:t.sk==='melee'?'treina Melee (espada/machado/clava)':t.sk==='distance'?'treina Distância':'treina Nível mágico'};});
+    desc:MELEE.includes(t.sk)?'treina '+SKN[t.sk]:t.sk==='distance'?'treina Distância':'treina Nível mágico'};});
 const TREINO_DEF={n:'Sala de treino',proprio:'treino',x:0,y:0,z:6};
 /* mapa da sala: paredes e piso do atlas da Desertcity (já carregado), montado em código */
 (function(){const tw=16,th=9,MW=tw+1+2*TR_OX,MH=th+1+2*TR_OY,tiles=[],walk=new Array(MW*MH).fill(0),P='desertcity:',pis=[4,5,6],areia=[44,44,44,32,32,14,16,15,13,19,17,18,23],hs=(x,y)=>((x*73856093)^(y*19349663))>>>0;
@@ -2584,7 +2675,7 @@ function trLojaHTML(){const L=Object.values(TREX).filter(d=>d.voc===S.voc);
   return `<p class="mut sm">Armas de treino para os bonecos da <b>Sala de treino</b> (botão TREINAR na cidade): treinam mesmo com a página fechada. Cada carga dura 2 s. ${S.voc==='knight'?'Sword, axe e club treinam o Melee. ':''}Você tem <b>${n0(S.tc)}</b> TC.</p>`+L.map(d=>{const mine=S.exerc.filter(e=>e.id===d.id).reduce((a,e)=>a+e.c,0);
     return `<div class="row"><div class="ic">${trIc(d)}</div><div class="grow"><b>${d.n}</b> <span class="mut sm">${d.desc}</span><div class="sm mut">${n0(d.c)} cargas (${fmtTempo(d.c*TR_MS)}) · ≈ ${n0(d.c*trPorCarga(d))} tentativas · você tem ${n0(mine)} cargas</div></div>
       <div style="display:flex;gap:4px;flex-direction:column">${rowBtn(fmt(d.gp)+' gp','trComprar',d.id+':gp',S.gold<d.gp)}${rowBtn(d.tc+' TC','trComprar',d.id+':tc',S.tc<d.tc)}</div></div>`;}).join('');}
-function trCorpo(){const T=trEst(),L=trDisp(),sk=S.voc==='knight'?'melee':S.voc==='paladin'?'distance':'magic',s=S.skills[sk],dentro=S.loc==='treino';
+function trCorpo(){const T=trEst(),L=trDisp(),sk=S.voc==='knight'?(TREX[T.id]&&MELEE.includes(TREX[T.id].sk)?TREX[T.id].sk:mainSk()):S.voc==='paladin'?'distance':'magic',s=S.skills[sk],dentro=S.loc==='treino';
   const ls=L.sort((a,b)=>TREX[a.id].tipo.localeCompare(TREX[b.id].tipo)||TREX[a.id].tier-TREX[b.id].tier||a.c-b.c).map(e=>{const d=TREX[e.id],uso=dentro&&T.id===e.id;
     return `<div class="row"><div class="ic">${trIc(d)}</div><div class="grow"><b>${d.n}</b> <span class="mut sm">${d.desc}</span><div class="sm mut">${n0(e.c)}/${n0(d.c)} cargas · ${fmtTempo(e.c*TR_MS)} de treino</div></div>${uso?'<span class="mut sm">em uso</span>':rowBtn('Treinar','trGo',e.id,!!PT.hunt)}</div>`;}).join('');
   const por=1800*trPC(sk,s.lv),pj=trSim(sk,1800,s.lv,s.t);
@@ -2600,13 +2691,13 @@ MODALS.trResumo=(r)=>({title:'Treino enquanto você estava fora',sm:true,body:`<
 function drawBoneco(d,X,Y,now,labels,sx,sy){const im=folhaImg('tibia-assets/sprites15/treino/dummy.png'),ativo=W.dummies[trEst().dum]===d,dt=now-d.hit,sh=dt<220?Math.sin(dt/22)*(1-dt/220)*2.5:0;
   if(ativo){ctx.fillStyle='rgba(255,216,74,.22)';ctx.beginPath();ctx.ellipse(X+16,Y+27,15,7,0,0,7);ctx.fill();}
   if(im)ctx.drawImage(im,X+sh-32,Y-32);else{ctx.save();ctx.font=`25px ${EMOJI}`;ctx.textAlign='center';ctx.fillText('🎯',X+16,Y+22);ctx.restore();}
-  if(dt<260&&d.sk==='melee'){ctx.save();ctx.globalAlpha=1-dt/260;ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X+3,Y+2);ctx.lineTo(X+29,Y+26);ctx.moveTo(X+8,Y);ctx.lineTo(X+30,Y+18);ctx.stroke();ctx.restore();}
+  if(dt<260&&MELEE.includes(d.sk)){ctx.save();ctx.globalAlpha=1-dt/260;ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X+3,Y+2);ctx.lineTo(X+29,Y+26);ctx.moveTo(X+8,Y);ctx.lineTo(X+30,Y+18);ctx.stroke();ctx.restore();}
   if(ativo)labels.push({x:sx(X+16),y:sy(Y-16),name:'Boneco de treino',hp:1,cor:'#ffd84a'});}
 cv.addEventListener('click',e=>{if(!S||S.loc!=='treino'||!W||!W.cam||!W.dummies)return;const wx=(e.clientX/ZOOM+W.cam.x)/TS,wy=(e.clientY/ZOOM+W.cam.y)/TS;let b=-1,bd=1.4;
   W.dummies.forEach((d,i)=>{const q=Math.hypot(d.x+.5-wx,d.y-.1-wy);if(q<bd){bd=q;b=i;}});if(b>=0)trDummy(b);});
 /* painel do treino (canto da tela): arma, cargas, tempo, skill, progresso, tentativas/h */
-function trHud(){const el=$('#trPanel');if(!el)return;const on=!!(S&&S.loc==='treino'&&W&&W.dummies&&!W.loading);el.classList.toggle('hidden',!on);if(!on){sigs.tr='';return;}
-  const T=trEst(),e=trAtual(),L=trDisp();let h=`<h4>🎯 Treino</h4>`;
+function trHud(){const el0=$('#trPanel'),el=$('#trBody');if(!el0||!el)return;const on=!!(S&&S.loc==='treino'&&W&&W.dummies&&!W.loading);el0.classList.toggle('hidden',!on);if(!on){sigs.tr='';return;}
+  const T=trEst(),e=trAtual(),L=trDisp();let h='';
   if(!e)h+='<p class="red">Sem armas de treino.</p>';
   else{const d=TREX[e.id],s=S.skills[d.sk],need0=need(d.sk,s.lv),por=1800*trPorCarga(d),pj=trSim(d.sk,1800,s.lv,s.t),tot=S.exerc.filter(x=>TREX[x.id].tipo===d.tipo).reduce((a,x)=>a+x.c,0);
     h+=`<div class="trw">${trIc(d)}<div><b>${d.n}</b><div class="mut">${n0(e.c)}/${n0(d.c)} cargas · restam ${hms(e.c*TR_MS)}</div></div></div>
@@ -3121,7 +3212,7 @@ function wkMobFicha(id){const m=MOBS[id],c=CD.mobs[id]||{},hs=Object.entries(HUN
     <h4>Loot</h4><div class="wlr hd"><span class="lic"></span><span>ITEM</span><span>RARIDADE</span><span class="pc">CHANCE</span><span class="mx">QTD. MÁX.</span><span class="vl">NPC</span></div>${loot}
     <h4>Onde encontrar</h4>${hs.length?`<div class="wkhs">${hs.map(([k,h])=>`<button class="wkh" data-act="wkPrep" data-arg="${k}"><b>${numHunt(h)}</b><span>${esc(h.n)}</span><small>Lv ${h.lv}+ · ${BIOMA_NOME[h.bioma]||h.bioma}${h.sub?' · subsolo':''}</small></button>`).join('')}</div>`:'<div class="mut sm">Não aparece em nenhuma caçada (só como invocação).</div>'}</div>`;}
 function wkItemFicha(id){const it=ITEMS[id],dr=itemDrop()[id]||[],r=itemRar(id),m=mpVer(id),at=[];
-  if(it.slot)at.push(['Slot',SLOT_NOME[it.slot]]);if(it.wt)at.push(['Tipo de arma',{sword:'Espada/martelo',distance:'Distância',wand:'Wand',rod:'Rod'}[it.wt]||it.wt]);
+  if(it.slot)at.push(['Slot',SLOT_NOME[it.slot]]);if(it.wt)at.push(['Tipo de arma',{sword:'Espada',axe:'Machado',club:'Clava',distance:'Distância',wand:'Wand',rod:'Rod'}[it.wt]||it.wt]);
   if(it.atk)at.push(['Ataque',it.atk]);if(it.min!=null&&it.max)at.push(['Dano mágico',`${it.min} – ${it.max}`]);if(it.mana&&it.type==='eq')at.push(['Mana por ataque',it.mana]);
   if(it.def&&it.type==='eq')at.push(['Defesa',it.def]);if(it.arm&&it.type==='eq')at.push(['Armadura',it.arm]);
   if(it.hp)at.push(['Cura vida','+'+it.hp]);if(it.mp)at.push(['Cura mana','+'+it.mp]);if(it.type==='runa'){at.push(['Nível mágico',it.ml||0]);const R=RUNAS15[id];if(R&&R.el)at.push(['Elemento',EL_NOME[R.el]||R.el]);}
@@ -3183,9 +3274,10 @@ document.addEventListener('click',e=>{
   const mt=e.target.closest('.mt');if(mt&&!mt.dataset.open){const mn=mt.parentElement,ab=!mn.classList.contains('on');document.querySelectorAll('.mn.on').forEach(x=>x.classList.remove('on'));if(ab)mn.classList.add('on');return;}
   if(!e.target.closest('.mn'))document.querySelectorAll('.mn.on').forEach(x=>x.classList.remove('on'));else if(e.target.closest('.dd'))e.target.closest('.mn').classList.remove('on');
   const wb=e.target.closest('[data-win]');if(wb){const w=$('#'+wb.dataset.win);w.classList.toggle('hidden');saveWin(w);return;}
+  const fb=e.target.closest('[data-fold]');if(fb){const w=$('#'+fb.dataset.fold);w.classList.toggle('fold');fb.textContent=w.classList.contains('fold')?'+':'–';saveWin(w);return;}
   const cl=e.target.closest('[data-close]');if(cl){const w=$('#'+cl.dataset.close);w.classList.add('hidden');saveWin(w);return;}
   const op=e.target.closest('[data-open]');if(op&&S){openModal(op.dataset.open);return;}
-  const hs=e.target.closest('[data-hot]');if(hs&&S){openModal('hot',+hs.dataset.hot);return;}
+  const hs=e.target.closest('[data-hot]');if(hs&&S){if(hotLP){hotLP=0;return;}const hi=+hs.dataset.hot;if(hs.classList.contains('add')||e.shiftKey)openModal('hot',hi);else hotUsar(hi);return;}   /* clique = usar; shift/direito/segurar = configurar */
   const bg=e.target.closest('[data-bag]');if(bg&&S){showCtx(e,bg.dataset.bag,'bag');e.stopPropagation();return;}
   const eqs=e.target.closest('[data-eq]');if(eqs&&S){showCtx(e,S.eq[eqs.dataset.eq].id,'eq');e.stopPropagation();return;}
   const b=e.target.closest('[data-act]');if(!b||b.disabled)return;
@@ -3226,6 +3318,7 @@ function act(a,arg){
     case 'resetSess':S.sess=newSess(S.loc==='city'?null:S.loc);sigs.loot=null;break;
     case 'quickSell':quickSell(false);break;
     case 'shopTab':openModal('shop',arg);return;
+    case 'shopWt':SHOPWT=MELEE.includes(arg)?arg:'';openModal('shop','weapon');return;
     case 'trComprar':{const [id,m]=arg.split(':');trComprar(id,m);openModal(modal==='treino'?'treino':'shop',modal==='treino'?undefined:modalArg,true);return;}
     case 'trAbrir':openModal('treino');return;
     case 'trLoja':openModal('shop','treino');return;
@@ -3264,6 +3357,8 @@ function act(a,arg){
     case 'hotSave':{const i=+arg,e=HU.a&&hotCatalogo().find(x=>x.id===HU.a);if(!e||hotTrava(e))return;const r=$('#hVal');if(r)hotAjustaV(+r.value);
       S.sets[S.set][i]={a:e.id,v:hotSpec(e.id).tp==='none'?0:HU.v,p:HU.p};closeModal();sigs.hot=null;break;}
     case 'hotClear':S.sets[S.set][+arg]=null;closeModal();sigs.hot=null;break;
+    case 'sideToggle':{const sd=$('#side'),o=!sd.classList.contains('open');sd.classList.toggle('open',o);$('#sideBtn').classList.toggle('open',o);return;}
+    case 'sideTab':$('#side').dataset.tab=arg;$$('#sideTabs button').forEach(b=>b.classList.toggle('on',b.dataset.arg===arg));return;
     case 'showWins':S.ui={};save();recarregar(true);return;
     case 'reloadMaps':try{localStorage.removeItem(RKEY);}catch(_){}save();recarregar(true);return;
     case 'reset':if(ON.modo==='online'){resetOnline();return;}if(confirm('Apagar o personagem? Não dá para desfazer.')){S=null;try{localStorage.removeItem(KEY);}catch(_){}location.reload();}return;
@@ -3293,6 +3388,74 @@ const TECLAS={w:0,a:0,s:0,d:0},TECLA_DIR={w:[0,-1],a:[-1,0],s:[0,1],d:[1,0]};
 document.addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k in TECLAS&&!modal&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){TECLAS[k]=1;e.preventDefault();}});
 document.addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(k in TECLAS)TECLAS[k]=0;});
 window.addEventListener('blur',()=>{for(const k in TECLAS)TECLAS[k]=0;});
+/* ======================= MODO AUTOMÁTICO / MANUAL + HOTKEYS F1–F12 =======================
+   S.rules.aCave/aAlvo/aCura/aAtk (padrão ligado). AUTO(k) é sempre true no offline/aba em segundo plano (quiet): idle é idle. O ataque básico da arma no alvo atual nunca desliga.
+   Hotkeys: slot i → F(i+1) (0–11) e ⇧F1–F4 (12–15). hotUsar ignora a regra automática do slot (limite de HP/MP) mas respeita mana, level, vocação, recarga e alvo. Na cidade usa cidLancar (mesmo caminho das magias digitadas). */
+const AUTOS=[['aCave','🧭','Cavebot','Anda sozinho entre os spawns, puxa monstros (lure), recua (kite) e se posiciona. Desligado: você anda com WASD/setas ou clicando no mapa (clique num monstro = alvo + chega ao alcance).'],
+  ['aAlvo','🎯','Auto-alvo','Escolhe o alvo sozinho. Desligado: só ataca o monstro que você clicou (Tab troca para o mais próximo, Esc limpa o alvo).'],
+  ['aCura','💚','Auto-cura','Slots de cura, suporte e poções disparam sozinhos pela regra do slot. Desligado: só quando você aperta a tecla do slot (F1–F12).'],
+  ['aAtk','⚔️','Auto-magias','Slots de ataque (magias e runas) disparam sozinhos. Desligado: só pela tecla do slot. O ataque básico da arma no alvo atual sempre acontece.']];
+const AUTO=k=>quiet||!S||!S.rules||S.rules[k]!==false;
+const ehMembro=()=>!!(S&&PT.hunt&&PT.hunt.papel==='membro'&&S.loc!=='city'&&S.loc!=='arena');
+const emCaca=()=>!!(S&&W&&!W.loading&&!W.city&&S.loc!=='city'&&S.loc!=='arena'&&S.loc!=='treino'&&S.hp>0);
+const NOTA_MEMBRO='Na caçada da party, o líder controla a simulação';
+function renderAuto(){const el=$('#autoBar');if(!el||!S)return;const r=S.rules,on=AUTOS.map(a=>r[a[0]]!==false),n=on.filter(Boolean).length,mem=ehMembro(),ar=S.loc==='arena',sig=on.join()+'|'+mem+'|'+ar;
+  if(sigs.auto===sig)return;sigs.auto=sig;el.classList.toggle('hidden',ar);
+  el.innerHTML=`<button class="ab master ${n===4?'on':n===0?'man':'mix'}" data-auto="all" title="Modo automático: liga ou desliga tudo de uma vez.\nAUTO = o personagem caça e cura sozinho · MANUAL = você controla (WASD, cliques e F1–F12).\nOffline (aba fechada) o progresso continua automático como sempre.">${n===4?'AUTO':n===0?'MANUAL':'MISTO'}</button>`+
+    AUTOS.map((a,i)=>`<button class="ab${on[i]?' on':''}" data-auto="${a[0]}" title="${esc(a[2]+(on[i]?' — ligado':' — desligado')+'\n'+a[3]+'\nOffline (aba fechada) o progresso continua automático.')}">${a[1]}<small>${a[2]}</small></button>`).join('')+
+    `<span class="abKeys" title="Slots: F1–F12 (⇧F1–⇧F4 nos slots 13–16). Clique = usar · botão direito ou segurar = configurar.">F1–F12 · Tab · Esc</span>`+(mem?`<span class="abNote">${NOTA_MEMBRO}</span>`:'');}
+function autoTog(k){if(!S)return;const r=S.rules;
+  if(k==='all'){const v=!AUTOS.every(a=>r[a[0]]!==false);for(const a of AUTOS)r[a[0]]=v;toast(v?'Modo automático: tudo ligado':'Modo manual: você controla o personagem');}
+  else if(AUTOS.some(a=>a[0]===k)){r[k]=r[k]===false;const a=AUTOS.find(x=>x[0]===k);toast(`${a[2]}: ${r[k]?'ligado':'desligado'}`);}
+  else return;
+  if(W&&W.p&&!AUTO('aCave'))W.lure=null;sigs.auto=null;renderAuto();save();}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-auto]');if(b&&S)autoTog(b.dataset.auto);});
+const hotNome=i=>i<12?'F'+(i+1):'⇧F'+(i-11);
+function hotPerto(maxD){const p=W.p;let b=null,bd=99;for(const m of W.mobs){if(!m.d.hostil)continue;const d=cheb(p,m);if(d<bd){bd=d;b=m;}}return bd<=(maxD||8)?b:null;}
+function hotPocao(it){const T=W.time,fora=S.loc==='city'||S.loc==='treino';
+  if(S.level<it.lv||(it.voc&&!it.voc.includes(S.voc)))return toast('Você não pode usar este item.');
+  if(!(S.bag[it.id]>0))return toast(`Sem ${it.n} na mochila.`);if((W.cd.pot||0)>T)return toast('Você está exausto.');
+  if(!fora)return usarPocao15(JOG,it,{v:101});
+  S.bag[it.id]--;if(!S.bag[it.id])delete S.bag[it.id];if(it.hp)healP(it.hp);if(it.mp)manaP(it.mp);ef15(me15('magic_blue'),W.p.x,W.p.y);W.cd.pot=T+1000;dirty.all=true;return true;}
+function hotMagia(m,s){const L=JOG,T=W.time,g=GRUPO15(m),p=W.p;
+  if(m.runa){if(!(L.bag[s.a]>0))return toast('Sem runas na mochila.');if(L.ml<m.ml)return toast(`Você precisa de nível mágico ${m.ml}.`);}
+  else if(L.mp<m.mana)return toast('Você não tem mana suficiente.');
+  if(L.nivel<m.lv)return toast(`Você precisa do level ${m.lv} para usar esta magia.`);
+  if((L.cd[g]||0)>T||(L.cd[m.id]||0)>T)return toast('Você está exausto.');
+  const b=m.buff||{},defensivo=m.t==='buff'&&((b.feito&&b.feito<100)||(b.recebido&&b.recebido<100)),v=(['cura','regen','escudo','cura_cond'].includes(m.t)||defensivo)?101:1;   /* 101 = ignora o limite de HP do slot */
+  if(g!=='cura'){const rng=m.runa?7:(m.alcance||3),cur=p.target&&W.mobs.includes(p.target)?p.target:null;
+    if(!cur||((m.t==='alvo'||m.t==='dot')&&cheb(p,cur)>rng)){const n=hotPerto(m.t==='alvo'||m.t==='dot'?rng:8);if(n){p.target=n;p.tgMan=n;}}}
+  if(m.t==='haste'||m.t==='buff'){   /* manual: sem as travas do automático (Charge só com alvo longe, buff ofensivo só com alvo, Swift Foot só para fugir) */
+    S.mp-=m.mana;train('magic',m.mana);if(m.t==='haste'){L.c.rapido={f:m.haste,ate:T+m.dur};L.c.lento=null;}else L.c.buffs[/blood rage|protector/i.test(m.nome)?'brp':m.id]=Object.assign({id:m.id},b,{haste:m.haste,lento_self:m.lento_self,ate:T+m.dur});
+    ef15(m.ef,p.x,p.y);anuncia(L,m);L.cd[g]=T+(m.gcd||1000);L.cd[m.id]=Math.max(L.cd[m.id]||0,T+(m.cd||0));return true;}
+  if(lancar15(L,m,{a:s.a,v}))return true;
+  toast(g==='atk'?(p.target?'Alvo fora do alcance ou imune.':'Sem alvo ao alcance.'):'Essa magia não tem efeito agora.');return false;}
+function hotUsar(i){if(!S||!W||W.loading||S.hp<=0||ON.parado||S.loc==='arena')return;
+  if(ehMembro()){toast(NOTA_MEMBRO);return;}
+  const s=(S.sets[S.set]||[])[i];if(!s)return;const m=MAGIAS15[s.a]||RUNAS15[s.a],it=ITEMS[s.a],fora=S.loc==='city'||S.loc==='treino';
+  if(m){if(!m.runa&&!m.voc.includes(S.voc))return toast('Sua vocação não pode usar esta magia.');
+    if(fora){if(m.runa)return cidMsg('Só em caçadas: runas precisam de monstros.');return cidLancar(m);}
+    return hotMagia(m,s);}
+  if(it&&it.type==='pot')return hotPocao(it);}
+function hotTab(dir){const p=W.p,l=W.mobs.filter(m=>m.d.hostil&&cheb(p,m)<=8).sort((a,b)=>cheb(p,a)-cheb(p,b)||a.x-b.x||a.y-b.y);if(!l.length)return;
+  const k=l.indexOf(p.target),n=l[k<0?0:(k+dir+l.length)%l.length];p.target=n;p.tgMan=n;}
+document.addEventListener('keydown',e=>{if(!S||e.ctrlKey||e.altKey||e.metaKey)return;const tg=e.target;
+  if(tg&&(/INPUT|TEXTAREA|SELECT/.test(tg.tagName||'')||tg.isContentEditable))return;   /* digitando (chat, formulários): nada de hotkeys */
+  const f=/^F([1-9]|1[0-2])$/.exec(e.key);
+  if(f){const n=+f[1];if(e.shiftKey&&n>4)return;e.preventDefault();   /* F5 não recarrega a página no jogo */
+    if(modal||e.repeat||!W)return;hotUsar(e.shiftKey?11+n:n-1);return;}
+  if(modal||!W||!emCaca()||ehMembro())return;
+  if(e.key==='Tab'){e.preventDefault();hotTab(e.shiftKey?-1:1);}
+  else if(e.key==='Escape'){W.p.target=null;W.p.tgMan=null;W.p.vai=null;}});
+cv.addEventListener('click',e=>{if(e.button||!emCaca()||ehMembro()||!W.cam||quiet)return;const p=W.p,wx=(e.clientX/ZOOM+W.cam.x)/TS,wy=(e.clientY/ZOOM+W.cam.y)/TS;let b=null,bd=.9;
+  for(const m of W.mobs){if(!m.d.hostil)continue;const q=rpos(m),d=Math.hypot(q.x+.5-wx,q.y+.5-wy);if(d<bd){bd=d;b=m;}}
+  if(b){p.target=b;p.tgMan=b;p.vai=cheb(p,b)>V().range?{mob:b}:null;W.marca={x:b.x,y:b.y,b:performance.now(),cor:'#ff6a5a'};return;}
+  const x=Math.floor(wx),y=Math.floor(wy);if(walk(x,y)&&!W.occ[y*W.w+x]){p.vai={x,y};W.marca={x,y,b:performance.now(),cor:'#7fe07f'};}});
+function drawMarca(now){const m=W.marca;if(!m)return;const t=(now-m.b)/700;if(t>=1){W.marca=null;return;}ctx.globalAlpha=1-t;ctx.strokeStyle=m.cor;ctx.lineWidth=2;ctx.strokeRect(m.x*TS+1,m.y*TS+1,TS-2,TS-2);ctx.globalAlpha=1;}
+let hotLP=0,hotLPt=0;   /* toque: segurar um slot = configurar (tocar = usar); botão direito/shift+clique no PC */
+document.addEventListener('pointerdown',e=>{hotLP=0;clearTimeout(hotLPt);const hs=e.pointerType!=='mouse'&&S&&e.target.closest&&e.target.closest('[data-hot]');if(hs)hotLPt=setTimeout(()=>{hotLP=1;openModal('hot',+hs.dataset.hot);},550);});
+['pointerup','pointercancel','pointermove'].forEach(t=>document.addEventListener(t,()=>clearTimeout(hotLPt)));
+document.addEventListener('contextmenu',e=>{const hs=e.target.closest&&e.target.closest('[data-hot]');if(hs&&S){e.preventDefault();openModal('hot',+hs.dataset.hot);}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal&&!MODAL_FIXOS.includes(modal))closeModal();if(e.key==='Enter'&&modal==='create')act('create');
   else if(e.key==='Enter'&&/INPUT/.test((e.target||{}).tagName||'')){if(modal==='login')act(ENT.aba==='entrar'?'onEntrar':'onCriarConta');else if(modal==='novaSenha')act('onNovaSenha');else if(modal==='importar')act('onImportarOk');else if(modal==='apagarChar')act('onApagarOk',modalArg);}});
 
@@ -3564,6 +3727,10 @@ function load(){try{const r=localStorage.getItem(KEY);if(!r)return null;return c
 function carregarSave(d){try{if(!d||!VOC[d.voc])return null;const b=newState(d.name,d.voc);
   const o=Object.assign(b,d);o.rules=Object.assign(newState(d.name,d.voc).rules,d.rules);o.sess=Object.assign(newSess(null),d.sess);o.charms=Object.assign({dmg:0,exp:0,loot:0,def:0},d.charms);o.pull=d.pull||{};o.lootCfg=d.lootCfg||{};o.recordes=d.recordes||{};o.ui=d.ui||{};o.favs=d.favs||{};o.wildcards=clamp(Math.floor(+d.wildcards)||0,0,1000);o.wcAcc=+d.wcAcc||0;o.tc=+d.tc||0;migraPrey(o);
   o.imb=Object.assign(newState('x',o.voc).imb,d.imb||{});for(const [k,n] of Object.entries(IMB_SLOTS)){o.imb[k]=(o.imb[k]||[]).slice(0,n);while(o.imb[k].length<n)o.imb[k].push(null);}
+  /* saves antigos tinham um skill 'melee' só: espada, machado e clava começam com o mesmo nível e tentativas dele (ninguém perde progresso); o 'melee' é descartado */
+  {const ds=d.skills||{},sk=Object.assign({},b.skills,ds),m=ds.melee;if(m)for(const k of MELEE)if(!ds[k])sk[k]={lv:m.lv,t:m.t};delete sk.melee;
+    for(const k in sk){const x=sk[k];sk[k]={lv:clamp(Math.floor(+(x&&x.lv))||b.skills[k]&&b.skills[k].lv||0,0,3000),t:Math.max(0,+(x&&x.t)||0)};}o.skills=sk;
+    const tr=o.sess&&o.sess.tries;if(tr&&tr.melee){const w=ITEMS[(o.eq.weapon||{}).id],tk=skW(o.voc,w&&w.wt);tr[tk]=(tr[tk]||0)+tr.melee;delete tr.melee;}}
   for(const k of Object.keys(o.eq))if(!ITEMS[o.eq[k].id])o.eq[k]={id:k==='weapon'?STARTER[o.voc]:newState('x',o.voc).eq[k].id,t:0};
   for(const k of Object.keys(o.bag))if(!ITEMS[parseKey(k).id])delete o.bag[k];
   for(const k of Object.keys(o.depot||{}))if(!ITEMS[parseKey(k).id])delete o.depot[k];
@@ -3837,13 +4004,13 @@ setInterval(cidRel,100);
 /* ---- magias de suporte no chat da cidade ---- */
 function cidMagiaPor(t){const w=String(t).toLowerCase().replace(/\s+/g,' ').trim();if(!w)return null;
   if(!CID.pal){CID.pal={};for(const m of Object.values(MAGIAS15))if(m.palavras)CID.pal[m.palavras.toLowerCase()]=m;}return CID.pal[w]||null;}
-function cidFala(txt,mag){const now=performance.now();PR.fala={txt,ate:now+4000,mag:mag?1:0};PR.tFala=now;if(PR.ativo&&PR.tr)PR.tr.enviar('fala',{nome:prTxt(S.name,20),txt,mag:mag?1:0});}
-function cidMagia(m){const T=W.time,g=GRUPO15(m),p=W.p,L=JOG,pagar=()=>{S.mp-=m.mana;train('magic',m.mana);};
+function cidFala(txt,mag){const now=performance.now();PR.fala={txt,ate:now+4000,mag:mag?1:0};PR.tFala=now;if(cidOk()&&PR.ativo&&PR.tr)PR.tr.enviar('fala',{nome:prTxt(S.name,20),txt,mag:mag?1:0});}
+function cidLancar(m){const T=W.time,g=GRUPO15(m),p=W.p,L=JOG,pagar=()=>{S.mp-=m.mana;train('magic',m.mana);};
   if(!m.voc.includes(S.voc))return cidMsg('Sua vocação não pode usar esta magia.');
   if(S.level<m.lv)return cidMsg(`Você precisa do level ${m.lv} para usar esta magia.`);
   if(S.mp<m.mana)return cidMsg('Você não tem mana suficiente.');
   if((W.cd[g]||0)>T||(W.cd[m.id]||0)>T)return cidMsg('Você está exausto.');
-  if(!(['haste','cura','regen','cura_cond','escudo','buff'].includes(m.t)||(m.t==='util'&&/lux/.test(m.id))))return cidMsg('Esta magia só pode ser usada em caçadas.');
+  if(!(['haste','cura','regen','cura_cond','escudo','buff'].includes(m.t)||(m.t==='util'&&/lux/.test(m.id))))return cidMsg('Só em caçadas: esta magia precisa de monstros.');
   let ok=false,cd=false;
   if(m.t==='haste'){pagar();L.c.rapido={f:m.haste,ate:T+m.dur};L.c.lento=null;ef15(m.ef,p.x,p.y);anuncia(L,m);ok=cd=true;}   /* haste de verdade: mods(JOG).vel multiplica o passo enquanto durar */
   else if(m.t==='buff'){pagar();const b=m.buff||{};L.c.buffs[m.id]=Object.assign({id:m.id},b,{haste:m.haste,lento_self:m.lento_self,ate:T+m.dur});ef15(m.ef,p.x,p.y);anuncia(L,m);ok=cd=true;}
@@ -3851,8 +4018,8 @@ function cidMagia(m){const T=W.time,g=GRUPO15(m),p=W.p,L=JOG,pagar=()=>{S.mp-=m.
   else ok=lancar15(L,m,{a:m.id,v:101});
   if(!ok)return cidMsg('Você não precisa dessa magia agora.');
   if(cd){W.cd[g]=T+(m.gcd||1000);W.cd[m.id]=Math.max(W.cd[m.id]||0,T+(m.cd||0));}
-  dirty.all=true;log('cid',`Você usou ${m.palavras}.`,'y');cidFala(m.palavras,1);}
-function cidFalar(v){const t=prTxt(v,120),m=t&&cidOk()?cidMagiaPor(t):null;if(m)cidMagia(m);else prFalar(v);}
+  dirty.all=true;log('cid',`Você usou ${m.palavras}.`,'y');cidFala(m.palavras,1);}   /* cidLancar: caminho único das magias na cidade (chat digitado e hotkeys/cliques da hotbar; também na sala de treino) */
+function cidFalar(v){const t=prTxt(v,120),m=t&&cidOk()?cidMagiaPor(t):null;if(m)cidLancar(m);else prFalar(v);}
 function cidCond(ok){let el=$('#condCid');if(!el){el=document.createElement('div');el.id='condCid';document.body.appendChild(el);}
   const T=ok?W.time:0,c=ok?JOG.c:{},fmt2=ms=>{const s=Math.ceil(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');},out=[];
   if(ok&&c.rapido&&c.rapido.ate>T)out.push(`<span title="Haste: +${Math.round((c.rapido.f-1)*100)}% de velocidade">⚡ Haste ${fmt2(c.rapido.ate-T)}</span>`);
@@ -3866,7 +4033,7 @@ function cidGhost(d){let g=$('#cidGhost');if(!g){g=document.createElement('div')
 function cidDragIni(c){CID.dr=Object.assign({vivo:1,px:c.x0,py:c.y0,sobre:'',t:null,r:null},c);CID.cand=null;cidGhost(CID.dr);cv.style.cursor='grabbing';document.body.classList.add('cidDrag');}
 function cidDragFim(){CID.dr=null;CID.cand=null;const g=$('#cidGhost');if(g)g.style.display='none';cv.style.cursor='';document.body.classList.remove('cidDrag');}
 function cidDragMov(e){const d=CID.dr,g=$('#cidGhost');d.px=e.clientX;d.py=e.clientY;g.style.left=(e.clientX+10)+'px';g.style.top=(e.clientY+10)+'px';
-  const el=document.elementFromPoint(e.clientX,e.clientY);d.sobre=el===cv?'cv':(el&&el.closest('.win,#hud,#hudwrap,#mbox'))?'ui':'fora';
+  const el=document.elementFromPoint(e.clientX,e.clientY);d.sobre=el===cv?'cv':(el&&el.closest('.win,#side,#hud,#hudwrap,#mbox'))?'ui':'fora';
   d.t=d.sobre==='cv'&&W.cam?cidTile(e):null;d.r=d.tipo==='char'?d.r:(d.sobre==='cv'&&PR.ativo?prRemotoEm(e):null);}
 function cidSoltar(e,d){if(!cidOk())return;const el=document.elementFromPoint(e.clientX,e.clientY),sobreCv=el===cv;
   if(d.tipo==='item'){
@@ -3874,7 +4041,7 @@ function cidSoltar(e,d){if(!cidOk())return;const el=document.elementFromPoint(e.
     if(!sobreCv||!W.cam)return;const t=cidTile(e),r=PR.ativo?prRemotoEm(e):null;
     if(r)cidDarPara(r,d.key);else if(cidDepotEm(t.x,t.y))cidDepositar(d.key,t);else cidSoltarChao(d.key,t.x,t.y);return;}
   if(d.tipo==='chao'){
-    if(!sobreCv){if(el&&el.closest('.win,#hud,#hudwrap'))cidPegar(d.f,d.pid);return;}
+    if(!sobreCv){if(el&&el.closest('.win,#side,#hud,#hudwrap'))cidPegar(d.f,d.pid);return;}
     if(d.pid){toast('Só o dono pode mover este item: clique ou arraste para a mochila para pegá-lo.');return;}
     const t=cidTile(e);if(cidDepotEm(t.x,t.y)){toast('Pegue o item e depois arraste para o depot.');return;}cidMoverChao(d.f,t.x,t.y);return;}
   if(d.tipo==='char'&&sobreCv&&W.cam)cidEmpurrar(d.r,cidTile(e));}
@@ -3938,7 +4105,7 @@ function drawCid(now){if(!W.city||S.loc!=='city'||!W.cam)return;
    (o líder cria um lutador com a IA da arena) e só desenham o que o líder envia (4 Hz, num único broadcast com os eventos) e aplicam as recompensas.
    Canal da party: party:<pid do fundador>, mesmo padrão da presença (Supabase Realtime, ou BroadcastChannel com ?rede=local; ?rede=rt&perfil=N = Realtime real sem login, para testar).
    Convites ficam no canal da cidade (convite/resposta). Modo solo: PT.hunt e W.pl ficam vazios e nada muda. */
-const PARTY_HZ=4,PT_MAX=4,PT_CONVITE=60000,PT_SUMIR=15000,PT_INATIVO=120000,PT_BONUS=[0,.2,.3,.6,1],PT_VER='p5',PT_FILA_T=120000;
+const PARTY_HZ=4,PT_MAX=4,PT_CONVITE=60000,PT_SUMIR=15000,PT_INATIVO=120000,PT_BONUS=[0,.2,.3,.6,1],PT_VER='p6',PT_FILA_T=120000;
 const PT_EVS=['rost','sinal','entrar','sair','go','fim','ficha','estado','premio','kick','recusa','fila','pronto'];
 Object.assign(PT,{id:null,me:null,lider:null,mb:[],expOn:true,tr:null,conv:[],sent:{},pend:null,fichas:new Map(),conf:false,tEnt:0,nEnt:0,tSin:0,tEst:0,tPre:0,tAn:0,tMe:0,sig:'',flag:'off',huntInfo:null,fila:null,filaM:null,aceito:null,epAuto:null,seg:null,fim:{},pPend:null,st:'ok',verAv:{},fake:false,n:{env:0,rec:0,te:{},tr:{},res:{}}});
 const ptSou=()=>!!PT.id&&PT.lider===PR.pid;
@@ -4086,12 +4253,12 @@ const ptBonusTxt=r=>`${r.nv} vocaç${r.nv===1?'ão':'ões'}: +${Math.round(r.bon
 /* ---- ficha do lutador ---- */
 function ptFicha(){const eq={},t={};for(const k of ['weapon','helmet','armor','legs','boots','shield']){eq[k]=S.eq[k].id;t[k]=S.eq[k].t||0;}
   const slots=(S.sets[S.set]||[]).map(x=>x&&{a:x.a,v:x.v,p:x.p}),bag={};for(const s of slots){if(!s)continue;const it=ITEMS[s.a];if(it&&(it.type==='pot'||it.type==='runa'))bag[s.a]=S.bag[s.a]|0;}
-  return {nome:prTxt(S.name,20),voc:S.voc,nivel:S.level,sk:{melee:S.skills.melee.lv,distance:S.skills.distance.lv,shielding:S.skills.shielding.lv,magic:S.skills.magic.lv},eq,t,procs:JOG.procs,slots,bag,
+  return {nome:prTxt(S.name,20),voc:S.voc,nivel:S.level,sk:{sword:S.skills.sword.lv,axe:S.skills.axe.lv,club:S.skills.club.lv,melee:S.skills[S.voc==='knight'?mainSk():'sword'].lv/* só para clientes p5 */,distance:S.skills.distance.lv,shielding:S.skills.shielding.lv,magic:S.skills.magic.lv},eq,t,procs:JOG.procs,slots,bag,
     outfit:S.outfit||null,addon:S.addon??3,hp:Math.round(S.hp),mp:Math.round(S.mp),prot:JOG.protecao()};}
 function ptValFicha(f){try{if(!f||typeof f!=='object'||!VOC[f.voc])return null;const voc=f.voc,nivel=prNum(f.nivel,1,9999,0);if(!nivel)return null;
-  const sk={};for(const k of ['melee','distance','shielding','magic'])sk[k]=prNum(f.sk&&f.sk[k],1,3000,1);
+  const sk={};for(const k of ['sword','axe','club','distance','shielding','magic'])sk[k]=prNum(f.sk&&(f.sk[k]!==undefined?f.sk[k]:MELEE.includes(k)?f.sk.melee:undefined),1,3000,1);   /* ficha antiga (p5) só tem melee: vale para os três */
   const eq={},t={};for(const k of ['weapon','helmet','armor','legs','boots','shield']){const it=ITEMS[f.eq&&f.eq[k]];
-    eq[k]=it&&it.type==='eq'&&it.slot===k&&(k!=='weapon'||it.wt===VOC[voc].wt)?it:(k==='weapon'?ITEMS[STARTER[voc]]:null);t[k]=prNum(f.t&&f.t[k],0,20,0);}
+    eq[k]=it&&it.type==='eq'&&it.slot===k&&(k!=='weapon'||okWt(voc,it.wt))?it:(k==='weapon'?ITEMS[STARTER[voc]]:null);t[k]=prNum(f.t&&f.t[k],0,20,0);}
   const p=f.procs||{},cl=(v,mx)=>{v=+v;return Number.isFinite(v)?clamp(v,0,mx):0;};
   const procs={crit:cl(p.crit,.5),critX:.5,fatal:cl(p.fatal,.15),ruse:cl(p.ruse,.15),agonia:cl(p.agonia,.3)};
   const slots=new Array(16).fill(null),sl=Array.isArray(f.slots)?f.slots.slice(0,16):[];
@@ -4417,11 +4584,11 @@ function chefeTick(){const HU=PT.hunt;if(!HU||HU.papel!=='lider'||!HU.chefe||!W|
 function chefeFim(mot){const HU=PT.hunt;if(!HU)return;HU.chefe=null;
   ptSairHunt(mot==='vitoria'?'🏆 Boss derrotado! A party volta para a cidade.':mot==='tempo'?'O tempo da luta acabou: a party volta para a cidade.':'A party foi derrotada pelo boss.','1');
   setTimeout(()=>travel('city',null),0);}
-function drawChefeHud(){if(quiet||!W||W.loading)return;const b=W.mobs.find(m=>m.d&&m.d.chefe);if(!b)return;const w=Math.min(440,VW-40),x=(VW-w)/2,y=84,f=clamp(b.hp/b.max,0,1);
+function drawChefeHud(){if(quiet||!W||W.loading)return;const b=W.mobs.find(m=>m.d&&m.d.chefe);if(!b)return;const w=Math.min(440,VW-SBW-40),x=(VW-SBW-w)/2,y=84,f=clamp(b.hp/b.max,0,1);
   ctx.save();ctx.textAlign='center';ctx.fillStyle='#000c';ctx.fillRect(x-3,y-17,w+6,36);ctx.strokeStyle='#b8923a';ctx.lineWidth=1;ctx.strokeRect(x-2.5,y-16.5,w+5,35);
-  ctx.font='bold 12px Verdana';ctx.fillStyle='#ffd84a';ctx.fillText(b.d.n.toUpperCase(),VW/2,y-3);
+  ctx.font='bold 12px Verdana';ctx.fillStyle='#ffd84a';ctx.fillText(b.d.n.toUpperCase(),(VW-SBW)/2,y-3);
   ctx.fillStyle='#2a0808';ctx.fillRect(x,y+1,w,13);ctx.fillStyle=f>.5?'#c02a2a':f>.2?'#e0702a':'#ff3a3a';ctx.fillRect(x,y+1,w*f,13);
-  ctx.font='10px Verdana';ctx.lineWidth=2.5;ctx.strokeStyle='#000';const t=`${fmt(Math.max(0,b.hp))} / ${fmt(b.max)}`;ctx.strokeText(t,VW/2,y+11.5);ctx.fillStyle='#fff';ctx.fillText(t,VW/2,y+11.5);ctx.restore();}
+  ctx.font='10px Verdana';ctx.lineWidth=2.5;ctx.strokeStyle='#000';const t=`${fmt(Math.max(0,b.hp))} / ${fmt(b.max)}`;ctx.strokeText(t,(VW-SBW)/2,y+11.5);ctx.fillStyle='#fff';ctx.fillText(t,(VW-SBW)/2,y+11.5);ctx.restore();}
 /* ---- interface: aba Bosses da tela de caçadas ---- */
 function chefeBtn(hk){const h=HUNTS[hk],cd=chefeResta(hk);
   if(!PT.id||PT.mb.length<2)return `<span class="mut sm">🔒 Só em party: monte um grupo com ${h.bmin}+ jogadores (${h.brec}+ recomendado); o líder inicia. </span>`;
