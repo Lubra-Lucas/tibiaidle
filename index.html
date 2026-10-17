@@ -211,6 +211,9 @@ img.ui{width:24px;height:24px;image-rendering:pixelated;flex:none}
 .pvb{display:inline-block;background:#b3261e;color:#fff;font:700 10px/1 Verdana,sans-serif;padding:2px 5px;border-radius:3px;letter-spacing:.06em;vertical-align:middle;margin-left:4px;box-shadow:inset 0 0 0 1px #5a0f0b}
 .pvaviso{margin:6px 0;padding:6px 8px;border:1px solid #7a2a24;background:rgba(120,24,18,.25);border-radius:4px;font-size:12px;color:#f3c9c4}.pvlnk{color:#ffb4a8;text-decoration:underline;cursor:pointer}
 .cav{vertical-align:-2px;margin:0 2px;image-rendering:pixelated}
+.botb{vertical-align:-2px;margin:0 3px;image-rendering:pixelated}#tOnB{color:#8fd0ff}
+.lfgbox{display:grid;gap:8px;font-size:12px}.lfgbox label{display:flex;flex-direction:column;gap:2px;color:var(--mut)}.lfgbox select{background:#161b27;color:#fff;border:1px solid var(--line);border-radius:3px;padding:4px}
+.lfgst{padding:8px;border:1px solid var(--line);border-radius:4px;background:#12161f}.lfgst .bar{height:5px;background:#222a3a;border-radius:3px;overflow:hidden;margin:6px 0}.lfgst .bar i{display:block;height:100%;background:#4a8cf0}
 #pvBar{display:flex;gap:4px 10px;align-items:center;flex-wrap:wrap;justify-content:center;background:rgba(48,14,14,.93);border:1px solid #000;border-radius:4px;padding:3px 8px;font-size:11px;color:#f1d4d0;box-shadow:inset 0 0 0 1px #7a2a24}
 #pvBar b{color:#fff}#pvBar .pvl{color:#ffd84a}#pvBar button{background:#2a0d0b;color:#f1d4d0;border:1px solid #000;box-shadow:inset 0 0 0 1px #7a2a24;border-radius:3px;padding:2px 7px;font:inherit;cursor:pointer}#pvBar button:hover{background:#4a1612}#pvBar label{display:flex;gap:3px;align-items:center;cursor:pointer}
 #autoBar .abKeys{font-size:10px;color:var(--mut);margin-left:4px}#autoBar .abNote{flex-basis:100%;text-align:center;font-size:11px;color:#ffd84a}
@@ -679,7 +682,7 @@ button.lnk:hover{color:var(--gold)}
   <div class="status" id="tStatus"></div>
   <button class="shopbtn" data-open="shop"><img class="ui" src="tibia-assets/sprites15/ui/loja.png" alt=""><span class="mtx">Loja</span></button>
   <div class="pill" id="tGoldIc"><img class="ui" src="tibia-assets/sprites15/ui/gold.png" alt=""><b id="tGold">0</b></div>
-  <button class="onl hidden" id="tOnl" data-open="online" title="Jogadores online na cidade"><span class="dot"></span><b id="tOnN">0</b> online</button>
+  <button class="onl hidden" id="tOnl" data-open="online" title="Jogadores online na cidade"><span class="dot"></span><b id="tOnN">0</b> online<span id="tOnB"></span></button>
   <div id="nuvem" data-st="ok"><svg viewBox="0 0 24 24"><path d="M6.6 19.5a4.6 4.6 0 0 1-.5-9.2A6.2 6.2 0 0 1 17.9 8.9a5.3 5.3 0 0 1-.4 10.6z"/></svg></div>
   <button class="cfgbtn" data-open="cfg" title="Configurações"><img class="ui" src="tibia-assets/sprites15/ui/config.png" alt=""></button>
 </div>
@@ -2406,6 +2409,8 @@ function draw(){
   if(W.pl)for(const L of ptLutVivos()){const q=rpos(L),r=Math.round(q.y);(rows[r]=rows[r]||[]).push({lut:L,p:q});}   /* party: lutadores simulados pelo líder */
   if(W.partyR)for(const r of W.partyR.values()){if(r.vivo===0)continue;const q=rpos(r),ry=Math.round(q.y);(rows[ry]=rows[ry]||[]).push({rem:r,p:q});}   /* party: os outros membros (visão do membro) */
   if(W.city&&S.loc==='city'&&W.remotos)for(const r of W.remotos.values()){const q=rpos(r),ry=Math.round(q.y);(rows[ry]=rows[ry]||[]).push({rem:r,p:q});}
+  if(W.city&&S.loc==='city'&&botOn())for(const r of BOT.cid.values()){const q=rpos(r),ry=Math.round(q.y);(rows[ry]=rows[ry]||[]).push({rem:r,p:q});}   /* bots da cidade (mesmo desenho dos jogadores remotos) */
+  if(!W.city&&BOT.hunt.length&&botOn())for(const r of BOT.hunt){const q=rpos(r),ry=Math.round(q.y);(rows[ry]=rows[ry]||[]).push({rem:r,p:q});}   /* bots passando pela caçada */
   if(PV.ativo&&!W.city&&S.loc===PV.loc)for(const r of PV.remotos.values()){const q=rpos(r),ry=Math.round(q.y);(rows[ry]=rows[ry]||[]).push({rem:r,p:q});}   /* PvP: jogadores da mesma caçada */
   const labels=[];
   for(let y=y0;y<=y1+1;y++){
@@ -2417,9 +2422,9 @@ function draw(){
         labels.push({x:sx(X+16),y:sy(Y+32-(dd?dd.h:40)+6),name:S.name,hp:S.hp/maxHp(),fala:(PR.fala&&PR.fala.ate>now)?PR.fala.txt:null,fcor:PR.fala&&PR.fala.mag?'#ff9a2a':null,pid:PR.pid,sk:pvSk()});}
       else if(e.dum)drawBoneco(e.dum,X,Y,now,labels,sx,sy);
       else if(e.rem){const r=e.rem,dd=drawRemoto(r,X,Y);if(r.pvR&&PV.alvo===r.pid){ctx.strokeStyle='#ff2a2a';ctx.lineWidth=1.5;ctx.strokeRect(X+1,Y+1,30,30);}
-        labels.push({x:sx(X+16),y:sy(Y+32-(dd?dd.h:40)+6),name:r.nome,hp:r.hpMax?r.hp/r.hpMax:1,fala:r.falaAte>now?r.fala:null,fcor:r.falaMag?'#ff9a2a':null,pid:r.pid,sk:r.pvR?pvSkVis(r):0});}
+        labels.push({x:sx(X+16),y:sy(Y+32-(dd?dd.h:40)+6),name:r.nome,hp:r.hpMax?r.hp/r.hpMax:1,fala:r.falaAte>now?r.fala:null,fcor:r.falaMag?'#ff9a2a':null,pid:r.pid,sk:r.pvR?pvSkVis(r):0,bot:r.bot?1:0});}
       else if(e.lut){const L=e.lut,dd=drawLutador(L,X,Y);const fm=W.arena&&W.arena.focoMan[0];if(fm&&fm.L===L&&fm.ate>W.time){ctx.strokeStyle='#ff8a3a';ctx.lineWidth=1.5;ctx.strokeRect(X+1,Y+1,30,30);}
-        labels.push({x:sx(X+16),y:sy(Y+32-(dd?dd.h:40)+6),name:L.nome,hp:L.hp/L.max,cor:W.arena&&W.arena.modo==='equipe'?['#6fb4ff','#ff6f6f'][L.time]:null,pid:L.pid});}
+        labels.push({x:sx(X+16),y:sy(Y+32-(dd?dd.h:40)+6),name:L.nome,hp:L.hp/L.max,cor:W.arena&&W.arena.modo==='equipe'?['#6fb4ff','#ff6f6f'][L.time]:null,pid:L.pid,bot:L.bp?1:0});}
       else{const m=e.m,dd=drawCriatura(m,X,Y);
         if(!dd){ctx.save();ctx.font=`25px ${EMOJI}`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(m.d.i,X+16,Y+15);ctx.restore();}
         if(W.p.target===m){ctx.strokeStyle='#ff2a2a';ctx.lineWidth=1.5;ctx.strokeRect(X+1,Y+1,30,30);}
@@ -2435,7 +2440,7 @@ function draw(){
   drawChefeHud();drawArenaHud();
   ctx.textAlign='center';ctx.textBaseline='alphabetic';
   for(const l of labels){const col=l.hp>.6?'#5fd35f':l.hp>.3?'#f0d040':l.hp>.1?'#ff7a3a':'#c01818';
-    ctx.font='bold 11px Verdana';ctx.lineWidth=3;ctx.strokeStyle='#000';ctx.strokeText(l.name,l.x,l.y-6);ctx.fillStyle=l.cor||col;ctx.fillText(l.name,l.x,l.y-6);if(l.sk)drawCav(l.x+ctx.measureText(l.name).width/2+3,l.y-15,l.sk);
+    ctx.font='bold 11px Verdana';ctx.lineWidth=3;ctx.strokeStyle='#000';ctx.strokeText(l.name,l.x,l.y-6);ctx.fillStyle=l.cor||col;ctx.fillText(l.name,l.x,l.y-6);if(l.sk)drawCav(l.x+ctx.measureText(l.name).width/2+3,l.y-15,l.sk);if(l.bot)drawBotIco(l.x+ctx.measureText(l.name).width/2+3+(l.sk?11:0),l.y-15);
     if(l.pid&&PT.id){const eb=ptEscudoDe(l.pid);if(eb)drawEscudo(l.x-ctx.measureText(l.name).width/2-13,l.y-17,eb.tipo,eb.glow);}
     ctx.fillStyle='#000';ctx.fillRect(l.x-15,l.y-3,30,4);ctx.fillStyle=col;ctx.fillRect(l.x-14,l.y-2,28*clamp(l.hp,0,1),2);
     if(l.fala){const ls=prQuebrar(l.fala,28);ctx.font='bold 11px Verdana';ctx.fillStyle=l.fcor||'#ffff00';for(let i=0;i<ls.length;i++){const yy=l.y-22-(ls.length-1-i)*13;ctx.strokeText(ls[i],l.x,yy);ctx.fillText(ls[i],l.x,yy);}}}
@@ -2822,6 +2827,8 @@ const MODALS={
     return {wide:true,cls:'hotm',title:`🎯 Slot ${i+1} da hotbar`,body:`<div class="hotw"><div class="hotl"><div class="hbusca"><input type="search" id="hQ" placeholder="Buscar magia, runa ou palavras (ex.: exori, utani)" autocomplete="off"></div><div class="htabs" id="hAbas">${hotAbasHTML()}</div><div class="hotgrid" id="hotGrid">${hotGradeHTML()}</div></div><div class="hotr" id="hCfg">${hotCfgHTML()}</div></div>`};},
   cfg:()=>({title:'⚙️ Configurações',sm:true,body:`<p class="mut">${ON.modo==='online'?`O progresso é salvo na nuvem (conta ${esc((ON.user&&ON.user.email)||'')}) e também neste navegador, como cópia de segurança.`:'O progresso é salvo no navegador.'} Com a página fechada, o personagem continua caçando por até 12h (limitado pela stamina), com base na média da sua sessão de caça atual.</p>
     <p class="mut sm">Mapas: <b>tibia-map-data</b> (tibiamaps.io, licença MIT) — layout real de Thais e das hunts. Sprites: <b>TibiaWiki BR</b>. Tibia é uma marca da CipSoft GmbH; este é um projeto de fã.</p>
+    <label style="display:flex;gap:8px;align-items:center;margin:8px 0 4px" title="Bots são personagens simulados (marcados com um robô) que dão vida à cidade, às zonas PvP e às caçadas e completam grupos no Procurar party. Existem só no seu cliente."><input type="checkbox" data-rule="bots" ${S.rules.bots!==false?'checked':''}> Mostrar bots ${botHTML(14)} <span class="mut sm">(cidade, zonas PvP, caçadas e Procurar party)</span></label>
+    <label style="display:flex;gap:8px;align-items:center;margin:4px 0 8px" class="sm">Densidade de bots na cidade <select data-rule="botsN"><option value="0.5" ${+S.rules.botsN===.5?'selected':''}>Poucos</option><option value="1" ${!(+S.rules.botsN>0)||+S.rules.botsN===1?'selected':''}>Normal</option><option value="1.5" ${+S.rules.botsN===1.5?'selected':''}>Muitos</option></select></label>
     <div style="display:flex;gap:6px;flex-wrap:wrap">${rowBtn('Mostrar todas as janelas','showWins','')}${rowBtn('Recarregar mapas','reloadMaps','')}${ON.modo==='online'?rowBtn('Trocar de personagem','onTrocar','')+rowBtn('Sair da conta','onSairJogo',''):''}${rowBtn('Apagar personagem','reset','',false,'red')}</div>`}),
   offline:(r)=>({title:'Enquanto você estava fora...',sm:true,body:`<p>Você ficou fora por <b>${hms(r.ms)}</b>.</p>${r.est?`<div class="kv"><span>Tempo caçando</span><b>${hms(r.eff)}</b><span>Experiência</span><b>+${fmt(r.exp)}</b><span>Levels</span><b>+${r.lv}</b><span>Monstros</span><b>${fmt(r.kills)}</b><span>Gold (lucro)</span><b class="${r.gold<0?'red':'gold'}">${r.gold>=0?'+':''}${fmt(r.gold)}</b>${r.wc?`<span>Prey wildcards</span><b>+${r.wc}</b>`:''}</div><p class="mut sm">Estimativa feita a partir da média da sua sessão de caça.</p>`:'<p class="mut">Seu personagem descansou na cidade e recuperou stamina.</p>'}${r.note?`<p class="red sm">${r.note}</p>`:''}
     <div style="text-align:right">${rowBtn('Continuar','closeModal','',false,'go')}</div>`}),
@@ -3005,7 +3012,7 @@ function huntsModal(){
   const ks=listaCacadas(),[a,b]=lvFaixa();let corpo;
   if(HF.tab==='caca')corpo=`<div class="wtool"><input type="text" id="hFind" placeholder="Buscar por caçada, bioma ou monstro..." value="${esc(HF.q)}" autocomplete="off">
       <label class="chk"><input type="checkbox" class="wcb" id="hLv" ${HF.lv?'checked':''}> Só do meu level (Lv ${a}-${b})</label>
-      <label class="chk" title="Ao reabastecer, vai para a melhor caçada do seu level"><input type="checkbox" class="wcb" data-rule="smart" ${S.rules.smart?'checked':''}> Caçada inteligente</label><span class="cnt" id="hCount">${ks.length} caçadas</span></div>
+      <label class="chk" title="Ao reabastecer, vai para a melhor caçada do seu level"><input type="checkbox" class="wcb" data-rule="smart" ${S.rules.smart?'checked':''}> Caçada inteligente</label><button class="wbtn" data-act="lfgAbrir" title="Fila para achar jogadores compatíveis; bots completam o grupo">🔎 Procurar party</button><span class="cnt" id="hCount">${ks.length} caçadas</span></div>
     <div class="wscroll" id="hScroll" data-keep="hScroll"><div class="hgrid" id="hGrid">${ks.map(cardCaca).join('')||'<div class="wsoon">Nenhuma caçada encontrada.</div>'}</div></div>`;
   else if(HF.tab==='boss')corpo=bossLista();
   else if(HF.tab==='treino')corpo=`<div class="wscroll">${trCorpo()}</div>`;
@@ -3044,7 +3051,7 @@ function prepModal(hk){if(!HUNTS[hk])hk=S.lastHunt&&HUNTS[S.lastHunt]?S.lastHunt
       <button class="sugtog" data-act="sugTog">Conjunto sugerido de magias<i>${HF.sug?'▴':'▾'}</i></button>${HF.sug?sugestaoHTML('caca',hk,true):''}</div>
       <div class="pr"><div class="lhead"><h4>Loot possível</h4><div class="pills"><button class="${HF.ord==='valor'?'on':''}" data-act="lootOrd" data-arg="valor">Valor NPC</button><button class="${HF.ord==='peso'?'on':''}" data-act="lootOrd" data-arg="peso">Peso</button></div></div>
         <div class="lcols"><span>PEGAR</span><span>VENDER</span></div><div class="lscroll" data-keep="loot">${lootLinhas(hk)}</div><div class="lnote">A configuração vale para todas as caçadas. Vender converte o item em gold na hora, sem ocupar peso.</div></div></div>
-    <div class="pfoot"><span>${esc(h.n)} · ${pn}</span><span>${ptBtnHunt(hk)}<button class="wbtn pri" data-act="hunt" data-arg="${hk}">${btn}</button></span></div>`};}
+    <div class="pfoot"><span>${esc(h.n)} · ${pn}</span><span>${ptBtnHunt(hk)}${!h.pvp&&!PT.id&&S.loc==='city'?`<button class="wbtn" data-act="lfgAbrir" data-arg="${hk}" title="Procurar party para esta caçada">🔎 Procurar party</button> `:''}<button class="wbtn pri" data-act="hunt" data-arg="${hk}">${btn}</button></span></div>`};}
 
 /* ---- Prey: 3 slots (1 livre, 2 liberado com gold, 3 liberado com Tibia Coins), bônus de 1 a 10 estrelas, wildcards ---- */
 const PREY_LISTA=20*H, WC_MAX=1000, SLOT3_TC=900, PREY_TIPOS={dmg:'dano',def:'defesa',exp:'exp',loot:'loot'};
@@ -3527,6 +3534,7 @@ function act(a,arg){
   if(!S)return;
   if(PTACT[a]){PTACT[a](arg);return;}
   if(PVACT[a]){PVACT[a](arg);return;}
+  if(BOTACT[a]){BOTACT[a](arg);return;}
   if(/^(mk|lei|wk)[A-Z]/.test(a)){mkAct(a,arg);return;}
   switch(a){
     case 'closeModal':closeModal();return;
@@ -4030,7 +4038,7 @@ function prTrLocal(chave){const bc=new BroadcastChannel('tibiaidle-'+chave);let 
   const env=(m)=>{try{if(vivo)bc.postMessage(m);}catch(e){}};
   bc.onmessage=ev=>{const m=ev.data;if(!m||typeof m!=='object'||!h||m.pid===PR.pid||typeof m.pid!=='string')return;
     if(m.t==='oi'){h.entrou(m.pid,m.meta);if(!m.r&&meuMeta)env({t:'oi',r:1,pid:PR.pid,meta:meuMeta()});}
-    else if(m.t==='tchau')h.saiu(m.pid);else if(m.t==='pos'||m.t==='fala'||m.t==='convite'||m.t==='resposta'||m.t==='cid'||m.t==='pv')h.rec(m.t,m);};
+    else if(m.t==='tchau')h.saiu(m.pid);else if(m.t==='pos'||m.t==='fala'||m.t==='convite'||m.t==='resposta'||m.t==='cid'||m.t==='pv'||m.t==='lfg')h.rec(m.t,m);};
   return {entrar(hh,mf){h=hh;meuMeta=mf;env({t:'oi',pid:PR.pid,meta:mf()});},atualizar(meta){env({t:'oi',r:1,pid:PR.pid,meta});},
     enviar(t,pl){env(Object.assign({t,pid:PR.pid},pl));},sair(){env({t:'tchau',pid:PR.pid});vivo=false;try{bc.close();}catch(e){}}};}
 function prTrRealtime(chave,pre){let ch=null,h=null,vivo=true,meuMeta=null,tim=null,n=0,ok=false;const fila=[];
@@ -4044,6 +4052,7 @@ function prTrRealtime(chave,pre){let ch=null,h=null,vivo=true,meuMeta=null,tim=n
     ch.on('broadcast',{event:'resposta'},m=>{try{h.rec('resposta',m.payload);}catch(e){}});
     ch.on('broadcast',{event:'cid'},m=>{try{h.rec('cid',m.payload);}catch(e){}});
     ch.on('broadcast',{event:'pv'},m=>{try{h.rec('pv',m.payload);}catch(e){}});
+    ch.on('broadcast',{event:'lfg'},m=>{try{h.rec('lfg',m.payload);}catch(e){}});
     ch.subscribe(st=>{if(!vivo||c!==ch)return;   /* c!==ch: retorno de um canal antigo já descartado (não pode derrubar o novo) */
       if(st==='SUBSCRIBED'){n=0;PR.erro=null;ok=true;try{ch.track(meuMeta());}catch(e){}while(fila.length){const q=fila.shift();envia(q[0],q[1]);}}
       else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){PR.erro=st;ok=false;religar();}});
@@ -4051,7 +4060,7 @@ function prTrRealtime(chave,pre){let ch=null,h=null,vivo=true,meuMeta=null,tim=n
   /* o timer e o descarte do canal antigo vêm ANTES do removeChannel: ele dispara o callback 'CLOSED' na hora, e sem isso religar() entrava em recursão e derrubava o canal novo */
   const religar=()=>{if(!vivo||tim)return;ok=false;const velho=ch;ch=null;const d=Math.min(30000,2000*Math.pow(2,n++));tim=setTimeout(()=>{tim=null;abrir();},d);try{if(velho)SB.removeChannel(velho);}catch(e){}};
   return {entrar(hh,mf){h=hh;meuMeta=mf;abrir();},atualizar(meta){try{if(ch)ch.track(meta);}catch(e){}},
-    enviar(t,pl){if(!ok){if(t==='convite'||t==='resposta'){fila.push([t,pl]);if(fila.length>20)fila.shift();}return;}envia(t,pl);},
+    enviar(t,pl){if(!ok){if(t==='convite'||t==='resposta'||t==='lfg'){fila.push([t,pl]);if(fila.length>20)fila.shift();}return;}envia(t,pl);},
     sair(){vivo=false;if(tim)clearTimeout(tim);try{if(ch){ch.untrack();SB.removeChannel(ch);}}catch(e){}ch=null;}};}
 /* ---- remotos ---- */
 function prAplicarMeta(r,m){r.nome=prTxt(m.nome,20)||'Jogador';r.voc=VOC[m.voc]?m.voc:'knight';r.level=prNum(m.level,1,9999,1);r.outfit=prOutfit(m.outfit);}
@@ -4104,22 +4113,26 @@ function prFalar(txt){txt=prTxt(txt,120);if(!txt)return;
   PR.fala={txt,ate:now+4000};log('cid',`${S.name} diz: ${txt}`,'y');PR.tr.enviar('fala',{nome:prTxt(S.name,20),txt});}
 /* ---- interface ---- */
 function cidUI(){const b=$('#chatIn');if(b)b.classList.toggle('hidden',chatTab!=='cid');}
-function prUI(naCidade){const b=$('#tOnl');if(!b)return;const ok=!!prModoRede()&&!!S;b.classList.toggle('hidden',!ok);if(!ok)return;
-  const n=PR.ativo?PR.remotos.size+1:-1;b.classList.toggle('off',!PR.ativo);
-  if(n!==PR.ultN){PR.ultN=n;$('#tOnN').textContent=n<0?'–':n;b.title=n<0?'Entre na cidade para ver quem está online':`${n} online na cidade`;}
-  const sig=PR.ativo?[...PR.remotos.values()].map(r=>r.pid+r.nome+r.level+JSON.stringify(r.outfit)).join(',')+S.level:'';
+function prUI(naCidade){const b=$('#tOnl');if(!b)return;const net=!!prModoRede(),nb=botContar(),ok=!!S&&(net||nb>0);b.classList.toggle('hidden',!ok);if(!ok)return;
+  const n=PR.ativo?PR.remotos.size+1:net?-1:1,tb=nb>0?` · ${nb} bot${nb>1?'s':''}`:'';b.classList.toggle('off',net&&!PR.ativo);   /* jogadores reais e bots sempre separados */
+  if(n!==PR.ultN||tb!==PR.ultB){PR.ultN=n;PR.ultB=tb;$('#tOnN').textContent=n<0?'–':n;$('#tOnB').textContent=tb;b.title=(n<0?'Entre na cidade para ver quem está online':`${n} jogador${n>1?'es':''} real${n>1?'is':''} online`)+(nb?` · ${nb} bot${nb>1?'s':''} (personagens simulados, só no seu cliente)`:'');}
+  const sig=(PR.ativo?[...PR.remotos.values()].map(r=>r.pid+r.nome+r.level+JSON.stringify(r.outfit)).join(',')+S.level:'')+'|'+nb;
   if(modal==='online'&&sig!==PR.sigLista){PR.sigLista=sig;openModal('online',null,true);}}
 Object.assign(MODALS,{online:()=>{const eu={nome:S.name,voc:S.voc,level:S.level,outfit:prOutfit(S.outfit)},L=[eu].concat(PR.ativo?[...PR.remotos.values()]:[]);
   const row=r=>`<div class="onlrow">${r.outfit?ret15(r.outfit):`<div class="ph">${esc((r.nome||'?')[0])}</div>`}<div><b>${esc(r.nome)}</b>${r===eu?' <span class="mut sm">(você)</span>':''}<div class="mut sm">${esc((VOC[r.voc]||{n:''}).n)} · Level ${esc(r.level)}</div></div></div>`;
-  return {title:`Online na cidade (${PR.ativo?L.length:0})`,sm:true,body:PR.ativo?L.map(row).join(''):'<p class="mut">Você precisa estar na cidade para ver os outros jogadores.</p>'};}});
+  const bots=S.loc==='city'&&botOn()?[...BOT.cid.values()].sort((a,b)=>b.level-a.level):[],rowB=r=>`<div class="onlrow">${r.outfit?ret15(r.outfit):`<div class="ph">${esc((r.nome||'?')[0])}</div>`}<div><b>${esc(r.nome)}</b>${botHTML(12)}<span class="mut sm">(bot)</span><div class="mut sm">${esc((VOC[r.voc]||{n:''}).n)} · Level ${esc(r.level)}</div></div></div>`;
+  const real=PR.ativo?L.length:1;
+  return {title:`Online na cidade (${real} jogador${real>1?'es':''}${bots.length?` · ${bots.length} bots`:''})`,sm:true,body:(PR.ativo?L.map(row).join(''):S.loc==='city'&&!prModoRede()?row(eu):'<p class="mut">Você precisa estar na cidade para ver os outros jogadores.</p>')+
+    (bots.length?`<h4 style="margin:10px 0 2px">${botHTML(14)} Bots (${bots.length}) <small class="mut">personagens simulados que existem só no seu cliente</small></h4>`+bots.map(rowB).join(''):'')};}});
 function drawRemoto(r,X,Y){let f=null;if(r.outfit){try{f=comporOutfit(r.outfit);}catch(e){f=null;}}
   if(f)return drawFolha15(f,r,[2,1,0,3][r.face|0],X,Y);
   const R15=SP15.roupas[r.voc],g=R15&&(R15[3]||R15[0]);if(g)return drawFolha15(g,r,[2,1,0,3][r.face|0],X,Y);
   return drawSprite(VOC[r.voc].outfit,X,Y,false);}
-function prRemotoEm(e){if(!W||!W.city||!W.cam||!PR.ativo)return null;const wx=(e.clientX/ZOOM+W.cam.x)/TS,wy=(e.clientY/ZOOM+W.cam.y)/TS;let b=null,bd=.9;
-  for(const r of PR.remotos.values()){const q=rpos(r),d=Math.hypot(q.x+.5-wx,q.y-.1-wy);if(d<bd){bd=d;b=r;}}return b;}
+function prRemotoEm(e){if(!W||!W.city||!W.cam)return null;const wx=(e.clientX/ZOOM+W.cam.x)/TS,wy=(e.clientY/ZOOM+W.cam.y)/TS;let b=null,bd=.9;   /* jogadores reais e bots (bots: mesmo código de desenho/clique) */
+  if(PR.ativo)for(const r of PR.remotos.values()){const q=rpos(r),d=Math.hypot(q.x+.5-wx,q.y-.1-wy);if(d<bd){bd=d;b=r;}}
+  if(S.loc==='city'&&botOn())for(const r of BOT.cid.values()){const q=rpos(r),d=Math.hypot(q.x+.5-wx,q.y-.1-wy);if(d<bd){bd=d;b=r;}}return b;}
 function prTip(e){const t=$('#tipRem'),r=prRemotoEm(e);if(!r){t.classList.add('hidden');return;}
-  t.innerHTML=`<b>${esc(r.nome)}</b><br>${esc((VOC[r.voc]||{n:''}).n)} · Level ${esc(r.level)}`;t.classList.remove('hidden');t.style.left=Math.min(e.clientX+14,innerWidth-140)+'px';t.style.top=(e.clientY+14)+'px';}
+  t.innerHTML=`<b>${esc(r.nome)}</b>${r.bot?botHTML(12)+' <span class="mut">(bot)</span>':''}<br>${esc((VOC[r.voc]||{n:''}).n)} · Level ${esc(r.level)}${r.bot&&r.guild?`<br><span class="mut">${esc(r.guild)}</span>`:''}`;t.classList.remove('hidden');t.style.left=Math.min(e.clientX+14,innerWidth-140)+'px';t.style.top=(e.clientY+14)+'px';}
 cv.addEventListener('mousemove',prTip);cv.addEventListener('click',prTip);cv.addEventListener('mouseleave',()=>$('#tipRem').classList.add('hidden'));
 document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='chatTxt'){if(e.key==='Enter'){e.preventDefault();const v=e.target.value;e.target.value='';cidFalar(v);}else if(e.key==='Escape')e.target.blur();e.stopPropagation();}},true);
 addEventListener('pagehide',prSair);addEventListener('beforeunload',prSair);
@@ -4146,14 +4159,14 @@ function cavHTML(t,px=14){if(!t)return '';let r='';CAV_PX.forEach((l,j)=>{for(le
 function pvLimpa(d){const n=Date.now(),o={br:0,vm:0,lock:0,fr:[],kills:0,mortes:0,rev:true,auto:null,fuga:0};if(!d||typeof d!=='object')return o;
   const t=(v,mx)=>{v=+v;return Number.isFinite(v)&&v>n?Math.min(Math.round(v),n+mx):0;};
   o.br=t(d.br,PVP_BRANCA);o.vm=t(d.vm,PVP_VERM);o.lock=t(d.lock,PVP_LOCK);o.fr=Array.isArray(d.fr)?d.fr.map(Number).filter(v=>Number.isFinite(v)&&v>n-7*24*H&&v<=n).slice(-50):[];
-  o.kills=prNum(d.kills,0,1e6,0);o.mortes=prNum(d.mortes,0,1e6,0);o.rev=d.rev!==false;o.auto=typeof d.auto==='string'&&HUNTS[d.auto]&&HUNTS[d.auto].pvp?d.auto:null;o.fuga=d.fuga?1:0;return o;}
+  o.kills=prNum(d.kills,0,1e6,0);o.mortes=prNum(d.mortes,0,1e6,0);o.bk=prNum(d.bk,0,1e6,0);o.rev=d.rev!==false;o.auto=typeof d.auto==='string'&&HUNTS[d.auto]&&HUNTS[d.auto].pvp?d.auto:null;o.fuga=d.fuga?1:0;return o;}
 const pvS=()=>S.pv&&typeof S.pv==='object'?S.pv:(S.pv=pvLimpa(null));
 const pvSk=()=>{const s=S&&S.pv;if(!s)return 0;const n=Date.now();return s.vm>n?2:s.br>n?1:0;};   /* 0 nada · 1 branca · 2 vermelha */
 const pvLock=()=>S&&S.pv?Math.max(0,S.pv.lock-Date.now()):0;
 const pvSkPid=pid=>{const r=PV.remotos.get(pid);return r?r.sk|0:0;};
 const pvSkVis=r=>r.sk>=2?2:r.sk===1?1:(PV.dele[r.pid]>Date.now()-60e3?3:0);   /* amarela: só aparece para quem foi atacado, em quem o atacou há pouco e não tem caveira (ex.: me atacou porque eu estava marcado) */
 function pvFrags(){const n=Date.now(),f=(S.pv&&S.pv.fr)||[];return [f.filter(t=>t>n-24*H).length,f.filter(t=>t>n-7*24*H).length];}
-function pvResumo(){const s=S.pv||{kills:0,mortes:0},[a,b]=pvFrags();return `${s.kills} frags · injustificados 24 h ${a}/${PVP_FRAG24} · 7 dias ${b}/${PVP_FRAG7} · mortes em PvP ${s.mortes}`;}
+function pvResumo(){const s=S.pv||{kills:0,mortes:0},[a,b]=pvFrags();return `${s.kills} frags · injustificados 24 h ${a}/${PVP_FRAG24} · 7 dias ${b}/${PVP_FRAG7} · mortes em PvP ${s.mortes}${s.bk?` · bots abatidos ${s.bk} (não contam frag)`:''}`;}
 const pvNaZona=()=>!!(S&&W&&!W.loading&&!W.city&&!PT.hunt&&!ON.parado&&!PV.morto&&HUNTS[S.loc]&&HUNTS[S.loc].pvp);   /* PV.morto: depois de morrer você já não está mais "na zona" (o teletransporte para a cidade leva ~0,4 s) */
 /* PZ lock (nada de sair da zona logo após atacar) e confirmação ao entrar numa caçada PvP; chamado pelo travel() */
 function pvBloqueia(loc){if(!S||loc===S.loc)return false;
@@ -4181,6 +4194,7 @@ function wkPvpHTML(){const L=PVP_CACADAS.filter(k=>HUNTS[k]).sort((a,b)=>HUNTS[a
   <li>Abaixo do <b>level ${PVP_NIVEL}</b> ninguém ataca nem é atacado. Membros da mesma party nunca se ferem. Você só pode ser atacado com a página aberta e dentro da zona; fechar a página tira você da zona (o offline continua como sempre, mas protegido).</li>
   <li>Abas em segundo plano continuam na zona e se defendem sozinhas (revide automático) enquanto o navegador mantiver a aba ativa.</li></ul>
   <h3>Limitações</h3><p>Não há servidor autoritativo: cada navegador calcula o próprio personagem. Os golpes são validados pela vítima contra a ficha publicada do atacante (máximo ×1,3), mas um cliente modificado ainda pode trapacear. Os monstros são simulados por cada jogador (você não vê os monstros do outro).</p>
+  <h3>Bots ${botHTML(14)}</h3><p>Cada entrada numa zona PvP traz 0-4 <b>bots</b> (personagens simulados, marcados com o robô; só você os vê). A maioria é pacífica; cerca de 30% são agressivos (caveira branca ou vermelha) e atacam você se o level for compatível (0,6x a 1,8x do seu) e você tiver level ${PVP_NIVEL}+. Quem é atacado revida por 90 s. Atacar um bot sem caveira dá caveira branca e PZ lock como com um jogador, mas <b>matar bots nunca conta frag</b> (nem leva à caveira vermelha); eles dropam gold e poções. Desligue em Configurações > Mostrar bots.</p>
   <h3>Caçadas PvP (${L.length})</h3><div style="columns:2;font-size:12px">${L.map(k=>`<div>${numHunt(HUNTS[k])} ${esc(HUNTS[k].n)} <span class="mut">Lv ${HUNTS[k].lv}+</span></div>`).join('')}</div></div>`;}
 /* ---- presença na caçada ---- */
 function pvMeta(){const p=W&&W.p||{x:0,y:0,face:0};return {pid:PR.pid,nome:prTxt(S.name,20),voc:S.voc,level:S.level,outfit:outJog(),x:p.x,y:p.y,dir:p.face||0,hp:Math.round(S.hp),hm:maxHp(),sk:pvSk()};}
@@ -4194,17 +4208,19 @@ function pvEntrou(pid,m){try{if(!PV.ativo||typeof pid!=='string'||pid===PR.pid||
   pvAplicar(r,m);r.visto=now;}catch(e){}}
 function pvSaiu(pid){const r=PV.remotos.get(pid);if(r&&PV.ativo)log('sys',`${r.nome} saiu da zona PvP.`,'b');PV.remotos.delete(pid);if(PV.alvo===pid){PV.alvo=null;PV.alvoAuto=false;}}
 function pvSync(mapa){try{const now=performance.now();for(const [pid,m] of mapa)pvEntrou(pid,m);
-  for(const pid of [...PV.remotos.keys()])if(!mapa.has(pid)&&now-PV.remotos.get(pid).visto>3000)pvSaiu(pid);}catch(e){}}
+  for(const pid of [...PV.remotos.keys()])if(!mapa.has(pid)&&!PV.remotos.get(pid).bot&&now-PV.remotos.get(pid).visto>3000)pvSaiu(pid);}catch(e){}}
 const PV_H={sync:pvSync,entrou:pvEntrou,saiu:pvSaiu,rec:(t,m)=>pvRec(t,m)};
-function pvConectar(){if(PV.ativo)return;const modo=prModoRede();if(!modo||!S)return;
+const PV_TR0={entrar(){},atualizar(){},enviar(){},sair(){}};   /* sem rede: o canal é vazio e só os bots (locais) ocupam a zona */
+const pvModo=()=>prModoRede()||(botOn()?'bot':null);
+function pvConectar(){if(PV.ativo)return;const modo=pvModo();if(!modo||!S)return;
   try{PV.modo=modo;if(!PR.pid)PR.pid=modo==='rt'?prPidRt():(PR.pidL||(PR.pidL='L'+Math.random().toString(36).slice(2,10)));
     PV.loc=S.loc;const chave=(modo==='local'?'cacada_':'')+(REDE_RT?'rt_':'')+S.loc;
-    PV.tr=modo==='local'?prTrLocal(chave):prTrRealtime(chave,'cacada:');PV.ativo=true;PV.remotos.clear();PV.ult=null;PV.sigF='';PV.tFicha=0;PV.fichaPend=true;PV.dele={};PV.hit={};PV.atqEm={};PV.rl={};PV.dots=[];
-    PV.tr.entrar(PV_H,pvMeta);log('sys',`⚔ ${HUNTS[S.loc].n} é uma zona PvP: jogadores online aqui podem atacar você.`,'o');}catch(e){PV.ativo=false;PV.tr=null;}}
-function pvDesconectar(){if(!PV.ativo)return;PV.ativo=false;try{PV.tr.sair();}catch(e){}PV.tr=null;PV.remotos.clear();PV.alvo=null;PV.alvoAuto=false;PV.dots=[];PV.on=null;}
+    PV.tr=modo==='bot'?PV_TR0:modo==='local'?prTrLocal(chave):prTrRealtime(chave,'cacada:');PV.ativo=true;PV.remotos.clear();BOT.pvOk=false;PV.ult=null;PV.sigF='';PV.tFicha=0;PV.fichaPend=true;PV.dele={};PV.hit={};PV.atqEm={};PV.rl={};PV.dots=[];
+    PV.tr.entrar(PV_H,pvMeta);log('sys',modo==='bot'?`⚔ ${HUNTS[S.loc].n} é uma zona PvP (sem conexão com outros jogadores: só bots locais podem atacar você).`:`⚔ ${HUNTS[S.loc].n} é uma zona PvP: jogadores online aqui podem atacar você.`,'o');}catch(e){PV.ativo=false;PV.tr=null;}}
+function pvDesconectar(){if(!PV.ativo)return;PV.ativo=false;try{PV.tr.sair();}catch(e){}PV.tr=null;PV.remotos.clear();PV.alvo=null;PV.alvoAuto=false;PV.dots=[];PV.on=null;botPvSair();}
 function pvTick(){try{
   if(PV.morto&&S.loc!==PV.locMorte)PV.morto=false;
-  const z=pvNaZona(),modo=prModoRede(),now=performance.now();
+  const z=pvNaZona(),modo=pvModo(),now=performance.now();
   if(PV.ativo&&(!z||PV.loc!==S.loc||PV.modo!==modo||(modo==='rt'&&PR.pid!==prPidRt()))){if(PV.morto&&!PV.tSai)PV.tSai=now;if(!PV.morto||now-PV.tSai>800)pvDesconectar();}   /* morto: espera 0,8 s para o aviso 'morte' sair antes de fechar o canal */
   if(z&&!PV.ativo&&modo)pvConectar();
   if(!PV.ativo||!z){if(PV.alvo){PV.alvo=null;PV.alvoAuto=false;}return;}
@@ -4212,7 +4228,7 @@ function pvTick(){try{
   if((mudou&&now-PV.tEnv>=120)||(!mudou&&now-PV.tBat>=3000)){PV.tEnv=PV.tBat=now;PV.ult={x:p.x,y:p.y,d:p.face||0,hp,sk};PV.tr.enviar('pv',{k:'est',x:p.x,y:p.y,dir:p.face||0,hp,hm:maxHp(),sk,level:S.level});}
   const sg=S.level+'|'+S.set+JSON.stringify(S.sets[S.set]||[])+JSON.stringify(S.eq)+JSON.stringify(outJog());   /* ficha: ao entrar, quando alguém chega, quando equipamento/hotbar/level mudam e a cada 15 s */
   if((PV.fichaPend||sg!==PV.sigF||now-PV.tFicha>15000)&&now-PV.tFicha>1200){PV.sigF=sg;PV.tFicha=now;PV.fichaPend=false;PV.tr.enviar('pv',{k:'ficha',f:ptFicha()});}
-  for(const [k,r] of PV.remotos)if(now-r.visto>PR_SUMIR){PV.remotos.delete(k);if(PV.alvo===k){PV.alvo=null;PV.alvoAuto=false;}}
+  for(const [k,r] of PV.remotos)if(!r.bot&&now-r.visto>PR_SUMIR){PV.remotos.delete(k);if(PV.alvo===k){PV.alvo=null;PV.alvoAuto=false;}}
 }catch(e){}}
 setInterval(pvTick,100);
 function pvRec(t,m){try{if(t!=='pv'||!m||typeof m!=='object'||typeof m.pid!=='string'||m.pid===PR.pid||!PV.ativo||!W||W.city)return;const now=performance.now(),k=m.k;let r=PV.remotos.get(m.pid);
@@ -4246,14 +4262,15 @@ const pvJusto=r=>r.sk>0||PV.dele[r.pid]>Date.now()-PVP_BRANCA;   /* alvo com cav
 function pvMarcaAtaque(r){const s=pvS(),n=Date.now();PV.atqEm[r.pid]=n;
   if(!(s.lock>n))log('sys',`🔒 PZ lock: você não pode voltar à cidade nem trocar de caçada por ${PVP_LOCK/1000} s.`,'o');s.lock=n+PVP_LOCK;
   if(!pvJusto(r)){const novo=!(s.br>n)&&!(s.vm>n);s.br=n+PVP_BRANCA;if(novo){log('sys',`💀 Você atacou ${r.nome} sem motivo: caveira branca por ${PVP_BRANCA/MIN} min (renova a cada agressão).`,'r');toast('💀 Caveira branca!');}}}
-function pvEnvAtk(r,v,el,puro){v=Math.round(v);if(!(v>0)||pvPodeAtacar(r)||!PV.tr)return 0;pvMarcaAtaque(r);PV.tr.enviar('pv',{k:'atk',al:r.pid,d:v,el:String(el||'phys'),pu:puro?1:0,q:++PV.seq});return v;}
+function pvEnvAtk(r,v,el,puro){v=Math.round(v);if(!(v>0)||pvPodeAtacar(r)||!PV.tr)return 0;pvMarcaAtaque(r);if(r.bot)return botPvRecebe(r,v,el,puro);   /* bot: o golpe é aplicado localmente (sem rede) */
+  PV.tr.enviar('pv',{k:'atk',al:r.pid,d:v,el:String(el||'phys'),pu:puro?1:0,q:++PV.seq});return v;}
 function pvAlvoObj(r){return r.__a||(r.__a={ehLutador:true,pv:r,mob:{aggro:false,chefe:false,d:{hostil:false}},c:{buffs:{},dots:[],lento:null,escudo:null},
   get x(){return r.x},get y(){return r.y},get hp(){return r.hp},get max(){return r.hpMax},get mp(){return 0},get nome(){return r.nome},get voc(){return r.voc},
   vivo:()=>PV.remotos.get(r.pid)===r&&r.hp>0,resist:()=>1,
   receber(v,el,at,f,puro){return pvEnvAtk(r,v,el,puro);},
   condicao(tp,d){const A=this,T=W.time;
     if(tp==='dot'){A.c.dots=A.c.dots.filter(q=>q.id!==d.id&&q.ate>T);A.c.dots.push({id:d.id,ate:T+d.iv*d.fila.length+500});PV.dots.push({pid:r.pid,el:d.el,fila:d.fila.slice(0,30),iv:d.iv,prox:d.prox});}
-    else if(tp==='lento'&&!pvPodeAtacar(r)){A.c.lento={ate:T+d.dur,f:d.f};pvMarcaAtaque(r);PV.tr.enviar('pv',{k:'cond',al:r.pid,tp:'lento',f:d.f,dur:d.dur});}}});}
+    else if(tp==='lento'&&!pvPodeAtacar(r)){A.c.lento={ate:T+d.dur,f:d.f};pvMarcaAtaque(r);if(r.bot){condicaoLutador(r,'lento',{f:d.f,dur:d.dur});r.hostilAte=Date.now()+90e3;}else PV.tr.enviar('pv',{k:'cond',al:r.pid,tp:'lento',f:d.f,dur:d.dur});}}});}
 function pvDots(){if(!PV.dots.length)return;const T=W.time;
   PV.dots=PV.dots.filter(q=>{const r=PV.remotos.get(q.pid);if(!r||pvPodeAtacar(r))return false;if(T>=q.prox){q.prox+=q.iv;pvEnvAtk(r,q.fila.shift(),q.el,true);}return q.fila.length>0;});}
 function pvLogic(){
@@ -4279,7 +4296,7 @@ document.addEventListener('keydown',e=>{if(!S||e.ctrlKey||e.altKey||e.metaKey||e
 function pvClique(e){if(e.button||!PV.ativo||!pvNaZona()||!W.cam||quiet)return;const wx=(e.clientX/ZOOM+W.cam.x)/TS,wy=(e.clientY/ZOOM+W.cam.y)/TS;let b=null,bd=.9;
   for(const r of PV.remotos.values()){const q=rpos(r),d=Math.hypot(q.x+.5-wx,q.y-.1-wy);if(d<bd){bd=d;b=r;}}
   if(!b)return;const mot=pvPodeAtacar(b),sk=pvSkVis(b),c=$('#ctx');
-  c.innerHTML=`<div class="ttl">${esc(b.nome)} ${cavHTML(sk,13)}</div><div class="info">${esc((VOC[b.voc]||{n:''}).n)} · Level ${esc(b.level)} · HP ${b.hp}/${b.hpMax}${sk?' · '+CAV_NOME[sk]:''}</div>`+
+  c.innerHTML=`<div class="ttl">${esc(b.nome)} ${cavHTML(sk,13)}${b.bot?botHTML(13)+'<span class="mut sm">(bot)</span>':''}</div><div class="info">${esc((VOC[b.voc]||{n:''}).n)} · Level ${esc(b.level)} · HP ${Math.round(b.hp)}/${Math.round(b.hpMax)}${sk?' · '+CAV_NOME[sk]:''}${b.bot?'\nPersonagem simulado: abates não contam como frag':''}</div>`+
     (PV.alvo===b.pid?`<button data-act="pvParar">Parar de atacar</button>`:`<button data-act="pvAtacar" data-arg="${esc(b.pid)}" ${mot?'disabled':''}>⚔ Atacar${mot?' — '+mot:pvJusto(b)?'':' (você receberá caveira branca)'}</button>`);
   c.classList.remove('hidden');const r=c.getBoundingClientRect();c.style.left=clamp(e.clientX,4,innerWidth-r.width-4)+'px';c.style.top=clamp(e.clientY,4,innerHeight-r.height-4)+'px';e.stopImmediatePropagation();e.preventDefault();}
 cv.addEventListener('click',pvClique,true);   /* captura: roda antes do clique que manda andar/mirar monstros */
@@ -4319,8 +4336,8 @@ function pvFrag(r){const s=pvS(),n=Date.now();if(!(PV.atqEm[r.pid]>n-20000))retu
 function pvUI(){const el=$('#pvBar');if(!el||!S)return;const s=S.pv,n=Date.now(),z=pvNaZona(),sk=pvSk(),lk=Math.ceil(pvLock()/1000);
   if(!(z||sk||lk>0)){if(sigs.pv!==''){sigs.pv='';el.classList.add('hidden');}return;}
   const tmp=sk===2?s.vm-n:sk===1?s.br-n:0,[f24,f7]=pvFrags(),al=PV.alvo&&PV.remotos.get(PV.alvo),rev=!s||s.rev!==false;
-  const sig=[z,PV.ativo,sk,Math.ceil(tmp/1000),lk,PV.remotos.size,PV.alvo,rev,f24,f7,al&&al.nome,S.level<PVP_NIVEL].join('|');if(sigs.pv===sig)return;sigs.pv=sig;el.classList.remove('hidden');
-  el.innerHTML=(z?`<b>⚔ PvP</b> <span>${S.level<PVP_NIVEL?`🛡 protegido (level < ${PVP_NIVEL})`:PV.ativo?`${PV.remotos.size+1} online aqui`:'sem conexão: ninguém pode atacar você'}</span>`:'<b>⚔ PvP</b>')+
+  const nbp=botPvVivos(),sig=[z,PV.ativo,PV.modo,nbp,sk,Math.ceil(tmp/1000),lk,PV.remotos.size,PV.alvo,rev,f24,f7,al&&al.nome,S.level<PVP_NIVEL].join('|');if(sigs.pv===sig)return;sigs.pv=sig;el.classList.remove('hidden');
+  el.innerHTML=(z?`<b>⚔ PvP</b> <span>${S.level<PVP_NIVEL?`🛡 protegido (level < ${PVP_NIVEL})`:PV.ativo?`${PV.remotos.size-nbp+1} online aqui${nbp?` · ${nbp} bot${nbp>1?'s':''} ${botHTML(12)}`:''}${PV.modo==='bot'?' (sem rede: só bots)':''}`:'sem conexão: ninguém pode atacar você'}</span>`:'<b>⚔ PvP</b>')+
     (sk?`<span>${cavHTML(sk)} ${CAV_NOME[sk]} <span class="pvl">${fmtTempo(tmp)}</span></span>`:'')+(lk>0?`<span>🔒 PZ lock <span class="pvl">${lk}s</span></span>`:'')+
     `<span title="Frags injustificados: ${PVP_FRAG24} em 24 h ou ${PVP_FRAG7} em 7 dias = caveira vermelha">Frags 24h <b>${f24}</b>/${PVP_FRAG24} · 7d <b>${f7}</b>/${PVP_FRAG7}</span>`+
     (z&&PV.ativo&&S.level>=PVP_NIVEL?(al?`<span>Alvo: <b>${esc(al.nome)}</b></span><button data-act="pvParar">Parar</button>`:'')+`<button data-act="pvTecla" title="Ataca o jogador mais próximo (tecla T)">⚔ Atacar jogador (T)</button><label title="Quem atacar você passa a ser atacado de volta, sem caveira para você"><input type="checkbox" data-act="pvRevTog" ${rev?'checked':''}> Revidar automaticamente</label>`:'');}
@@ -4351,7 +4368,7 @@ function cidRL(pid){const n=performance.now(),a=(CID.rl.get(pid)||[]).filter(t=>
 function cidAdd(k,n){const it=ITEMS[parseKey(k).id];if(!it||n<=0)return [0,0];const b=it.w>0?Math.min(n,Math.max(0,Math.floor(capFree()/it.w))):n;
   if(b)S.bag[k]=(S.bag[k]||0)+b;if(n-b)S.depot[k]=(S.depot[k]||0)+(n-b);dirty.all=true;return [b,n-b];}   /* mochila até caber; o excesso vai para o depot */
 function cidTira(k,n){const c=S.bag[k]||0;if(n<1||c<n)return false;S.bag[k]=c-n;if(!S.bag[k])delete S.bag[k];dirty.all=true;return true;}
-function cidOcupado(x,y){if(W.p.x===x&&W.p.y===y)return true;for(const r of PR.remotos.values())if(r.x===x&&r.y===y)return true;return false;}
+function cidOcupado(x,y){if(W.p.x===x&&W.p.y===y)return true;for(const r of PR.remotos.values())if(r.x===x&&r.y===y)return true;for(const r of BOT.cid.values())if(r.x===x&&r.y===y)return true;return false;}
 /* ---- andar clicando ---- */
 function cidIr(gx,gy,alc,fn){if(!cidOk())return;W.p.maoAte=0;CID.acao={gx,gy,alc,fn,ate:performance.now()+25000};}
 function cidPasso(nx,ny){const p=W.p;if(!W.city||quiet){stepPlayer(nx,ny);return;}
@@ -4394,6 +4411,7 @@ function cidDepositar(k,t){const it=cidKey(k);if(!it||!(S.bag[k]>0))return;
     if(!t||cheb(W.p,t)<=1)ex();else cidIr(t.x,t.y,1,ex);});}
 /* ---- entregar para outro jogador (oferta -> aceite -> confirma) ---- */
 function cidDarPara(r,k){const it=cidKey(k);if(!it||!(S.bag[k]>0))return;
+  if(r.bot){botRecusaItem(r);return;}   /* bots não negociam nem recebem itens */
   if(cheb(W.p,r)>CID_ALC){toast('Longe demais para entregar.');return;}
   if([...CID.env.values()].filter(o=>o.st==='oferta').length>=3){toast('Muitas ofertas pendentes.');return;}
   cidQtd(it,S.bag[k],q=>{q=Math.min(q|0,S.bag[k]||0);if(q<1||!PR.remotos.has(r.pid))return;const id=cidId();
@@ -4414,7 +4432,7 @@ function cidEmpurrar(r,t){const p=W.p,al=r||p;
   if(cheb(al,t)!==1){toast('Solte o personagem num tile ao lado dele.');return;}
   if(r&&cheb(p,r)>1){toast('Fique ao lado do jogador para empurrá-lo.');return;}
   if(cidOcupado(t.x,t.y)){toast('Esse tile está ocupado.');return;}
-  if(!r)cidMoverEu(t.x,t.y);else cidEnv('emp',{a:r.pid,x:t.x,y:t.y});}
+  if(!r)cidMoverEu(t.x,t.y);else if(r.bot)botEmpurrado(r,t);else cidEnv('emp',{a:r.pid,x:t.x,y:t.y});}
 /* ---- mensagens da rede ('cid' no canal da cidade; tudo validado: tipos, ids, itens existentes, quantidades, pid do remetente) ---- */
 function cidRec(m){try{if(!cidOk()||!PR.ativo||!m||typeof m!=='object'||typeof m.pid!=='string'||m.pid===PR.pid)return;
   const r=PR.remotos.get(m.pid);if(!r||!cidRL(m.pid))return;const k=m.k,now=performance.now();if(typeof k!=='string')return;
@@ -4502,11 +4520,11 @@ function cidDragIni(c){CID.dr=Object.assign({vivo:1,px:c.x0,py:c.y0,sobre:'',t:n
 function cidDragFim(){CID.dr=null;CID.cand=null;const g=$('#cidGhost');if(g)g.style.display='none';cv.style.cursor='';document.body.classList.remove('cidDrag');}
 function cidDragMov(e){const d=CID.dr,g=$('#cidGhost');d.px=e.clientX;d.py=e.clientY;g.style.left=(e.clientX+10)+'px';g.style.top=(e.clientY+10)+'px';
   const el=document.elementFromPoint(e.clientX,e.clientY);d.sobre=el===cv?'cv':(el&&el.closest('.win,#side,#hud,#hudwrap,#mbox'))?'ui':'fora';
-  d.t=d.sobre==='cv'&&W.cam?cidTile(e):null;d.r=d.tipo==='char'?d.r:(d.sobre==='cv'&&PR.ativo?prRemotoEm(e):null);}
+  d.t=d.sobre==='cv'&&W.cam?cidTile(e):null;d.r=d.tipo==='char'?d.r:(d.sobre==='cv'?prRemotoEm(e):null);}
 function cidSoltar(e,d){if(!cidOk())return;const el=document.elementFromPoint(e.clientX,e.clientY),sobreCv=el===cv;
   if(d.tipo==='item'){
     if(el&&el.closest('#mbox')&&modal==='depot'){cidDepositar(d.key,null);return;}
-    if(!sobreCv||!W.cam)return;const t=cidTile(e),r=PR.ativo?prRemotoEm(e):null;
+    if(!sobreCv||!W.cam)return;const t=cidTile(e),r=prRemotoEm(e);
     if(r)cidDarPara(r,d.key);else if(cidDepotEm(t.x,t.y))cidDepositar(d.key,t);else cidSoltarChao(d.key,t.x,t.y);return;}
   if(d.tipo==='chao'){
     if(!sobreCv){if(el&&el.closest('.win,#side,#hud,#hudwrap'))cidPegar(d.f,d.pid);return;}
@@ -4517,7 +4535,7 @@ document.addEventListener('pointerdown',e=>{if(e.button||!cidOk()||CID.dr)return
   const s=e.target.closest&&e.target.closest('#invBody .slot[data-bag]');
   if(s&&cidKey(s.dataset.bag)){CID.cand={tipo:'item',key:s.dataset.bag,x0:e.clientX,y0:e.clientY};return;}
   if(e.target!==cv||!W.cam)return;
-  const wx=(e.clientX/ZOOM+W.cam.x)/TS,wy=(e.clientY/ZOOM+W.cam.y)/TS,r=PR.ativo?prRemotoEm(e):null,q=rpos(W.p),dm=Math.hypot(q.x+.5-wx,q.y-.1-wy);
+  const wx=(e.clientX/ZOOM+W.cam.x)/TS,wy=(e.clientY/ZOOM+W.cam.y)/TS,r=prRemotoEm(e),q=rpos(W.p),dm=Math.hypot(q.x+.5-wx,q.y-.1-wy);
   if(r)CID.cand={tipo:'char',r,x0:e.clientX,y0:e.clientY};
   else if(dm<.9)CID.cand={tipo:'char',r:null,x0:e.clientX,y0:e.clientY};
   else{const t=cidTile(e),c=cidChaoEm(t.x,t.y);if(c)CID.cand={tipo:'chao',f:c.f,pid:c.pid,x0:e.clientX,y0:e.clientY};}});
@@ -4538,13 +4556,13 @@ function cidQtd(it,max,fn){max=Math.floor(max);if(max<1)return;if(max===1){fn(1)
   d.querySelector('.ok').onclick=()=>fim(true);d.querySelector('.no').onclick=()=>fim(false);
   d.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();fim(true);}else if(e.key==='Escape'){e.preventDefault();fim(false);}e.stopPropagation();};nm.focus();nm.select();}
 /* ---- clique: anda até o tile / abre o depot / pega item do chão (clique em jogador = menu de party, em ptClique) ---- */
-cv.addEventListener('click',e=>{if(!cidOk()||!W.cam||e.button)return;if(PR.ativo&&prRemotoEm(e))return;
+cv.addEventListener('click',e=>{if(!cidOk()||!W.cam||e.button)return;if(prRemotoEm(e))return;
   const t=cidTile(e),c=cidChaoEm(t.x,t.y);
   if(c){cidPegar(c.f,c.pid);return;}
   if(cidDepotEm(t.x,t.y)){cidAbrirDepot(t.x,t.y);return;}
   if(walk(t.x,t.y)){CID.marca={x:t.x,y:t.y,b:performance.now()};cidIr(t.x,t.y,0,null);}});
 cv.addEventListener('mousemove',e=>{if(!cidOk()||!W.cam){CID.hover=null;return;}if(CID.dr)return;
-  const t=cidTile(e),r=PR.ativo?prRemotoEm(e):null,c=cidChaoEm(t.x,t.y),dp=cidDepotEm(t.x,t.y);CID.hover=dp&&!r?t:null;cv.style.cursor=r?'grab':dp||c?'pointer':'';
+  const t=cidTile(e),r=prRemotoEm(e),c=cidChaoEm(t.x,t.y),dp=cidDepotEm(t.x,t.y);CID.hover=dp&&!r?t:null;cv.style.cursor=r?'grab':dp||c?'pointer':'';
   const tip=$('#tipRem');if(!r&&(dp||c)){tip.innerHTML=dp?'<b>📦 Depot</b><br>Clique para abrir · arraste itens aqui':`<b>${c.f.n}× ${esc(cidNome(c.f.k))}</b><br>${c.pid?'No chão de '+esc((PR.remotos.get(c.pid)||{nome:'?'}).nome):'No chão'} · clique para pegar`;
     tip.classList.remove('hidden');tip.style.left=Math.min(e.clientX+14,innerWidth-190)+'px';tip.style.top=(e.clientY+14)+'px';}});
 /* ---- desenho (chamado de draw(), já na transformação do mundo): itens no chão, destaques e marca do clique ---- */
@@ -4595,7 +4613,7 @@ function ptTrRealtime(chave){let ch=null,h=null,vivo=true,tim=null,n=0,ok=false;
   const religar=()=>{if(!vivo||tim)return;ok=false;const velho=ch;ch=null;const d=Math.min(15000,1500*Math.pow(2,n++));tim=setTimeout(()=>{tim=null;abrir();},d);try{if(velho)SB.removeChannel(velho);}catch(e){}};
   return {abrir(hh){h=hh;abrir();},enviar(t,pl){if(!ok){if(t!=='estado'){fila.push([t,pl]);if(fila.length>30)fila.shift();}return;}envia(t,pl);},   /* sem canal: guarda as mensagens importantes (o estado, 4x por segundo, fica velho na hora) */
     fechar(){vivo=false;if(tim)clearTimeout(tim);try{if(ch)SB.removeChannel(ch);}catch(e){}ch=null;}};}
-function ptAbrir(){if(PT.tr||!PT.id||PT.fake)return;const modo=prModoRede();if(!modo)return;
+function ptAbrir(){if(PT.tr||!PT.id)return;const modo=prModoRede();if(!modo)return;
   try{PT.tr=modo==='local'?ptTrLocal(PT.id):ptTrRealtime(PT.id);PT.tr.abrir(ptRec);}catch(e){PT.tr=null;}}
 function ptFechar(){const t=PT.tr;PT.tr=null;if(t)try{t.fechar();}catch(e){}}
 function ptEnv(t,pl){if(!PT.tr)return;PT.n.env++;PT.n.te[t]=(PT.n.te[t]||0)+1;PT.tr.enviar(t,pl||{});}
@@ -4635,8 +4653,8 @@ function ptSair(){if(!PT.id)return;if(PT.hunt&&PT.hunt.papel==='lider')ptSairHun
 function ptTirar(pid,como){const i=PT.mb.findIndex(x=>x.pid===pid);if(i<0)return;const x=PT.mb[i];PT.mb.splice(i,1);
   const HU=PT.hunt;if(HU&&HU.lut){const L=HU.lut.get(pid);if(L){L.hp=0;if(W.pl)W.pl.delete(L.y*W.w+L.x);HU.lut.delete(pid);W.aliados=(W.aliados||[]).filter(a=>a.dono!==L);}}
   log('sys',`${x.nome} ${como}.`,'o');
-  if(PT.fila&&ptSou())ptFilaCancelar(`Fila da party cancelada: ${x.nome} saiu.`);if(pid===PT.lider){PT.filaM=null;PT.aceito=null;PT.lider=PT.mb[0]&&PT.mb[0].pid;if(HU&&HU.papel==='membro')ptSairHunt('O líder saiu da caçada.');}
-  if(PT.mb.length<2&&!PT.fake){ptDesfazer('A party foi desfeita.');return;}
+  if(PT.fila&&ptSou())ptFilaCancelar(`Fila da party cancelada: ${x.nome} saiu.`);if(pid===PT.lider){PT.filaM=null;PT.aceito=null;PT.lider=(PT.mb.find(y=>!y.bot)||PT.mb[0]||{}).pid;if(HU&&HU.papel==='membro')ptSairHunt('O líder saiu da caçada.');}
+  if(PT.mb.length<2){ptDesfazer('A party foi desfeita.');return;}
   if(ptSou()){if(i===0)log('sys','Você agora é o líder da party.','y');ptRost();}}
 function ptKick(pid){if(!ptSou()||pid===PR.pid||!ptM(pid))return;ptEnv('kick',{para:pid});ptTirar(pid,'foi expulso da party');}
 function ptPassar(pid){if(!ptSou()||pid===PR.pid||!ptM(pid)||PT.hunt||PT.fila){if(PT.hunt)log('sys','Troque o líder na cidade, fora da caçada.','o');else if(PT.fila)log('sys','Cancele a fila da party antes de passar o líder.','o');return;}
@@ -4647,7 +4665,7 @@ function ptPassar(pid){if(!ptSou()||pid===PR.pid||!ptM(pid)||PT.hunt||PT.fila){i
 function ptExpTog(){if(!ptSou())return;PT.expOn=!PT.expOn;ptRost();log('sys',PT.expOn?'Exp compartilhada ligada.':'Exp compartilhada desligada.','y');}
 function ptRost(forca){if(!forca&&!ptSou())return;const HU=PT.hunt;
   ptEnv('rost',{v:PT_VER,lider:PT.lider,exp:PT.expOn?1:0,h:HU&&HU.papel==='lider'?{ep:HU.ep,loc:HU.loc,fid:HU.fid||null}:null,q:PT.fila?{fid:PT.fila.fid,loc:PT.fila.loc,pr:Object.keys(PT.fila.pr),ep:PT.fila.ep||null}:null,
-    m:PT.mb.map(x=>({pid:x.pid,nome:x.nome,voc:x.voc,level:x.level,outfit:x.outfit,hp:x.hp,hpMax:x.hpMax,mp:x.mp,mpMax:x.mpMax,loc:x.loc,xp:x.xp,lc:x.lc,st:x.st}))});}
+    m:PT.mb.map(x=>({pid:x.pid,bot:x.bot?1:0,nome:x.nome,voc:x.voc,level:x.level,outfit:x.outfit,hp:x.hp,hpMax:x.hpMax,mp:x.mp,mpMax:x.mpMax,loc:x.loc,xp:x.xp,lc:x.lc,st:x.st}))});}
 /* ---- mensagens do canal da party ---- */
 /* seguir o líder até a caçada. Chamado pelo 'go', pela rost (campo h) e pelo próprio pacote de estado, então basta UMA mensagem chegar.
    Falhou (viagem ignorada, mapa que não carregou, mensagem perdida)? Tenta de novo a cada 8 s, até 6 vezes por caçada. Caçada já encerrada (PT.fim) não é seguida. */
@@ -4668,7 +4686,7 @@ function ptRec(t,m){try{if(PT.drop&&PT.drop.has(t))return;PT.n.rec++;PT.n.tr[t]=
   if(t==='rost'){if(de!==PT.lider)return;
     const arr=Array.isArray(m.m)?m.m.slice(0,PT_MAX):[],nl=[];
     for(const e of arr){if(!e||typeof e!=='object'||typeof e.pid!=='string')continue;const pid=e.pid.slice(0,64);if(nl.some(x=>x.pid===pid))continue;
-      const o=ptM(pid)||{pid,visto:now};if(pid===eu)ptSan(ptMetaEu(),o);else ptSan(e,o);nl.push(o);}
+      const o=ptM(pid)||{pid,visto:now};if(pid===eu)ptSan(ptMetaEu(),o);else ptSan(e,o);o.bot=pid!==eu&&e.bot===1?1:0;nl.push(o);}   /* bot: só vale vindo da rost do líder */
     if(!nl.some(x=>x.pid===eu)){if(PT.conf)ptDesfazer('Você foi removido da party.');return;}
     if(!PT.conf){PT.conf=true;log('sys',`Você entrou na party de ${nl[0].nome}.`,'y');ptMostrar();PT.tSin=0;}
     const eraLider=PT.lider===eu,lidAnt=PT.lider;
@@ -4713,7 +4731,7 @@ function ptExp(){const HU=PT.hunt,mb=PT.mb,me=PR.pid,vs=[...new Set(mb.map(x=>x.
   if(HU&&HU.papel==='lider'){
     for(const x of mb){const L=x.pid===me?null:HU.lut.get(x.pid);
       if(x.pid!==me&&(!L||L.hp<=0)){r.flag='cinza';r.motivo=`${x.nome} não está na caçada.`;return r;}
-      const k=x.pid===me?'eu':x.pid;if(W.time-Math.max(ATK_T[k]||0,HU.t0)>PT_INATIVO){r.flag='cinza';r.motivo=`${x.nome} está inativo há mais de 2 min.`;return r;}}}
+      const k=x.pid===me?'eu':x.pid;if(!x.bot&&W.time-Math.max(ATK_T[k]||0,HU.t0)>PT_INATIVO){r.flag='cinza';r.motivo=`${x.nome} está inativo há mais de 2 min.`;return r;}}}
   else if(HU){if(HU.xs&&!HU.xs[0]){r.flag='cinza';r.motivo=HU.xs[1]||'Inativa.';return r;}}
   else{r.flag='verde';r.espera=true;r.motivo='Ativa quando todos estiverem na mesma caçada.';return r;}
   r.ativa=true;r.flag='verde';r.motivo='Ativa.';return r;}
@@ -4748,17 +4766,18 @@ function ptBtnHunt(hk){if(!PT.id||S.loc!=='city')return '';
 function ptIniciarCacada(hk){if(!ptSou()||!HUNTS[hk]||S.loc==='arena'||PT.mb.length<2||PT.hunt||PT.fila||(W&&W.loading))return;
   if(HUNTS[hk].boss&&chefeResta(hk)>0){toast('Boss em cooldown');return;}
   const F=PT.fila={fid:Math.random().toString(36).slice(2,10),loc:hk,t0:Date.now(),pr:{[PR.pid]:1}};   /* fila (ready check): todos continuam o que faziam até estarem prontos; só então entram juntos */
-  if(PT.fake)for(const x of PT.mb)F.pr[x.pid]=1;
+  for(const x of PT.mb)if(x.bot)F.pr[x.pid]=1;   /* bots estão sempre prontos */
   for(const x of PT.mb)if(x.pid!==PR.pid&&x.level<HUNTS[hk].lv)log('sys',`${x.nome} (Lv ${x.level}) está abaixo do level recomendado (${HUNTS[hk].lv}).`,'o');
   ptEnv('fila',{fid:F.fid,loc:hk});ptRost();closeModal();log('sys',`Fila da caçada da party aberta: ${HUNTS[hk].n}. Aguardando todos ficarem prontos…`,'y');ptFilaCheck();}
 function ptFilaCancelar(motivo){const F=PT.fila;if(!F)return;PT.fila=null;if(motivo)log('sys',motivo,'o');ptEnv('fila',{fid:null});ptRost();}
 function ptFilaCheck(){const F=PT.fila;if(!F||!ptSou())return;
   for(const k of Object.keys(F.pr))if(!ptM(k))delete F.pr[k];
+  for(const x of PT.mb)if(x.bot)F.pr[x.pid]=1;
   const falta=PT.mb.filter(x=>!F.pr[x.pid]);
   if(Date.now()-F.t0>PT_FILA_T){ptFilaCancelar(`Fila da party cancelada (tempo esgotado): ${falta.map(x=>x.nome).join(', ')||'ninguém'} não ficou pronto.`);return;}
   if(falta.length||PT.mb.length<2||F.ep||S.loc==='arena'||(W&&W.loading)||PT.hunt)return;
   const ep=F.ep=Math.random().toString(36).slice(2,10),hk=F.loc;   /* todos prontos: o líder viaja (mesmo já estando na hunt: o travel refaz o mundo) e manda o 'go' */
-  PT.pend={ep,loc:hk,papel:'lider',n:PT.mb.length,fid:F.fid,esp:PT.mb.filter(x=>x.pid!==PR.pid).map(x=>x.pid),ate:Date.now()+60000};
+  PT.pend={ep,loc:hk,papel:'lider',n:PT.mb.length,fid:F.fid,esp:PT.mb.filter(x=>x.pid!==PR.pid&&!x.bot).map(x=>x.pid),ate:Date.now()+60000};
   ptEnv('go',{ep,loc:hk,fid:F.fid});ptRost();closeModal();log('sys','Todos prontos! Iniciando a caçada da party...','y');travel(hk,null);}
 const ptQ=q=>q&&typeof q==='object'&&typeof q.fid==='string'&&HUNTS[q.loc]?{fid:q.fid.slice(0,16),loc:q.loc,pr:Array.isArray(q.pr)?q.pr.filter(x=>typeof x==='string').map(x=>x.slice(0,64)).slice(0,PT_MAX):[],ep:typeof q.ep==='string'?q.ep.slice(0,16):null}:null;
 /* membro: recebe a fila (evento 'fila' ou campo q da rost). q nulo na rost = sem fila (silencioso: a fila pode ter virado caçada) */
@@ -4789,7 +4808,7 @@ function ptEntrouHunt(){const p=PT.pend;PT.pend=null;if(!p||p.loc!==S.loc||p.ate
   const s=S.sess,HU=PT.hunt={papel:p.papel,ep:p.ep,loc:p.loc,fid:p.fid||null,esp:p.esp||null,tEntr:performance.now(),tGo:performance.now(),b:{xp:s.exp,lc:s.gold+s.loot-s.sup,st:s.t},an:{},ia:[],xs:null,visto:performance.now()+30000,t0:W.time,nFic:0,tFic:0};
   if(p.papel==='lider'){Object.assign(HU,{lut:new Map(),valor:{},pq:[],reg:W.time+1000,tEnt:{}});W.pl=new Set();PT.ev=[];ptPull(p.n||PT.mb.length);
     for(const [pid,fh] of PT.fichas)if(fh.ep===HU.ep&&ptM(pid))ptCriarLut(pid,fh.f);
-    if(PT.fake)for(const x of PT.mb)if(x.pid!==PR.pid)ptCriarLut(x.pid,ptFichaFalsa(x));}
+    for(const x of PT.mb)if(x.bot){ptCriarLut(x.pid,ptFichaFalsa(x));const L=HU.lut.get(x.pid);if(L){L.bp=true;L.pbot=true;x.loc=HU.loc;}}}   /* bots da party: simulados pelo líder; L.bp = não recebem exp nem loot (ptKill) */
   else{W.mobs=[];W.respawns=[];W.occ.fill(0);W.spawns=[];HU.mobs=new Map();HU.rem=new Map();W.partyR=HU.rem;ptEnviarFicha();}
   if(p.papel==='lider'&&HUNTS[p.loc].boss)chefeIniciar();
   PT.tSin=0;PT.tEst=0;PT.sig='';if(p.papel==='lider')ptRost();}
@@ -4835,9 +4854,10 @@ function ptLider(dt){const HU=PT.hunt;if(!HU||HU.papel!=='lider'||S.loc!==HU.loc
     finally{ATKR='eu';}}
   for(const L of HU.lut.values()){const x=ptM(L.pid);if(x){x.hp=Math.max(0,Math.round(L.hp));x.hpMax=L.max;x.mp=Math.round(L.mp);x.mpMax=L.maxMp;}}}
 /* ---- abate na party: exp compartilhada, loot dividido ---- */
-function ptKill(m){const HU=PT.hunt,me=PR.pid,ex=ptExp(),tem=[me,...ptLutVivos().map(L=>L.pid)];
+function ptKill(m){const HU=PT.hunt,me=PR.pid,ex=ptExp(),tem=[me,...ptLutVivos().filter(L=>!L.bp).map(L=>L.pid)];   /* L.bp (bots): contam na vocação/bônus (ptExp) mas NÃO entram em tem: sem exp, sem loot, e a parte deles não é tirada dos humanos */
   const dano={};for(const k in (m.dano||{})){const pid=k==='eu'?me:k;if(tem.includes(pid))dano[pid]=(dano[pid]||0)+m.dano[k];}
-  const eb={};if(ex.ativa){const v=m.d.exp*(1+ex.bonus)/tem.length;for(const pid of tem)eb[pid]=v;}
+  const bh=PT_BONUS[Math.min(4,new Set(PT.mb.filter(x=>tem.includes(x.pid)).map(x=>x.voc)).size)]||0;   /* bônus de vocações só conta os humanos: bots não viram multiplicador de exp */
+  const eb={};if(ex.ativa){const v=m.d.exp*(1+bh)/tem.length;for(const pid of tem)eb[pid]=v;}
   else{let top=me,tv=-1;for(const pid in dano)if(dano[pid]>tv){tv=dano[pid];top=pid;}eb[top]=m.d.exp;}   /* exp compartilhada desligada ou inativa: inteira para quem causou mais dano */
   const lm=1+charmV('loot')+preyB(m.id,'loot');let gold=rint(m.d.gold[0],m.d.gold[1]);const its=[];
   const pb=m.d.chefe?1+.25*(tem.length-1):1;if(pb>1)gold=Math.round(gold*pb);   /* boss: UMA rolagem de loot por morte (como no Tibia); só ouro e itens comuns (chance>0,5% e não raros) ganham +25% por membro extra, os de topo ficam numa rolagem só e vão para um único membro */
@@ -4884,7 +4904,7 @@ function ptPremioRec(m){const HU=PT.hunt;if(!HU||HU.papel!=='membro'||m.ep!==HU.
 /* ---- pacote de estado do líder (4 Hz) ---- */
 function ptAnCalc(){const HU=PT.hunt,o={};if(!HU)return o;const s=S.sess,t=Math.max(1,s.t-HU.b.st),taxa=(x,l,st)=>st>30000?[Math.round(x/st*3600e3),Math.round(l/st*3600e3)]:[0,0];
   o[PR.pid]=taxa(s.exp-HU.b.xp,s.gold+s.loot-s.sup-HU.b.lc,t);for(const x of PT.mb)if(x.pid!==PR.pid)o[x.pid]=taxa(x.xp,x.lc,x.st);return o;}
-function ptInativos(){const HU=PT.hunt,o=[];if(!HU||HU.papel!=='lider')return o;for(const x of PT.mb){const k=x.pid===PR.pid?'eu':x.pid;if(W.time-Math.max(ATK_T[k]||0,HU.t0)>PT_INATIVO)o.push(x.pid);}return o;}
+function ptInativos(){const HU=PT.hunt,o=[];if(!HU||HU.papel!=='lider')return o;for(const x of PT.mb){if(x.bot)continue;const k=x.pid===PR.pid?'eu':x.pid;if(W.time-Math.max(ATK_T[k]||0,HU.t0)>PT_INATIVO)o.push(x.pid);}return o;}
 function ptEnviarEstado(){const HU=PT.hunt;if(!HU||HU.papel!=='lider'||!W||W.loading)return;const ex=ptExp(),mobs=[],mx=Math.min(W.mobs.length,140);
   for(let i=0;i<mx;i++){const m=W.mobs[i];mobs.push([m.uid,m.id,m.x,m.y,m.face|0,Math.max(1,Math.ceil(m.hp/m.max*100))]);}
   const al=(W.aliados||[]).slice(0,20).map(a=>[a.uid||(a.uid=++UID_MOB),a.id,a.x,a.y,a.face|0,Math.max(1,Math.ceil(a.hp/a.max*100))]);
@@ -4912,6 +4932,7 @@ function ptEstadoRec(m){const HU=PT.hunt;if(!HU||HU.papel!=='membro'||m.ep!==HU.
     if(pid===PR.pid){HU.noJ=true;mv(W.p,x,y,face);W.p.mt=1;
       if(!HU.morreu){if(!vivo||hp<=0){HU.morreu=1;S.hp=0;die();return;}S.hp=Math.min(hp,maxHp());S.mp=Math.min(mp,maxMp());}}
     else{let r=HU.rem.get(pid);if(!r){r={pid,x,y,fx:x,fy:y,face,andaDesde:0,dur:0,t0:0,fala:null,falaAte:0};HU.rem.set(pid,r);}
+      r.bot=pm&&pm.bot?1:0;
       if(pm){r.nome=pm.nome;r.voc=pm.voc;r.level=pm.level;r.outfit=pm.outfit;}else{r.nome=r.nome||'Jogador';r.voc=r.voc||'knight';r.outfit=r.outfit||null;}
       r.hp=hp;r.hpMax=mx;r.vivo=vivo;mv(r,x,y,face);}}
   for(const pid of [...HU.rem.keys()])if(!jv.has(pid))HU.rem.delete(pid);
@@ -4935,7 +4956,8 @@ function ptSairHunt(motivo,semViagem){const HU=PT.hunt;if(!HU)return;PT.fim[HU.e
   PT.hunt=null;PT.ev=null;if(W){W.pl=null;W.partyR=null;}
   if(motivo)log('sys',motivo,'b');
   if(!semViagem&&HU.papel==='membro'&&S&&S.loc!=='city'&&S.loc!=='arena')travel('city',null);
-  PT.tSin=0;PT.sig='';}
+  PT.tSin=0;PT.sig='';
+  if(HU.papel==='lider')ptBotsSair();}   /* os bots só existem durante a caçada: saem quando ela acaba */
 function ptSairPagina(){try{if(PT.id&&PT.tr){if(PT.hunt&&PT.hunt.papel==='lider')ptEnv('fim',{ep:PT.hunt.ep});ptEnv('sair',{});}}catch(e){}}
 /* ---- interface: escudos, janela Party, analisador ---- */
 function ptEscudoDe(pid){if(!PT.id||PT.mb.length<1)return null;const x=ptM(pid);if(!x)return null;
@@ -4947,16 +4969,16 @@ function drawEscudo(x,y,tipo,glow){ctx.save();if(glow){ctx.shadowColor=glow;ctx.
 const ptEscSVG=(t,f)=>`<svg class="pesc ${f}" viewBox="0 0 10 12" width="10" height="12"><path d="M.8 1.4L5 .4l4.2 1v5.1Q9.2 10 5 11.6 .8 10 .8 6.5z" fill="${t===1?'#f2c14e':'#4a8cf0'}" stroke="${t===1?'#8a6a24':'#1f4a9a'}" stroke-width="1"/><path d="M2.4 2.4h1.4v4H2.4z" fill="#fff" opacity=".5"/></svg>`;
 const ptVocBadge=v=>`<span class="pv" style="background:${VOC[v].col.b}" title="${VOC[v].n}">${VOC[v].n[0]}</span>`;
 function ptRender(){const b=$('#partyBody');if(!b||!S)return;const ex=PT.id?ptExp():null,HU=PT.hunt;
-  const sig=JSON.stringify([PT.id,PT.lider,PT.expOn,PT.st,PT.mb.map(x=>[x.pid,x.nome,x.level,x.hp,x.hpMax,x.mp,x.mpMax,x.loc]),PT.conv.map(c=>c.de),ex&&[ex.flag,ex.motivo,ex.nv],PT.huntInfo,HU&&HU.ep,S.loc,S.rules.ptAuto,S.rules.ia,PT.fila&&[PT.fila.fid,Object.keys(PT.fila.pr),Math.floor((Date.now()-PT.fila.t0)/1000)],PT.filaM&&[PT.filaM.fid,PT.filaM.ok],pvSk(),PT.mb.map(x=>pvSkPid(x.pid))]);
+  const sig=JSON.stringify([PT.id,PT.lider,PT.expOn,PT.st,PT.mb.map(x=>[x.pid,x.nome,x.level,x.hp,x.hpMax,x.mp,x.mpMax,x.loc,x.bot]),PT.conv.map(c=>c.de),ex&&[ex.flag,ex.motivo,ex.nv],PT.huntInfo,HU&&HU.ep,S.loc,S.rules.ptAuto,S.rules.ia,PT.fila&&[PT.fila.fid,Object.keys(PT.fila.pr),Math.floor((Date.now()-PT.fila.t0)/1000)],PT.filaM&&[PT.filaM.fid,PT.filaM.ok],pvSk(),PT.mb.map(x=>pvSkPid(x.pid))]);
   if(sig===PT.sig)return;PT.sig=sig;let h=PT.conv.map((c,i)=>`<div class="ptc"><b>${esc(c.nome)}</b> convidou você para a party.<div class="ptb"><button class="btn go" data-act="ptAceitar" data-arg="${i}">Aceitar</button><button class="btn" data-act="ptRecusar" data-arg="${i}">Recusar</button></div></div>`).join('');
-  if(!PT.id)h+=PT.conv.length?'':'<p class="mut sm">Você não está em uma party. Na cidade, clique em um jogador para convidá-lo.</p>';
+  if(!PT.id)h+=(PT.conv.length?'':'<p class="mut sm">Você não está em uma party. Na cidade, clique em um jogador (ou bot) para convidá-lo.</p>')+`<div class="ptb"><button class="btn go" data-act="lfgAbrir" title="Entra numa fila para achar jogadores compatíveis; se faltar gente, bots completam o grupo">🔎 Procurar party</button></div>`;
   else{const sou=ptSou(),ord=PT.mb.slice().sort((a,c)=>(a.pid===PT.lider?-1:c.pid===PT.lider?1:0));
     const F=PT.fila,FM=PT.filaM;
     if(F)h+=`<div class="ptc"><b>Fila da caçada: ${esc(HUNTS[F.loc].n)}</b> <small>${Math.floor((Date.now()-F.t0)/1000)}s / ${PT_FILA_T/1000}s</small>${PT.mb.map(x=>`<div class="sm">${F.pr[x.pid]?'✓ pronto':'⏳ aguardando'} — ${esc(x.nome)}</div>`).join('')}<div class="ptb"><button class="btn red" data-act="ptFilaCancel">Cancelar fila</button></div></div>`;
     else if(FM&&HUNTS[FM.loc])h+=`<div class="ptc"><b>Caçada da party:</b> ${esc(HUNTS[FM.loc].n)} — ${FM.ok===1?'você está pronto, aguardando os outros…':FM.ok===0?'você recusou.':'Pronto?'}${FM.ok===undefined?'<div class="ptb"><button class="btn go" data-act="ptPronto">Pronto</button><button class="btn" data-act="ptNaoPronto">Recusar</button></div>':''}</div>`;
     const ptPp=HU&&S.rules.ia!==false?iaPapeis(PT.mb.filter(x=>VOC[x.voc])):{};   /* papel por vocação (o líder simula; todos veem) */
     h+=ord.map(x=>{const lid=x.pid===PT.lider,eu=x.pid===PR.pid,pc=(v,m)=>Math.round(clamp(v/Math.max(1,m),0,1)*100);
-      return `<div class="ptm"><div>${x.outfit?ret15(x.outfit):`<div class="ph">${esc((x.nome||'?')[0])}</div>`}</div><div class="pti"><div class="ptn">${ptEscSVG(lid?1:2,ex&&ex.flag||'off')}<b>${esc(x.nome)}</b>${cavHTML(eu?pvSk():pvSkPid(x.pid),12)}${eu?'<small>(você)</small>':''}</div>
+      return `<div class="ptm"><div>${x.outfit?ret15(x.outfit):`<div class="ph">${esc((x.nome||'?')[0])}</div>`}</div><div class="pti"><div class="ptn">${ptEscSVG(lid?1:2,ex&&ex.flag||'off')}<b>${esc(x.nome)}</b>${cavHTML(eu?pvSk():pvSkPid(x.pid),12)}${x.bot?botHTML(12)+'<small>(bot)</small>':''}${eu?'<small>(você)</small>':''}</div>
         <div class="mut sm">${esc(VOC[x.voc].n)} · Level ${x.level}${HU&&ptPp[x.pid]?` · <b title="Papel na caçada">${IA_ROL_TXT[ptPp[x.pid]]}</b>`:''}${HU&&x.loc!==HU.loc&&x.pid!==PR.pid&&HU.papel==='lider'&&!HU.lut.has(x.pid)?' · fora da caçada':''}</div>
         <div class="ptbar hp"><i style="width:${pc(x.hp,x.hpMax)}%"></i><span>${x.hp}/${x.hpMax}</span></div><div class="ptbar mp"><i style="width:${pc(x.mp,x.mpMax)}%"></i><span>${x.mp}/${x.mpMax}</span></div></div>
         ${sou&&!eu?`<div class="pta"><button data-act="ptKick" data-arg="${esc(x.pid)}">Expulsar</button>${HU||F?'':`<button data-act="ptLider" data-arg="${esc(x.pid)}">Passar líder</button>`}</div>`:''}</div>`;}).join('');
@@ -4972,7 +4994,7 @@ function ptAna(){const el=$('#anaParty');if(!el)return;const HU=PT.hunt;let h=''
   if(PT.sigA!==h){PT.sigA=h;el.innerHTML=h;}}
 function ptUI(){try{const ex=PT.id?ptExp():null;PT.flag=ex?ex.flag:'off';ptRender();ptAna();}catch(e){}}
 /* menu ao clicar num jogador da cidade */
-function ptClique(e){if(!S||!W||!W.city||!PR.ativo||!W.cam)return;const r=prRemotoEm(e);if(!r)return;
+function ptClique(e){if(!S||!W||!W.city||!W.cam)return;const r=prRemotoEm(e);if(!r)return;if(r.bot){botMenu(r,e);return;}
   const noP=PT.id&&ptM(r.pid),cheia=PT.id&&PT.mb.length>=PT_MAX,naoLider=PT.id&&!ptSou();
   const dis=noP||cheia||naoLider,why=noP?'Já está na sua party':cheia?'Party cheia (4)':naoLider?'Só o líder convida':'';
   const c=$('#ctx');c.innerHTML=`<div class="ttl">${esc(r.nome)}</div><div class="info">${esc(VOC[r.voc].n)} · Level ${esc(r.level)}</div><button data-act="ptConvidar" data-arg="${esc(r.pid)}" ${dis?'disabled':''}>Convidar para party${why?' — '+why:''}</button>`;
@@ -4984,16 +5006,16 @@ const PTACT={ptConvidar:a=>{hideCtx();ptConvidar(a);},ptAceitar:a=>ptAceitar(+a)
 function ptTick(){try{if(!S)return;const now=performance.now(),ag=Date.now();
   PT.conv=PT.conv.filter(c=>c.ate>ag);for(const k in PT.sent)if(ag-PT.sent[k]>PT_CONVITE+10000)delete PT.sent[k];if(PT.pend&&PT.pend.ate<ag)PT.pend=null;
   if(PT.id){
-    if(!PT.fake&&(!prModoRede()||PR.pid!==PT.me)){ptDesfazer('A party foi encerrada.');}
+    if(!ptSoBots()&&(!prModoRede()||PR.pid!==PT.me)){ptDesfazer('A party foi encerrada.');}   /* party só com bots funciona sem rede */
     else{
-      if(!PT.tr&&!PT.fake)ptAbrir();
+      if(!PT.tr)ptAbrir();
       const sou=ptSou(),HU=PT.hunt;
       if(!PT.conf&&!sou){if(PT.nEnt<6&&now-PT.tEnt>2500){PT.tEnt=now;PT.nEnt++;ptEnv('entrar',ptMetaEu());}else if(PT.nEnt>=6&&now-PT.tEnt>3500){ptDesfazer('Não foi possível entrar na party.');return;}}
-      if(sou&&PT.mb.length<2&&!PT.fake&&!Object.keys(PT.sent).length){ptDesfazer('A party foi desfeita.');return;}
+      if(sou&&PT.mb.length<2&&!Object.keys(PT.sent).length){ptDesfazer('A party foi desfeita.');return;}
       const eu=ptM(PR.pid);if(eu&&now-PT.tMe>1000){PT.tMe=now;if(!HU||HU.papel!=='membro'||!HU.noJ)ptSan(ptMetaEu(),eu);eu.visto=now;}
       if(PT.conf&&now-PT.tSin>=5000){PT.tSin=now;if(sou)ptRost();else{ptEnv('sinal',ptMetaEu());if(PT.filaM&&PT.filaM.ok===1)ptEnv('pronto',{fid:PT.filaM.fid,ok:1});}}
-      if(PT.conf&&!PT.fake){
-        if(sou){for(const x of PT.mb.slice())if(x.pid!==PR.pid&&now-x.visto>PT_SUMIR)ptTirar(x.pid,'caiu (sem sinal)');}
+      if(PT.conf){
+        if(sou){for(const x of PT.mb.slice())if(x.pid!==PR.pid&&!x.bot&&now-x.visto>PT_SUMIR)ptTirar(x.pid,'caiu (sem sinal)');}
         else{const l=ptM(PT.lider);if(l&&now-l.visto>PT_SUMIR)ptTirar(PT.lider,'caiu (sem sinal)');}}
       if(sou&&PT.fila)ptFilaCheck();
       if(sou&&HU&&HU.chefe)chefeTick();
@@ -5006,7 +5028,7 @@ function ptTick(){try{if(!S)return;const now=performance.now(),ag=Date.now();
           if(HU.esp&&HU.esp.length){const t=now-HU.tEntr;HU.esp=HU.esp.filter(pid=>{const x=ptM(pid);if(!x||HU.lut.has(pid))return false;if(t>60000){log('sys',`${x.nome} não entrou na caçada.`,'o');return false;}return true;});
             if(HU.esp.length&&now-HU.tGo>=5000){HU.tGo=now;ptEnv('go',{ep:HU.ep,loc:HU.loc,fid:HU.fid,ps:HU.esp.slice()});}}   /* confirma a entrada: reenvia o 'go' a quem ainda não virou lutador */
           for(const [pid,L] of [...HU.lut]){const x=ptM(pid);
-            if(!x||(!PT.fake&&x.loc!==HU.loc&&now-(HU.tEnt[pid]||0)>8000)||(L.hp<=0&&L.morto&&W.time-L.tMorte>30000)){HU.lut.delete(pid);if(W.pl)W.pl.delete(L.y*W.w+L.x);W.aliados=(W.aliados||[]).filter(a=>a.dono!==L);}}}
+            if(!x||(!x.bot&&x.loc!==HU.loc&&now-(HU.tEnt[pid]||0)>8000)||(L.hp<=0&&L.morto&&W.time-L.tMorte>30000)){HU.lut.delete(pid);if(W.pl)W.pl.delete(L.y*W.w+L.x);W.aliados=(W.aliados||[]).filter(a=>a.dono!==L);if(x&&x.bot)ptTirar(pid,'caiu na caçada e saiu');}}}   /* bot morto há 30 s sai da party */
         else{
           if(now>HU.visto+PT_SUMIR){ptSairHunt('O líder saiu da caçada.');}
           else if(!HU.noJ&&HU.nFic<8&&now-HU.tFic>3000)ptEnviarFicha();
@@ -5021,13 +5043,330 @@ try{ptWorker=new Worker(URL.createObjectURL(new Blob(['let n=0;setInterval(()=>{
   ptWorker.onmessage=e=>{ptEstLoop();if(e.data===2){ptTick();if(PT.hunt)tickLoop();}};}catch(e){ptWorker=null;}
 if(!ptWorker){setInterval(ptTick,100);setInterval(ptEstLoop,50);}
 addEventListener('pagehide',ptSairPagina);addEventListener('beforeunload',ptSairPagina);
-/* teste local (só com ?rede=local): party falsa com lutadores simulados, sem rede. Ex.: ptTeste(['paladin','sorcerer','druid'],'edron_goblins') */
-function ptTeste(vocs,hk){if(!REDE_LOCAL||!S||S.loc!=='city'||PT.hunt)return false;if(!PR.pid)PR.pid='Lteste'+Math.random().toString(36).slice(2,6);
-  if(PT.id)ptDesfazer();
-  PT.id=PT.me=PR.pid;PT.lider=PR.pid;PT.fake=true;PT.conf=true;PT.expOn=true;
-  PT.mb=[Object.assign({pid:PR.pid,visto:performance.now()},ptSan(ptMetaEu()))];
-  vocs.forEach((v,i)=>{const o=gerarOponente(S.level,1000,v);PT.mb.push(Object.assign({pid:'F'+i,visto:Infinity},ptSan({nome:o.nome,voc:v,level:o.nivel,outfit:o.outfit,hp:1,hpMax:1,mp:1,mpMax:1,loc:'city'}),{level:S.level}));});
+/* ======================= BOTS =======================
+   Personagens simulados (bots) para dar sensação de servidor cheio, testar zonas PvP e ajudar a achar party. REGRAS:
+   - Bots são sempre identificáveis: ícone de robô ao lado do nome (desenho, tooltip, menu, listas, janela da party) e "(bot)" nos textos. Nunca são apresentados como jogadores reais.
+   - Existem SÓ no seu cliente (outros jogadores não veem os seus bots). Configurações > "Mostrar bots" (S.rules.bots, ligado por padrão) liga/desliga todos; S.rules.botsN = densidade (0,5 / 1 / 1,5).
+   - Cidade: população de 8-25 bots (x densidade, máx. 40) conforme a hora do dia; gerada de forma determinística por cidade + hora (botSlot/botDesejados): mesmos nomes/levels/roupas para quem está na
+     mesma cidade na mesma hora, e a população muda devagar (cada identidade dura ~6 h, escalonadas). Andam entre templo/depot/lojas (waypoints), falam, fazem haste, montam/desmontam e "vão caçar" (saem pelo portão).
+   - Party: bots são membros com x.bot=1 simulados pelo líder (ptCriarLut + ptFichaFalsa, L.bp=true). Contam para o bônus de vocações e para os papéis (bloqueio/cura/dano/lure), mas NÃO recebem exp nem loot, e a parte
+     deles NÃO é tirada dos humanos (ptKill divide só entre humanos). Saem quando a caçada acaba. Sem rede, funciona com party só de bots.
+   - Zonas PvP: 0-4 bots por entrada (hash local); maioria pacífica, ~30% agressivos (caveira branca/vermelha); revidam; podem ser mortos; abates de bots NÃO contam frag (nem caveira vermelha); dropam gold + poção.
+   - Pausam com a aba escondida. Cada bot é só um objeto com waypoint (BFS uma vez por trecho); longe da tela andam a 2 Hz. */
+const BOT={cid:new Map(),hunt:[],W:null,poi:null,poiW:null,ausente:{},pool:[],tSync:0,tLento:0,init:false,pvOk:false,pvResp:[],pvN:0,bfs:null,tHunt:0,huntProx:0,hl:null,tPv:0};
+const BOT_POOL=48,BOT_MAX=40,BOT_URL=k=>{const m=location.search.match(new RegExp('[?&]'+k+'=(\\d+)'));return m?+m[1]:null;};
+const botOn=()=>!!(S&&S.rules&&S.rules.bots!==false);
+const BOT_PX=['...A...','.XXXXX.','XOXXXOX','XXXXXXX','.XOOOX.','.XXXXX.','.X...X.'],BOT_COR={X:'#8fd0ff',O:'#10304a',A:'#ffd84a'};
+function drawBotIco(x,y,s=1.5){ctx.save();for(let j=0;j<7;j++)for(let i=0;i<7;i++){const q=BOT_PX[j][i];if(q==='.')continue;ctx.fillStyle=BOT_COR[q];ctx.fillRect(Math.round(x+i*s),Math.round(y+j*s),Math.ceil(s),Math.ceil(s));}ctx.restore();}
+function botHTML(px=13){let r='';BOT_PX.forEach((l,j)=>{for(let i=0;i<7;i++){const q=l[i];if(q!=='.')r+=`<rect x="${i}" y="${j}" width="1" height="1" fill="${BOT_COR[q]}"/>`;}});
+  return `<svg class="botb" viewBox="0 0 7 7" width="${px}" height="${px}" shape-rendering="crispEdges"><title>Bot (personagem simulado, não é um jogador real)</title>${r}</svg>`;}
+function botContar(){if(!S||!botOn())return 0;if(S.loc==='city')return BOT.cid.size;if(PV.ativo&&S.loc===PV.loc)return botPvVivos();return BOT.hunt.length;}
+/* ---- gerador determinístico ---- */
+function botHash(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}h^=h>>>16;h=Math.imul(h,0x85ebca6b)>>>0;h^=h>>>13;h=Math.imul(h,0xc2b2ae35)>>>0;h^=h>>>16;return h>>>0;}
+function botRng(seed){let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296;};}
+const BOT_SIL=['ka','ra','tor','mi','vel','dra','ven','lo','sa','ri','gor','tha','lis','mor','zen','fa','bel','dor','ny','xa','que','ron','sil','var','eru','bub','nor','cal','ark','ily','zul','fer','bra','mar','ez','sol','kai','lu','pe','du','ju','bi','ca','ta'],
+  BOT_FIM=['amen','ron','ius','dor','ix','ald','us','ik','ana','elle','ar','on','im','oth','a','o','ie','ao','inho','zin'],BOT_TIT=['Sir ','Lord ','Dark ','Mad ','Old ','Lil ','Big ','Tio ','Mestre ','Capitão ','Lady ','El '],
+  BOT_NICK=['Pedrinho','Zeca','Naruto','Bubba','Dudu','Carlão','Mimi','Gato','Pirata','Tibiano','Jaque','Rafa','Bia','Vini','Kaio','Léo'],BOT_GUILDS=['Black Rose','Phoenix Knights','Dark Legion','Silver Moon','Thais Guard','Sun Warriors','Night Owls','Os Parças','Elite Idle'],BOT_RANK=['Membro','Membro','Veterano','Líder'];
+function botNome(r){const t=r();let n;
+  if(t<.15)n=BOT_NICK[(r()*BOT_NICK.length)|0]+(r()<.5?' '+['Knight','Druid','Mage','RP','EK','MS','ED'][(r()*7)|0]:(r()<.5?String((r()*99)|0):''));
+  else{const k=2+((r()*2)|0);let s='';for(let i=0;i<k;i++)s+=BOT_SIL[(r()*BOT_SIL.length)|0];s=s[0].toUpperCase()+s.slice(1);if(r()<.3)s+=BOT_FIM[(r()*BOT_FIM.length)|0];
+    n=(t<.35?BOT_TIT[(r()*BOT_TIT.length)|0]:'')+s;if(t>.85)n+=' '+BOT_SIL[(r()*BOT_SIL.length)|0].replace(/^./,c=>c.toUpperCase())+BOT_SIL[(r()*BOT_SIL.length)|0];}
+  return n.slice(0,20).trim();}
+function botLevel(r){const u=r(),v=r(),z=Math.sqrt(-2*Math.log(u+1e-9))*Math.cos(2*Math.PI*v);return clamp(Math.round(Math.exp(Math.log(95)+.95*z)),8,900);}   /* log-normal: mediana 95, 5% < 20, 5% > 450 */
+const botVoc=r=>{const x=r();return x<.3?'knight':x<.52?'paladin':x<.74?'sorcerer':'druid';};
+function botVisual(r,L){const R=outRegras(),nomes=Object.keys(OUT_NOMES).filter(n=>{const g=R[n];return g&&(g[0]==='free'||(g[0]==='lv'&&g[1]<=L)||(g[0]==='kill'&&L>=120&&(g[2]||1)<=300)||(g[0]==='best'&&L>=150)||(g[0]==='arena'&&L>=200));});
+  const nome=nomes.length?nomes[(r()*nomes.length)|0]:'Citizen',lk=OUT_NOMES[nome].looks,look=lk[(r()*lk.length)|0],O=OUTF15[look]||{};
+  const base={look,cores:[0,0,0,0].map(()=>(r()*133)|0),addons:O.addons?(L<60&&r()<.6?0:((r()*4)|0)):0};
+  const M=mntRegras(),ids=Object.keys(M).map(Number).filter(id=>MONT15[id]&&(M[id][0]==='free'||(M[id][0]==='lv'&&M[id][1]<=L)||(M[id][0]==='kill'&&L>=150&&M[id][2]<=300)));
+  const mont=O.srcm&&ids.length&&r()<.55?ids[(r()*ids.length)|0]:0;return {base,mont,montado:!!(mont&&r()<.5)};}
+function botHuntLista(){return BOT.hl||(BOT.hl=Object.keys(HUNTS).filter(k=>!HUNTS[k].boss&&!HUNTS[k].pvp).sort((a,b)=>HUNTS[a].lv-HUNTS[b].lv));}
+function botPref(r,L){const l=botHuntLista().filter(k=>HUNTS[k].lv<=L*1.1&&HUNTS[k].lv>=L*.45);return l.length?l[(r()*l.length)|0]:botHuntLista()[0];}
+function botGerar(r,o){o=o||{};const voc=o.voc||botVoc(r),level=o.level||botLevel(r),v=botVisual(r,level),g=r()<.4?BOT_GUILDS[(r()*BOT_GUILDS.length)|0]:null;
+  return {nome:botNome(r),voc,level,base:v.base,mont:v.mont,montado:v.montado,guild:g?`${BOT_RANK[(r()*BOT_RANK.length)|0]} da guild ${g}`:'',pref:botPref(r,level)};}
+const botHpMax=(voc,L)=>145+5*Math.min(L,8)+VOC[voc].hp*Math.max(0,L-8),botMpMax=(voc,L)=>50+5*Math.min(L,8)+VOC[voc].mp*Math.max(0,L-8);
+/* membro de party gerado para o level L (Math.random: não precisa ser determinístico) */
+function botDaParty(voc,L){const id=botGerar(Math.random,{voc,level:L});return {nome:id.nome,voc,level:L,outfit:id.base};}
+/* ---- party com bots ---- */
+function ptPid(){if(!PR.pid)PR.pid=prModoRede()==='rt'?prPidRt():(PR.pidL||(PR.pidL='L'+Math.random().toString(36).slice(2,10)));return PR.pid;}   /* pid estável mesmo sem rede (mesma regra do prEntrar) */
+const ptSoBots=()=>PT.mb.length>1&&PT.mb.every(x=>x.bot||x.pid===PR.pid);
+function ptBotsAdd(o){if(!PT.id||!ptSou()||PT.mb.length>=PT_MAX||!VOC[o.voc])return null;const L=clamp(Math.round(o.level)||1,1,9999),hpMax=botHpMax(o.voc,L),mpMax=botMpMax(o.voc,L);
+  const x=Object.assign({pid:o.pid||('B'+Math.random().toString(36).slice(2,10)),visto:Infinity,bot:1},ptSan({nome:o.nome,voc:o.voc,level:L,outfit:o.outfit,hp:hpMax,hpMax,mp:mpMax,mpMax,loc:'city'}));
+  PT.mb.push(x);PT.sig='';log('sys',`🤖 ${x.nome} (bot, Lv ${x.level} ${VOC[x.voc].n}) entrou na party.`,'y');ptRost();ptMostrar();return x;}
+function ptBotsSair(){if(!PT.id||!PT.mb.some(x=>x.bot))return;PT.mb=PT.mb.filter(x=>!x.bot);PT.sig='';log('sys','🤖 Os bots saíram da party (a caçada acabou).','b');if(ptSou())ptRost();}
+/* teste de party (agora também sem ?rede=local): eu + bots como membros, abre a fila da caçada. Ex.: ptTeste(['paladin','sorcerer','druid'],'edron_goblins') */
+function ptTeste(vocs,hk){if(!S||S.loc!=='city'||PT.hunt||(W&&W.loading))return false;
+  if(PT.id)ptDesfazer();ptPid();if(!ptCriar())return false;
+  for(const v of vocs){if(PT.mb.length>=PT_MAX)break;ptBotsAdd(botDaParty(v,S.level));}
   ptIniciarCacada(hk||S.lastHunt||bestHunt());return true;}
+/* ---- cidade: pontos de interesse e caminhos ---- */
+const botFace=(a,x,y)=>{const dx=x-a.x,dy=y-a.y;return Math.abs(dx)>=Math.abs(dy)&&dx?(dx>0?1:3):dy>0?0:dy<0?2:a.face;};
+function botPois(){if(BOT.poiW===W&&BOT.poi)return BOT.poi;BOT.poiW=W;
+  const w=W.w,h=W.h,N=w*h,m=MAPAS[locDef('city').proprio]||{},ini=m.inicio||[W.p.x,W.p.y],blk=new Uint8Array(N);for(const d of cidDepots())if(d[0]>=0&&d[1]>=0&&d[0]<w&&d[1]<h)blk[d[1]*w+d[0]]=1;
+  const dist=new Int16Array(N).fill(-1),q=new Int32Array(N);let qh=0,qt=0,s=ini[1]*w+ini[0];
+  if(!W.walk[s]||blk[s]){let ok=false;for(let r=1;r<8&&!ok;r++)for(let dy=-r;dy<=r&&!ok;dy++)for(let dx=-r;dx<=r;dx++){const x=ini[0]+dx,y=ini[1]+dy;if(x>=0&&y>=0&&x<w&&y<h&&W.walk[y*w+x]&&!blk[y*w+x]){s=y*w+x;ok=true;break;}}}
+  dist[s]=0;q[qt++]=s;
+  while(qh<qt){const c=q[qh++],cx=c%w,cy=(c/w)|0;for(const [dx,dy] of DIRS){const nx=cx+dx,ny=cy+dy;if(nx<0||ny<0||nx>=w||ny>=h)continue;const ni=ny*w+nx;if(dist[ni]>=0||!W.walk[ni]||blk[ni])continue;dist[ni]=dist[c]+1;q[qt++]=ni;}}
+  const reach=q.slice(0,qt);let maxD=0;for(let i=0;i<qt;i++)if(dist[reach[i]]>maxD)maxD=dist[reach[i]];
+  const r=botRng(botHash('poi|'+CITY.k)),P={blk,dist,reach,maxD,templo:[],depot:[],loja:[],portao:[]},T=(i,tipo,extra)=>Object.assign({x:i%w,y:(i/w)|0,tipo},extra);
+  for(const i of reach)if(dist[i]<=3)P.templo.push(T(i,'templo'));
+  for(const d of cidDepots())for(const [dx,dy] of DIRS){const x=d[0]+dx,y=d[1]+dy;if(x>=0&&y>=0&&x<w&&y<h&&dist[y*w+x]>=0&&dx*dy===0)P.depot.push({x,y,tipo:'depot',fx:d[0],fy:d[1]});}
+  const esp=(L,i,gap)=>L.every(p=>Math.max(Math.abs(p.x-i%w),Math.abs(p.y-((i/w)|0)))>=gap),lo=Math.min(10,maxD*.2),hi=Math.max(14,maxD*.65);
+  for(let k=0;k<300&&P.loja.length<6;k++){const i=reach[(r()*qt)|0];if(dist[i]>=lo&&dist[i]<=hi&&esp(P.loja,i,10))P.loja.push(T(i,'loja'));}
+  for(let k=0;k<600&&P.portao.length<3;k++){const i=reach[(r()*qt)|0];if(dist[i]>=maxD*.75&&esp(P.portao,i,16))P.portao.push(T(i,'portao'));}
+  if(!P.portao.length){let b=reach[0];for(const i of reach)if(dist[i]>dist[b])b=i;P.portao.push(T(b,'portao'));}
+  if(!P.templo.length)P.templo.push(T(s,'templo'));if(!P.depot.length)P.depot.push(T(s,'depot'));if(!P.loja.length)P.loja.push(T(reach[(r()*qt)|0],'loja'));
+  return BOT.poi=P;}
+/* BFS uma vez por trecho (devolve os índices dos tiles do caminho, sem o de partida; null = sem caminho) */
+function botCaminho(sx,sy,gx,gy,blk){const w=W.w,N=w*W.h;let B=BOT.bfs;if(!B||B.N!==N)B=BOT.bfs={N,prev:new Int32Array(N),seen:new Uint32Array(N),q:new Int32Array(N),st:0};
+  const st=++B.st,prev=B.prev,seen=B.seen,q=B.q,s=sy*w+sx,g=gy*w+gx;if(s===g)return [];let qh=0,qt=0;q[qt++]=s;seen[s]=st;prev[s]=-1;
+  while(qh<qt){const c=q[qh++],cx=c%w,cy=(c/w)|0;
+    for(const [dx,dy] of DIRS){const nx=cx+dx,ny=cy+dy;if(nx<0||ny<0||nx>=w||ny>=W.h)continue;const ni=ny*w+nx;if(seen[ni]===st||!W.walk[ni]||(blk&&blk[ni]))continue;seen[ni]=st;prev[ni]=c;
+      if(ni===g){const p=[];for(let k=ni;k!==s;k=prev[k])p.push(k);return p.reverse();}q[qt++]=ni;}}
+  return null;}
+function botVisivel(b){const c=W.cam;if(!c)return true;const x=b.x*TS,y=b.y*TS;return x>=c.x-64&&x<=c.x+VW/ZOOM+64&&y>=c.y-64&&y<=c.y+VHt/ZOOM+64;}
+const botOutfit=b=>{const o=b.base;b.outfit=b.montado&&b.mont?{look:o.look,cores:o.cores,addons:o.addons,mont:b.mont}:o;};
+const botStepMs=b=>(260-Math.min(90,b.level*.9))*(b.hasteAte>performance.now()?.72:1)/(b.montado&&MONT15[b.mont]?1+MONT15[b.mont].vel/200:1);
+function botNovo(id,x,y){const now=performance.now(),b=Object.assign({},id,{bot:1,x,y,fx:x,fy:y,face:(Math.random()*4)|0,andaDesde:0,dur:0,t0:0,fala:null,falaAte:0,falaMag:false,visto:now,ac:'pensar',ate:now+rnd(300,6000),path:null,pi:0,dst:null,hasteAte:0,tHaste:now+rnd(20e3,120e3),tFala:now+rnd(6e3,70e3),tMont:now+rnd(60e3,300e3),sai:0,saindo:false,bloq:0});
+  botOutfit(b);return b;}
+function botDiz(b,txt,mag){const now=performance.now();b.fala=txt;b.falaAte=now+4200;b.falaMag=!!mag;if(S.loc==='city'?cheb(b,W.p)<=12:true)log('cid',`${b.nome} (bot) diz: ${txt}`,'y');}   /* alcance de voz do chat local: 12 tiles */
+const BOT_FALAS=['hi','hello','oi','ola','vendo','vendo bp de mana potion','comprando demon armor','trade?','alguém pra hunt?','lf party','lf exp party','procuro party pra hunt','brb','já volto','boa noite','bom dia','kkk','lol','gg','rs','tem healer?','alguem tem addon de citizen?','indo de {H}','vale a pena {H}?','sd barata aqui','troco addon','cadê o depot?','hmm','tô sem stamina','up!'];
+function botFalar(b,now){if(b.sai||!S)return;const r=Math.random();
+  if(r<.12&&b.ac==='ir'&&b.path&&b.path.length>10&&now>b.tHaste){const m=MAGIAS15[b.voc==='knight'||b.voc==='paladin'?'utani_hur':'utani_gran_hur']||MAGIAS15.utani_hur;
+    if(m){b.tHaste=now+rnd(70e3,220e3);b.hasteAte=now+Math.min(m.dur||15000,20000);botDiz(b,m.palavras||'utani hur',true);if(botVisivel(b))ef15(m.ef,b.x,b.y);return;}}
+  botDiz(b,pick(BOT_FALAS).replace('{H}',(HUNTS[b.pref]||{n:'hunt'}).n));}
+/* ---- comportamento: pensar -> ir -> chegar -> parado ---- */
+function botDestino(b,tipo){const P=botPois(),L=P[tipo];if(tipo==='vagar'){for(let k=0;k<25;k++){const i=P.reach[(Math.random()*P.reach.length)|0],x=i%W.w,y=(i/W.w)|0,d=Math.max(Math.abs(x-b.x),Math.abs(y-b.y));if(d>=4&&d<=18)return {x,y,tipo:'vagar'};}return null;}
+  if(!L||!L.length)return null;return pick(L);}
+function botPensar(b,now){
+  if(b.saindo){return;}
+  if(now>b.tMont&&b.mont){b.montado=!b.montado;botOutfit(b);b.tMont=now+rnd(90e3,420e3);}
+  const r=Math.random(),tipo=r<.2?'templo':r<.42?'depot':r<.70?'loja':r<.95?'vagar':'portao',d=botDestino(b,tipo);
+  if(!d){b.ate=now+rnd(2000,5000);return;}
+  const p=botCaminho(b.x,b.y,d.x,d.y,botPois().blk);if(!p||!p.length){b.ate=now+rnd(2000,6000);if(d.fx!==undefined)b.face=botFace(b,d.fx,d.fy);return;}
+  b.path=p;b.pi=0;b.dst=d;b.ac='ir';if(tipo==='portao')b.saindo=true;}
+function botChegou(b,now){b.ac='parado';b.path=null;const d=b.dst;
+  if(d&&d.fx!==undefined)b.face=botFace(b,d.fx,d.fy);
+  if(b.saindo){botDiz(b,pick(['foi caçar','vou caçar, flw','vamos de hunt!','bora upar']));b.sai=now+2200;return;}
+  b.ate=now+(d&&d.tipo==='depot'?rnd(6e3,20e3):d&&d.tipo==='loja'?rnd(5e3,25e3):d&&d.tipo==='templo'?rnd(4e3,15e3):rnd(2e3,8e3));}
+function botPasso(b,now,anim){const idx=b.path[b.pi],nx=idx%W.w,ny=(idx/W.w)|0;
+  if(nx===W.p.x&&ny===W.p.y&&S.loc==='city'){if(++b.bloq>4){b.ac='parado';b.path=null;b.ate=now+rnd(500,2000);b.bloq=0;}return;}   /* nunca pisa no tile do jogador (se o jogador não sai, desiste do trecho) */
+  b.bloq=0;
+  const dx=nx-b.x,dy=ny-b.y;b.face=dx?(dx>0?1:3):(dy>0?0:2);
+  if(anim){const q=rpos(b),mid=vmt(b)<1;b.fx=mid?q.x:b.x;b.fy=mid?q.y:b.y;b.x=nx;b.y=ny;iniciarPasso(b,botStepMs(b)*(dx&&dy?1.4:1));}
+  else{b.x=b.fx=nx;b.y=b.fy=ny;b.t0=0;b.dur=0;}
+  if(++b.pi>=b.path.length)botChegou(b,now);}
+function botAvancar(b,now,vis){
+  if(b.ac==='ir'&&b.path){
+    if(vis){if(now>=b.t0+b.dur-30)botPasso(b,now,true);}
+    else{const n=Math.max(1,Math.round(500/botStepMs(b)));for(let i=0;i<n&&b.path;i++)botPasso(b,now,false);}}   /* longe da tela: 2 Hz, vários tiles de uma vez, sem animação */
+  else if(now>=b.ate)(b.pf||botPensar)(b,now);}
+/* população: identidades por slot (k) com era de ~6 h escalonada; quem está presente depende da hora do dia */
+function botAlvoN(){const u=BOT_URL('bots');if(u!==null)return clamp(u,0,BOT_MAX);const d=new Date(),h=d.getHours()+d.getMinutes()/60,curva=(1+Math.cos((h-20)*Math.PI/12))/2,m=S&&S.rules&&+S.rules.botsN>0?+S.rules.botsN:1;return clamp(Math.round((8+17*curva)*m),0,BOT_MAX);}
+function botSlot(cid,k){const hf=Date.now()/H,era=Math.floor((hf+k*6/BOT_POOL)/6),c=BOT.pool[k];if(c&&c.era===era&&c.cid===cid)return c.id;
+  const id=botGerar(botRng(botHash(cid+'|'+k+'|'+era)));id.pid='bot:'+cid+':'+k+':'+era;id.k=k;id.era=era;BOT.pool[k]={era,cid,id};return id;}
+function botDesejados(cid,n){const hf=Date.now()/H,now=performance.now(),sc=[];for(let k=0;k<BOT_POOL;k++)if(!((BOT.ausente[botSlot(cid,k).pid]||0)>now))sc.push([botHash(cid+'#'+k+'#'+Math.floor(hf/3+k*.37)),k]);sc.sort((a,b)=>a[0]-b[0]);return sc.slice(0,n).map(x=>x[1]);}   /* quem foi caçar (ausente) é substituído pelo próximo da lista; ao voltar, retoma a vaga */
+function botPosIni(){const P=botPois(),L=[...P.depot,...P.loja,...P.loja,...P.templo.slice(0,3)],c=pick(L);for(let k=0;k<30;k++){const i=P.reach[(Math.random()*P.reach.length)|0],x=i%W.w,y=(i/W.w)|0;if(Math.max(Math.abs(x-c.x),Math.abs(y-c.y))<=6)return [x,y];}return [c.x,c.y];}
+function botSync(now){const cid=CITY.k,want=botDesejados(cid,botAlvoN()),wp=new Set(want.map(k=>botSlot(cid,k).pid)),P=botPois();
+  for(const b of BOT.cid.values())if(!wp.has(b.pid)&&!b.saindo){const d=pick(P.portao),p=botCaminho(b.x,b.y,d.x,d.y,P.blk);if(p&&p.length){b.path=p;b.pi=0;b.dst=d;b.ac='ir';b.saindo=true;}else{BOT.cid.delete(b.pid);}}
+  let n=0;
+  for(const k of want){const id=botSlot(cid,k);if(BOT.cid.has(id.pid)||(BOT.ausente[id.pid]||0)>now)continue;if(BOT.init&&n>=2)break;
+    let x,y,fx=false;if(!BOT.init){[x,y]=botPosIni();}else{const g=Math.random()<.5?pick(P.portao):pick(P.templo);x=g.x;y=g.y;fx=g.tipo==='templo';}
+    const b=botNovo(id,x,y);BOT.cid.set(b.pid,b);n++;if(fx&&botVisivel(b))ef15(me15('teleport'),x,y);}
+  BOT.init=true;}
+function botCidTick(now){
+  if(now-BOT.tSync>1500){BOT.tSync=now;botSync(now);}
+  const lento=now-BOT.tLento>=500;if(lento)BOT.tLento=now;
+  for(const b of BOT.cid.values()){
+    if(b.sai&&now>=b.sai){BOT.cid.delete(b.pid);BOT.ausente[b.pid]=now+rnd(3*MIN,8*MIN);continue;}
+    const vis=botVisivel(b);if(!vis&&!lento)continue;
+    botAvancar(b,now,vis);
+    if(now>=b.tFala){b.tFala=now+rnd(30e3,140e3);botFalar(b,now);}}}
+/* ---- interação com bots na cidade ---- */
+function botMenu(r,e){const c=$('#ctx'),noP=PT.id&&PT.mb.some(x=>x.pid===r.pid),cheia=PT.id&&PT.mb.length>=PT_MAX,naoLider=PT.id&&!ptSou(),dis=noP||cheia||naoLider,why=noP?'Já está na sua party':cheia?'Party cheia (4)':naoLider?'Só o líder convida':'';
+  c.innerHTML=`<div class="ttl">${esc(r.nome)}${botHTML(13)}<span class="mut sm">(bot)</span></div><div class="info">${esc(VOC[r.voc].n)} · Level ${esc(r.level)}${r.guild?'\n'+esc(r.guild):''}\nPersonagem simulado (só no seu cliente)</div>`+
+    `<button data-act="botPerfil" data-arg="${esc(r.pid)}">Ver perfil</button><button data-act="botConvidar" data-arg="${esc(r.pid)}" ${dis?'disabled':''}>Convidar para party${why?' — '+why:''}</button><button disabled>Trocar itens — bots não negociam</button>`;
+  c.classList.remove('hidden');const b=c.getBoundingClientRect();c.style.left=clamp(e.clientX,4,innerWidth-b.width-4)+'px';c.style.top=clamp(e.clientY,4,innerHeight-b.height-4)+'px';e.stopPropagation();}
+Object.assign(MODALS,{botPerfil:pid=>{const b=BOT.cid.get(pid);if(!b)return {title:'Perfil',sm:true,body:'<p class="mut">Esse bot já saiu da cidade.</p>'};const h=HUNTS[b.pref];
+  const st=b.saindo?'indo caçar':b.ac==='ir'?(b.dst&&b.dst.tipo==='depot'?'indo ao depot':b.dst&&b.dst.tipo==='loja'?'indo às lojas':b.dst&&b.dst.tipo==='templo'?'voltando ao templo':'passeando'):'parado na cidade';
+  return {title:`Perfil de ${esc(b.nome)}`,sm:true,body:`<div class="onlrow">${ret15(b.outfit)}<div><b>${esc(b.nome)}</b>${botHTML(14)}<span class="mut sm">(bot)</span><div class="mut sm">${esc(VOC[b.voc].n)} · Level ${b.level}</div></div></div>
+    <div class="kv"><span>Guild</span><b>${esc(b.guild||'sem guild')}</b><span>Caçada favorita</span><b>${esc(h?h.n:'—')}${h?` (Lv ${h.lv}+)`:''}</b><span>Montaria</span><b>${b.mont&&MONT15[b.mont]?esc(MONT15[b.mont].nome)+(b.montado?' (montado)':''):'nenhuma'}</b><span>Agora</span><b>${st}</b></div>
+    <p class="mut sm">🤖 Bots são personagens simulados: existem só no seu cliente, não negociam itens e aceitam convites de party conforme level, vocação e caçada.</p>
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="wbtn" data-act="botConvidar" data-arg="${esc(b.pid)}">Convidar para party</button><button class="wbtn" data-act="closeModal">Fechar</button></div>`};}});
+function botMotivoRecusa(b){
+  if(b.sai||b.saindo)return 'Tô de saída, vou caçar. Valeu!';
+  if(S.level*3<b.level*2||b.level*3<S.level*2)return `Nossos levels (${b.level} e ${S.level}) estão muito diferentes para dividir exp.`;
+  if(PT.id&&PT.mb.some(x=>x.voc===b.voc)&&Math.random()<.5)return `Já tem ${VOC[b.voc].n} no grupo, procuro outra vocação.`;
+  const h=HUNTS[S.lastHunt];if(h&&h.lv>b.level*1.3)return `${h.n} é forte demais pro meu level.`;
+  if(Math.random()<.1)return 'Agora não, tô ocupado.';
+  return '';}
+function botConvidar(pid){hideCtx();if(modal==='botPerfil')closeModal();const b=BOT.cid.get(pid);
+  if(!b||S.loc!=='city'){log('sys','Esse bot não está mais aqui.','o');return;}
+  if(PT.id&&!ptSou()){log('sys','Só o líder da party pode convidar.','o');return;}
+  if(PT.id&&PT.mb.some(x=>x.pid===pid)){log('sys',`${b.nome} (bot) já está na sua party.`,'o');return;}
+  if(PT.id&&PT.mb.length>=PT_MAX){log('sys','A party está cheia (4 membros).','o');return;}
+  log('sys',`Você convidou ${b.nome} (bot) para a party.`,'y');const mot=botMotivoRecusa(b);
+  setTimeout(()=>{if(!BOT.cid.has(pid)||S.loc!=='city')return;
+    if(mot){botDiz(b,mot);log('sys',`${b.nome} (bot) recusou o convite: ${mot}`,'o');return;}
+    if(!PT.id){ptPid();if(!ptCriar())return;}
+    if(PT.mb.length>=PT_MAX||!ptSou())return;
+    botDiz(b,pick(['bora!','fechou, vamo!','partiu hunt']));
+    const x=ptBotsAdd({pid:b.pid,nome:b.nome,voc:b.voc,level:b.level,outfit:b.base});
+    if(x){b.saindo=true;b.sai=performance.now()+1500;b.ac='parado';b.path=null;BOT.ausente[b.pid]=performance.now()+rnd(5*MIN,12*MIN);}},900);}
+function botRecusaItem(b){botDiz(b,pick(['Obrigado, mas não preciso :)','Guarda aí, tô de boa','Não aceito itens, valeu!']));toast(`${b.nome} (bot) não aceita itens.`);log('sys',`${b.nome} é um bot e não troca nem recebe itens.`,'o');}
+function botEmpurrado(b,t){const now=performance.now(),q=rpos(b),mid=vmt(b)<1;b.fx=mid?q.x:b.x;b.fy=mid?q.y:b.y;b.x=t.x;b.y=t.y;b.t0=now;b.dur=160;b.andaDesde=now;b.path=null;b.ac='parado';b.ate=now+rnd(1500,3500);b.dst=null;b.saindo=false;b.sai=0;CID.pushT=now;botDiz(b,pick(['ei!','opa','calma aí','tá me empurrando por quê?']));}
+/* ---- caçadas comuns: 0-2 bots passando (só visuais: pacíficos, sem clique, sem combate) ---- */
+function botPensarHunt(b,now){const sp=W.spawns&&W.spawns.length&&Math.random()<.8?pick(W.spawns):null;let d=sp?{x:sp.x,y:sp.y}:null;
+  if(!d)for(let k=0;k<60;k++){const x=rint(0,W.w-1),y=rint(0,W.h-1);if(walk(x,y)&&Math.max(Math.abs(x-b.x),Math.abs(y-b.y))>=8){d={x,y};break;}}
+  const p=d&&botCaminho(b.x,b.y,d.x,d.y,null);if(!p||!p.length){b.ate=now+rnd(2000,5000);return;}b.path=p;b.pi=0;b.dst=d;b.ac='ir';}
+function botHuntNovo(h){const L=clamp(Math.round(h.lv*rnd(.8,1.3)),8,900),id=botGerar(Math.random,{level:L});let x=-1,y=-1;
+  for(let k=0;k<200;k++){const px=rint(0,W.w-1),py=rint(0,W.h-1);if(walk(px,py)&&cheb({x:px,y:py},W.p)>=12){x=px;y=py;break;}}if(x<0)return;
+  const b=botNovo(id,x,y);b.pf=botPensarHunt;b.vida=performance.now()+rnd(70e3,200e3);BOT.hunt.push(b);}
+function botHuntTick(now){const h=HUNTS[S.loc];
+  if(PT.hunt||!h||h.boss||h.pvp||S.loc==='arena'||S.loc==='treino'){if(BOT.hunt.length)BOT.hunt.length=0;return;}
+  const u=BOT_URL('huntbots'),n=u!==null?clamp(u,0,2):botHash(S.loc+'|'+Math.floor(Date.now()/H))%3,lento=now-BOT.tHunt>=500;if(lento)BOT.tHunt=now;
+  if(BOT.hunt.length<n&&now>=BOT.huntProx){BOT.huntProx=now+rnd(8e3,40e3);botHuntNovo(h);}
+  for(let i=BOT.hunt.length-1;i>=0;i--){const b=BOT.hunt[i];if(now>=b.vida){BOT.hunt.splice(i,1);BOT.huntProx=Math.max(BOT.huntProx,now+rnd(30e3,90e3));continue;}
+    const vis=botVisivel(b);if(!vis&&!lento)continue;botAvancar(b,now,vis);}}
+/* ---- zonas PvP: 0-4 bots por entrada. São lutadores (lutadorBot) no mesmo PV.remotos dos jogadores, então clique/ataque/caveira/revide/PZ lock funcionam igual. Locais: só você os vê ---- */
+const botPvVivos=()=>{let n=0;for(const r of PV.remotos.values())if(r.bot&&r.hp>0)n++;return n;};
+const BOT_PL={ehLutador:true,get x(){return W.p.x},get y(){return W.p.y},get hp(){return S.hp},vivo:()=>S.hp>0,   /* o jogador como alvo dos golpes dos bots (mesma fórmula da rede: JOG.receber com fonte "lutador" = metade do dano) */
+  receber(v,el,at,B,puro){if(!B||!B.bot||!pvNaZona()||S.hp<=0||S.level<PVP_NIVEL||B.level<PVP_NIVEL)return 0;pvAgrediu(B);return JOG.receber(Math.round(v),el,at,{ehLutador:true,procs:B.procs,nome:B.nome},!!puro);}};
+function botPvNovo(){const h=HUNTS[S.loc];if(!h)return null;const agr=Math.random()<.3,L=Math.round(Math.max(PVP_NIVEL,h.lv*.9,S.level*rnd(.8,1.25))),id=botGerar(Math.random,{level:L});let x=-1,y=-1;const sp=W.spawns||[];
+  for(let k=0;k<250;k++){const c=sp.length&&k<150?pick(sp):{x:rint(0,W.w-1),y:rint(0,W.h-1)},px=c.x+rint(-2,2),py=c.y+rint(-2,2);if(walk(px,py)&&cheb({x:px,y:py},W.p)>=10){x=px;y=py;break;}}if(x<0)return null;
+  const B=lutadorBot({nome:id.nome,voc:id.voc,nivel:L,sk:skillsBot(id.voc,L)}),now=performance.now();
+  Object.assign(B,{pid:'Bpv'+Math.random().toString(36).slice(2,9),bot:1,pvR:true,level:L,outfit:id.base,guild:id.guild,pref:id.pref,x,y,fx:x,fy:y,face:rint(0,3),t0:0,dur:0,andaDesde:0,visto:now,sk:agr?(Math.random()<.3?2:1):0,agr,ac:'pensar',ate:now+rnd(500,4000),
+    path:null,pi:0,hostilAte:0,emCombate:0,tReg:0,pf:botPensarHunt,fala:null,falaAte:0,hasteAte:0});
+  Object.defineProperty(B,'hpMax',{get(){return this.max}});PV.remotos.set(B.pid,B);return B;}
+function botPvEntrar(){if(!botOn()||BOT.pvOk||!PV.ativo||!pvNaZona())return;BOT.pvOk=true;BOT.pvAlvo=BOT_URL('pvbots')!==null?clamp(BOT_URL('pvbots'),0,4):botHash(S.loc+'|pv|'+Math.floor(Date.now()/H))%5;BOT.pvResp=[];
+  let n=0;for(let i=0;i<BOT.pvAlvo;i++)if(botPvNovo())n++;
+  if(n)log('sys',`🤖 ${n} bot${n>1?'s':''} (personagens simulados, só no seu cliente) caça${n>1?'m':''} nesta zona PvP; alguns são agressivos.`,'b');}
+function botPvSair(){BOT.pvOk=false;BOT.pvResp=[];}
+function botPvRecebe(B,v,el,puro){B.hostilAte=Date.now()+90e3;B.emCombate=Date.now()+8000;   /* atacado: revida por 90 s */
+  const d=B.receber(v,el,0,JOG,puro);if(d>0)log('cmb',`Você causou ${d} de dano em ${B.nome} (bot).`,'m');
+  if(B.hp<=0)botPvMorreu(B);return v;}
+function botPvMorreu(B){B.hp=0;PV.remotos.delete(B.pid);if(PV.alvo===B.pid){PV.alvo=null;PV.alvoAuto=false;}
+  const gold=Math.round(B.level*rnd(12,30)),pots=Object.keys(B.bag||{}).filter(k=>ITEMS[k]&&ITEMS[k].type==='pot'&&B.bag[k]>0),ic=[];S.gold+=gold;S.sess.gold+=gold;let got=[gold+' gold coins'];
+  if(pots.length&&Math.random()<.6){const k=pick(pots),it=ITEMS[k],q=rint(1,3);if(capFree()>=it.w*q){S.bag[k]=(S.bag[k]||0)+q;S.sess.items[k]=(S.sess.items[k]||0)+q;got.push(q+' '+it.n);ic.push(k);}}
+  ouroFx(B.x,B.y,gold,ic);ef15(me15('mortarea'),B.x,B.y);fxt(B.x,B.y-.6,'MORTO','#ff3b30',true);
+  const s=pvS();s.bk=(s.bk||0)+1;log('loot',`Você recebeu ${got.join(', ')} (${B.nome}, bot).`,'g');
+  log('sys',`☠ Você matou ${B.nome} (bot). Abates de bots não contam como frag nem dão caveira vermelha.`,'y');
+  BOT.pvResp.push(performance.now()+rnd(60e3,120e3));dirty.all=true;}
+function botPvPasso(B,nx,ny,now){const dx=nx-B.x,dy=ny-B.y;B.face=dx?(dx>0?1:3):(dy>0?0:2);const q=rpos(B),mid=vmt(B)<1;B.fx=mid?q.x:B.x;B.fy=mid?q.y:B.y;B.x=nx;B.y=ny;
+  iniciarPasso(B,(260-Math.min(90,B.level*.9))*(dx&&dy?1.4:1)*(B.c.lento&&B.c.lento.ate>W.time?2.2:1)/mods(B).vel);}
+function botPvIA(B,now,lento){if(B.hp<=0)return;B.visto=now;const ag=Date.now();
+  if(now-B.tReg>=1000){B.tReg=now;if(B.emCombate<ag&&B.hp<B.max)B.hp=Math.min(B.max,B.hp+Math.max(1,Math.round(B.max*.02)));}
+  const pode=S.hp>0&&S.level>=PVP_NIVEL&&B.level>=PVP_NIVEL&&!PV.morto&&pvNaZona(),prov=B.hostilAte>ag,nivelOk=S.level>=B.level*.6&&S.level<=B.level*1.8,d=cheb(B,W.p);
+  const quer=pode&&B.hp>B.max*.25&&(prov||(B.agr&&nivelOk&&d<=10));   /* agressivo: só mira em alvo "do level dele" (0,6x a 1,8x) a até 10 tiles; provocado: sempre revida; nunca ataca quem está protegido (< level 50) */
+  if(quer){B.ac='cacar';
+    if(d<=B.alcance){basico15(B,BOT_PL);B.face=[2,1,0,3][B.dir];B.emCombate=ag+8000;}
+    else if(now>=B.t0+B.dur-30&&!(B.c.lento&&B.c.lento.ate>W.time&&B.c.lento.f<=.35)){const p=botCaminho(B.x,B.y,W.p.x,W.p.y,null);if(p&&p.length>1){const i=p[0];botPvPasso(B,i%W.w,(i/W.w)|0,now);}}}
+  else{if(B.ac==='cacar'){B.ac='pensar';B.path=null;B.ate=now+800;}const vis=botVisivel(B);if(vis||lento)botAvancar(B,now,vis);}}
+function botPvTick(now){if(!PV.ativo||!pvNaZona())return;if(!BOT.pvOk)botPvEntrar();
+  const lento=now-BOT.tPv>=500;if(lento)BOT.tPv=now;
+  for(const B of [...PV.remotos.values()])if(B.bot)botPvIA(B,now,lento);
+  if(BOT.pvResp.length&&now>=BOT.pvResp[0]){BOT.pvResp.shift();if(botPvVivos()<(BOT.pvAlvo|0))botPvNovo();}}
+/* ---- Procurar party (matchmaking) ----
+   Canal de presença GLOBAL 'lfg' (mesmo transporte: BroadcastChannel com ?rede=local, Supabase Realtime 'lfg:global'): cada jogador na fila publica {nome,voc,level,hunt,papel,tam,t0}. Todos calculam os mesmos grupos
+   (por ordem de entrada na fila, nível compatível pela regra de 2/3 e mesma caçada, ou "qualquer"); o 1º da fila de cada grupo vira líder e convida os outros pelo próprio canal (aceite automático de quem está na fila).
+   O líder fecha o grupo quando está cheio, 8 s depois da última entrada (com 2+ jogadores) ou após 25 s de espera; os papéis que faltam (bloqueio, cura, dano, lure) são preenchidos por bots do mesmo nível. */
+const LFG={fase:null,hunt:'any',papel:'auto',tam:4,tr:null,ads:new Map(),eu:null,t0:0,G:null,hk:null,tForm:0,conv:[],indep:false,sig:'',msg:''};
+const LFG_ESPERA=25000,LFG_GRACE=8000,LFG_FORM_T=12000,LFG_MAX=180000,LFG_ROLES=['bloqueio','cura','dano','lure'],LFG_VOC={bloqueio:'knight',cura:'druid',dano:'sorcerer',lure:'paladin'};
+const lfgPapel=(voc,p)=>LFG_ROLES.includes(p)?p:(IA_ROL[voc]||'dano');
+const lfgHunts=()=>botHuntLista();
+function lfgHuntAny(lvMin){const L=lfgHunts();let b=L[0];for(const k of L)if(HUNTS[k].lv<=lvMin)b=k;return b;}
+function lfgSan(pid,m){if(!m||typeof m!=='object'||typeof pid!=='string'||!VOC[m.voc])return null;
+  const hunt=m.hunt==='any'?'any':(HUNTS[m.hunt]&&!HUNTS[m.hunt].boss&&!HUNTS[m.hunt].pvp?m.hunt:null);if(!hunt)return null;
+  return {pid:pid.slice(0,64),nome:prTxt(m.nome,20)||'Jogador',voc:m.voc,level:prNum(m.level,1,9999,1),hunt,papel:lfgPapel(m.voc,m.papel),tam:prNum(m.tam,2,4,4),t0:prNum(m.t0,0,4e12,Date.now()),st:m.st==='q'?'q':'p'};}
+const LFG_H={sync:mapa=>{LFG.ads.clear();for(const [pid,m] of mapa){const a=lfgSan(pid,m);if(a&&a.pid!==PR.pid)LFG.ads.set(a.pid,a);}},
+  entrou:(pid,m)=>{const a=lfgSan(pid,m);if(a&&a.pid!==PR.pid)LFG.ads.set(a.pid,a);else LFG.ads.delete(pid);},saiu:pid=>LFG.ads.delete(pid),rec:(t,m)=>lfgRec(m)};
+function lfgRec(m){try{if(!m||typeof m!=='object'||m.k!=='conv'||m.para!==PR.pid||LFG.fase!=='q'||PT.id||typeof m.pid!=='string')return;
+  const a=LFG.ads.get(m.pid.slice(0,64));if(!a||a.st!=='q')return;   /* só aceita convite de quem está na fila */
+  ptRecCidade('convite',{pid:m.pid,para:PR.pid,nome:m.nome,voc:m.voc,level:m.level,pt:m.pt});
+  const i=PT.conv.findIndex(c=>c.de===m.pid.slice(0,64));if(i<0)return;ptAceitar(i);
+  LFG.fase=null;LFG.msg=`Você entrou na party de ${a.nome}. A caçada começa quando o líder abrir a fila.`;lfgSairCanal();log('sys','🔎 '+LFG.msg,'y');toast('Party encontrada!');}catch(e){}}
+function lfgSairCanal(){const t=LFG.tr;LFG.tr=null;LFG.ads.clear();if(t)try{t.sair();}catch(e){}}
+function lfgFim(msg){LFG.fase=null;LFG.msg=msg||'';lfgSairCanal();if(msg)log('sys','🔎 '+msg,'o');if(modal==='lfg')openModal('lfg',null,true);}
+function lfgIniciar(){if(!S||S.loc!=='city'||(W&&W.loading)){toast('Volte à cidade para procurar party');return;}
+  if(PT.id){toast('Saia da party atual para procurar outra');return;}if(LFG.fase)return;
+  if(!prModoRede()&&!botOn()){toast('Sem rede e com bots desligados não há com quem formar grupo (Configurações > Mostrar bots)');return;}
+  ptPid();LFG.fase='q';LFG.t0=Date.now();LFG.indep=false;LFG.ads.clear();LFG.G=null;LFG.msg='';LFG.hk=null;
+  LFG.eu={pid:PR.pid,nome:prTxt(S.name,20),voc:S.voc,level:S.level,hunt:LFG.hunt,papel:lfgPapel(S.voc,LFG.papel),tam:LFG.tam,t0:LFG.t0,st:'q'};
+  const modo=prModoRede();if(modo){try{LFG.tr=modo==='local'?prTrLocal('lfg'):prTrRealtime((REDE_RT?'rt_':'')+'global','lfg:');LFG.tr.entrar(LFG_H,()=>LFG.eu);}catch(e){LFG.tr=null;}}
+  log('sys',`🔎 Procurando party: ${LFG.hunt==='any'?'qualquer caçada no seu level':HUNTS[LFG.hunt].n}. Se não achar jogadores em ${LFG_ESPERA/1000} s, bots completam o grupo.`,'y');if(modal==='lfg')openModal('lfg',null,true);}
+function lfgCompat(g,c){const all=g.concat(c),lv=all.map(a=>a.level),mn=Math.min(...lv),mx=Math.max(...lv);if(mn*3<mx*2)return false;
+  const hs=new Set(all.map(a=>a.hunt).filter(h=>h!=='any'));if(hs.size>1)return false;const hk=hs.size?[...hs][0]:null;return !hk||mn>=Math.floor(HUNTS[hk].lv*.75);}
+function lfgHuntDe(g){const hs=[...new Set(g.map(a=>a.hunt).filter(h=>h!=='any'))];return hs.length?hs[0]:lfgHuntAny(Math.min(...g.map(a=>a.level)));}
+function lfgGrupo(){if(LFG.indep)return {g:[LFG.eu],seed:LFG.eu};
+  const now=Date.now(),L=[LFG.eu,...[...LFG.ads.values()].filter(a=>a.st==='q'&&now-a.t0<LFG_MAX+60000)].sort((a,b)=>a.t0-b.t0||(a.pid<b.pid?-1:a.pid>b.pid?1:0)),used=new Set();
+  for(const s of L){if(used.has(s.pid))continue;const g=[s];used.add(s.pid);
+    for(const c of L){if(used.has(c.pid)||g.length>=s.tam)continue;if(lfgCompat(g,c)){g.push(c);used.add(c.pid);}}
+    if(g.some(a=>a.pid===PR.pid))return {g,seed:s};}
+  return {g:[LFG.eu],seed:LFG.eu};}
+function lfgFormar(g){const others=g.filter(a=>a.pid!==PR.pid);LFG.hk=lfgHuntDe(g);
+  if(!ptCriar()){lfgFim('Não foi possível criar a party.');return;}
+  LFG.fase='form';LFG.tForm=Date.now();LFG.conv=others.map(a=>a.pid);
+  for(const a of others){PT.sent[a.pid]=Date.now();if(LFG.tr)LFG.tr.enviar('lfg',{k:'conv',para:a.pid,nome:prTxt(S.name,20),voc:S.voc,level:S.level,pt:PT.id});}
+  LFG.eu.st='p';if(LFG.tr)LFG.tr.atualizar(LFG.eu);
+  if(others.length)log('sys',`🔎 Grupo encontrado: ${others.map(a=>a.nome).join(', ')}. Convidando…`,'y');
+  else lfgFormTick(Date.now());}   /* sozinho: completa com bots já (a party de 1 se desfaria no ptTick) */
+function lfgPreencher(){const hs=PT.mb.filter(x=>!x.bot);if(!hs.length)return 0;
+  const ad=pid=>(LFG.G&&LFG.G.g.find(a=>a.pid===pid))||{},pap=new Set(hs.map(x=>x.pid===PR.pid?lfgPapel(S.voc,LFG.eu.papel):lfgPapel(x.voc,ad(x.pid).papel)));
+  const falta=LFG_ROLES.filter(r=>!pap.has(r)),n=Math.min(LFG.eu.tam,PT_MAX)-PT.mb.length,nl=hs.map(x=>x.level),mn=Math.min(...nl),mx=Math.max(...nl),lo=Math.ceil(mx*2/3),hi=Math.max(lo,Math.floor(mn*3/2)),med=nl.reduce((a,b)=>a+b,0)/nl.length;let k=0;
+  if(!botOn())return 0;   /* sem bots ligados, só vai quem é jogador de verdade */
+  for(let i=0;i<n;i++){const role=falta[i]||['dano','lure','cura','bloqueio'][i%4];if(ptBotsAdd(botDaParty(LFG_VOC[role],Math.max(8,clamp(Math.round(med*rnd(.92,1.08)),lo,hi)))))k++;}
+  return k;}
+function lfgFormTick(now){if(!PT.id||!ptSou()){lfgFim('Party desfeita.');return;}
+  const falta=LFG.conv.filter(p=>!ptM(p));if(falta.length&&now-LFG.tForm<LFG_FORM_T)return;
+  const nb=lfgPreencher();if(PT.mb.length<2){ptDesfazer();lfgFim(botOn()?'Não foi possível formar o grupo.':'Ninguém para formar o grupo e os bots estão desligados (Configurações > Mostrar bots).');return;}
+  const hk=LFG.hk;ptIniciarCacada(hk);const ok=!!PT.fila;LFG.fase=null;
+  LFG.msg=ok?`Grupo formado (${PT.mb.length - nb} jogador${PT.mb.length-nb>1?'es':''}${nb?` + ${nb} bot${nb>1?'s':''}`:''}) para ${HUNTS[hk].n}. Fila da party aberta: todos precisam ficar prontos.`:`Grupo formado, mas não foi possível abrir a fila de ${HUNTS[hk].n}.`;
+  lfgSairCanal();log('sys','🔎 '+LFG.msg,'y');toast('Party formada!');if(modal==='lfg')openModal('lfg',null,true);}
+function lfgTick(){try{if(!LFG.fase)return;const now=Date.now();
+  if((LFG.fase==='q'||LFG.fase==='form')&&(!S||S.loc!=='city')){lfgFim('Busca cancelada: você saiu da cidade.');return;}
+  if(LFG.fase==='q'){
+    if(PT.id){lfgFim('Busca cancelada: você já está numa party.');return;}
+    if(now-LFG.t0>LFG_MAX){lfgFim('Busca cancelada: tempo esgotado.');return;}
+    const G=LFG.G=lfgGrupo();
+    if(G.seed.pid===PR.pid){const g=G.g,full=g.length>=LFG.eu.tam,mt=Math.max(...g.map(a=>a.t0));
+      if(full||now-LFG.t0>=LFG_ESPERA||(g.length>=2&&now-mt>=LFG_GRACE))lfgFormar(g);}
+    else if(now-LFG.t0>LFG_ESPERA+10000)LFG.indep=true;}   /* o líder do meu grupo nunca me chamou: sigo sozinho (com bots) */
+  else if(LFG.fase==='form')lfgFormTick(now);
+  if(modal==='lfg'){const sig=LFG.fase+'|'+Math.floor((now-LFG.t0)/1000)+'|'+LFG.ads.size+'|'+(LFG.G?LFG.G.g.length:0);if(sig!==LFG.sig){LFG.sig=sig;openModal('lfg',null,true);}}
+}catch(e){}}
+setInterval(lfgTick,500);
+document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.lfg&&!LFG.fase){LFG[t.dataset.lfg]=t.dataset.lfg==='tam'?clamp(+t.value||4,2,4):t.value;}});
+Object.assign(MODALS,{lfg:hk=>{if(hk&&HUNTS[hk]&&!LFG.fase&&!HUNTS[hk].boss&&!HUNTS[hk].pvp)LFG.hunt=hk;
+  const nome=k=>k==='any'?'qualquer caçada no meu level':HUNTS[k].n,papT=p=>IA_ROL_TXT[p],sel=(a,b)=>a===b?'selected':'';
+  let body;
+  if(LFG.fase==='q'||LFG.fase==='form'){const el=Math.floor((Date.now()-LFG.t0)/1000),rest=Math.max(0,Math.ceil(LFG_ESPERA/1000)-el),G=LFG.G,lista=[LFG.eu,...[...LFG.ads.values()].filter(a=>a.st==='q')];
+    body=`<div class="lfgst"><b>${LFG.fase==='form'?'Formando o grupo…':'🔎 Procurando party…'}</b><div class="sm mut">${esc(nome(LFG.hunt))} · papel: ${papT(lfgPapel(S.voc,LFG.papel))} · grupo de ${LFG.tam}</div>
+      <div class="bar"><i style="width:${Math.min(100,Math.round(el/(LFG_ESPERA/1000)*100))}%"></i></div>
+      <div class="sm">${LFG.fase==='form'?'Convites enviados; os bots completam o que faltar.':rest>0?`Em ${rest} s os bots ${botHTML(12)} completam os papéis que faltarem.`:'Completando o grupo…'}</div></div>
+      <h4 style="margin:10px 0 2px">Jogadores na fila (${lista.length})</h4>`+lista.map(a=>`<div class="sm">${esc(a.nome)}${a.pid===PR.pid?' (você)':''} · ${esc(VOC[a.voc].n)} Lv ${a.level} · ${esc(nome(a.hunt))}${G&&G.g.some(x=>x.pid===a.pid)&&a.pid!==PR.pid?' <b style="color:#7fe07f">✓ compatível</b>':''}</div>`).join('')+
+      `<div style="margin-top:10px;text-align:right"><button class="btn red" data-act="lfgCancelar">Cancelar busca</button></div>`;}
+  else{
+    body=`<div class="lfgbox"><p class="mut sm">Entre numa fila para achar jogadores com level compatível (regra de exp compartilhada de 2/3) na mesma caçada. Se não aparecer ninguém, ${botHTML(12)} <b>bots</b> completam os papéis que faltam (bloqueio, cura, dano, lure) — eles contam para o bônus de vocações, mas não recebem exp nem loot.</p>
+      ${LFG.msg?`<div class="lfgst"><b>Resultado:</b> ${esc(LFG.msg)}</div>`:''}
+      <label>Caçada<select data-lfg="hunt"><option value="any" ${sel(LFG.hunt,'any')}>Qualquer caçada no meu level</option>${lfgHunts().map(k=>`<option value="${k}" ${sel(LFG.hunt,k)}>Lv ${HUNTS[k].lv}+ · ${esc(HUNTS[k].n)}</option>`).join('')}</select></label>
+      <label>Papel<select data-lfg="papel"><option value="auto" ${sel(LFG.papel,'auto')}>Automático (${papT(IA_ROL[S.voc]||'dano')})</option>${LFG_ROLES.map(r=>`<option value="${r}" ${sel(LFG.papel,r)}>${papT(r)}</option>`).join('')}</select></label>
+      <label>Tamanho do grupo<select data-lfg="tam">${[2,3,4].map(n=>`<option value="${n}" ${LFG.tam===n?'selected':''}>${n} membros</option>`).join('')}</select></label>
+      ${!botOn()?'<p class="red sm">Bots desligados (Configurações > Mostrar bots): só formará grupo com jogadores reais.</p>':''}
+      ${PT.id?'<p class="red sm">Você já está numa party.</p>':S.loc!=='city'?'<p class="red sm">Volte à cidade para procurar party.</p>':''}
+      <div style="text-align:right"><button class="btn go" data-act="lfgIniciar" ${PT.id||S.loc!=='city'?'disabled':''}>Entrar na fila</button></div></div>`;}
+  return {title:'🔎 Procurar party',sm:true,body};}});
+/* ---- relógio dos bots (100 ms; pausa com a aba escondida) ---- */
+function botLimpar(){BOT.cid.clear();BOT.hunt.length=0;for(const [k,r] of [...PV.remotos])if(r.bot){PV.remotos.delete(k);if(PV.alvo===k){PV.alvo=null;PV.alvoAuto=false;}}BOT.pvOk=false;BOT.init=false;}
+function botReset(){BOT.cid.clear();BOT.hunt.length=0;BOT.init=false;BOT.poi=null;BOT.poiW=null;BOT.huntProx=performance.now()+rnd(5e3,25e3);BOT.tSync=0;BOT.pvOk=false;}
+function botTick(){try{
+  if(!S||!W||document.hidden||W.loading||ON.parado||modal==='create')return;const now=performance.now();
+  if(BOT.W!==W){BOT.W=W;botReset();}
+  if(!botOn()){if(BOT.cid.size||BOT.hunt.length||BOT.pvOk)botLimpar();return;}
+  if(S.loc==='city'&&W.city)botCidTick(now);
+  else if(!W.city&&S.loc!=='arena'&&S.loc!=='treino'){botHuntTick(now);botPvTick(now);}
+}catch(e){}}
+setInterval(botTick,100);
+const BOTACT={botPerfil:a=>{hideCtx();openModal('botPerfil',a);},botConvidar:a=>botConvidar(a),lfgAbrir:a=>openModal('lfg',a||null),lfgIniciar:()=>lfgIniciar(),
+  lfgCancelar:()=>{if(LFG.fase==='form'&&PT.id&&ptSou())ptDesfazer();lfgFim('Busca cancelada.');}};
 
 /* ======================= BOSSES EM GRUPO =======================
    Só em party (≥2, ≥3 recomendado), iniciados pelo líder pela fila normal da party (ptIniciarCacada). Cada boss é uma entrada de HUNTS (h.boss = id do monstro)
