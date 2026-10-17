@@ -98,29 +98,9 @@ def torre(spr, rnd, n, ruina=False):
     return im
 
 
-def balista(spr):
-    """A balista das muralhas ao sul de Thais (x 79-80, y 126-127): três peças em 2 x 2 tiles."""
-    im = Image.new("RGBA", (64, 64))
-    for k, tx, ty in (("2436", 1, 0), ("2452", 0, 1), ("2454", 1, 1)):
-        p = spr(k)
-        im.alpha_composite(p, (tx * 32 + 32 - p.width, ty * 32 + 32 - p.height))
-    return im
-
-
-def tumulo():
-    """Monte de terra de cova (item 11484) com uma caveira (item 3114) em cima, ampliados."""
-    terra = Image.open(os.path.join(RAIZ, "tibia-assets/sprites15/itens/11484.png")).convert("RGBA").resize((64, 64), Image.NEAREST)
-    caveira = Image.open(os.path.join(RAIZ, "tibia-assets/sprites15/itens/3114.png")).convert("RGBA").resize((48, 48), Image.NEAREST)
-    im = Image.new("RGBA", (64, 64))
-    im.alpha_composite(terra, (0, 0))
-    im.alpha_composite(caveira, (10, -4))
-    return im
-
-
 def exportar_torres(spr, rnd, pasta):
     pecas = [("princesa", torre(spr, rnd, 3)), ("rei", torre(spr, rnd, 4)),
-             ("ruina3", torre(spr, rnd, 3, True)), ("ruina4", torre(spr, rnd, 4, True)),
-             ("balista", balista(spr)), ("tumulo", tumulo())]
+             ("ruina3", torre(spr, rnd, 3, True)), ("ruina4", torre(spr, rnd, 4, True))]
     W, H = sum(p.width for _, p in pecas) + 2 * len(pecas), max(p.height for _, p in pecas)
     atlas, meta, x = Image.new("RGBA", (W, H)), {}, 0
     for nome, p in pecas:
@@ -129,7 +109,7 @@ def exportar_torres(spr, rnd, pasta):
         x += p.width + 2
     atlas.save(os.path.join(pasta, "torres.png"), optimize=True)
     with open(os.path.join(pasta, "torres.js"), "w", encoding="utf-8") as f:
-        f.write("/* gerado por ferramentas/gerar_arena_royale.py: torres, ruínas e construções (base da imagem = base do quadrado) */\n")
+        f.write("/* gerado por ferramentas/gerar_arena_royale.py: torres e ruínas (base da imagem = base do quadrado da torre) */\n")
         f.write("window.TORRES_SPR=" + json.dumps(meta, separators=(",", ":")) + ";\n")
     return meta
 
