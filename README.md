@@ -12,9 +12,11 @@ na nuvem e jogar de qualquer aparelho. Também dá para clicar em **Jogar offlin
 
 Jogo de cartas e torres no estilo Clash Royale, com criaturas, runas e mapas do Tibia: https://lubra-lucas.github.io/tibiaidle/royale/
 
-Monte um baralho de 8 cartas (orcs, hunters, minotaur guard, dragon, valkyrie, behemoth, demon e as runas great fireball,
-avalanche e thunderstorm), arraste as cartas para o campo gastando mana e derrube as torres do oponente (controlado pelo computador).
-O fundo da arena é feito com tiles reais de Thais por `ferramentas/gerar_arena_royale.py`.
+Monte um baralho de 8 entre 35 cartas: criaturas do Tibia (orcs, goblins, esqueletos, hunters, dragon, valkyrie, necromancer,
+fire devil, terror bird, orc rider, cyclops, bonebeast, demon…), construções (Grave e Ballista) e runas (great fireball, avalanche,
+paralyze, poison bomb, sudden death, haste…). Arraste as cartas para o campo gastando mana e derrube as torres do oponente
+(controlado pelo computador). As torres têm um paladino que atira flechas e solta exori con, e o rei é um knight com exori hur.
+O fundo da arena e as torres são feitos com tiles reais de Thais por `ferramentas/gerar_arena_royale.py`.
 
 ## Aviso
 

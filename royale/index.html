@@ -36,7 +36,17 @@ h2{margin:0 0 8px;font-size:16px;color:var(--gold)}
 .sub{color:var(--mut);text-align:center;margin:4px 0 14px;font-size:13px}
 #baralho{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 #baralho .carta{cursor:pointer;height:96px}
-#baralho .carta.fora{opacity:.45;filter:grayscale(.6)}
+#baralho .carta.no{border-color:var(--gold);box-shadow:inset 0 0 0 2px #e6b45066;filter:brightness(1.15)}
+#baralho .carta .tp{position:absolute;top:2px;right:3px;font-size:11px;pointer-events:none}
+#selecionadas{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-bottom:8px}
+.carta.mini{height:54px;cursor:pointer}
+.carta.mini canvas{width:36px;height:36px}
+.carta.mini .cu{transform:scale(.8);top:0;left:0}
+.carta.vazia{background:#1a140e;border-style:dashed;cursor:default}
+#filtros{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+#filtros button{padding:5px 9px;font-size:12px}
+#filtros button.on{background:#8b6d3d;color:#fff}
+#baralho{max-height:46vh;overflow:auto;padding:2px}
 #baralho .carta .ds{font-size:8px;color:var(--mut);pointer-events:none;text-align:center;padding:0 2px}
 .linha{display:flex;gap:8px;margin-top:14px;justify-content:center;flex-wrap:wrap;align-items:center}
 button{background:#5a4526;color:var(--tx);border:1px solid #8b6d3d;border-radius:5px;padding:10px 14px;font:bold 14px Verdana,sans-serif;cursor:pointer}
@@ -64,6 +74,8 @@ select{background:#1a140e;color:var(--tx);border:1px solid var(--bd);border-radi
     <h1>⚔ Tibia Royale</h1>
     <p class="sub">Monte seu baralho com criaturas e runas do Tibia e derrube as torres do inimigo.</p>
     <h2>Seu baralho <small id="contagem" style="color:var(--mut);font-size:12px"></small></h2>
+    <div id="selecionadas"></div>
+    <div id="filtros"></div>
     <div id="baralho"></div>
     <div id="media"></div>
     <div class="linha">
@@ -74,7 +86,8 @@ select{background:#1a140e;color:var(--tx);border:1px solid var(--bd);border-radi
       Toque nas cartas para montar um baralho de 8. Na batalha, <b>arraste uma carta</b> até o campo (ou toque nela e depois no campo).
       Cada carta custa <b style="color:#d68cff">mana</b>, que enche sozinha (dobra no último minuto).
       Criaturas só podem ser postas no seu lado do rio; runas, em qualquer lugar.
-      Derrube uma torre lateral para ganhar 👑 e poder invadir aquele lado. Derrubar o rei vale 3 👑.
+      Derrube uma torre lateral para ganhar 👑 e poder invadir aquele lado. Derrubar o rei vale 3 👑.<br>
+      Cada criatura tem seu jeito: umas voam, outras só atacam torres, pulam o rio, ficam invisíveis, explodem ao morrer ou invocam esqueletos. Leia a carta!
     </div>
     <p class="sub" style="margin:12px 0 0;font-size:11px">Projeto de fã sem fins lucrativos. Tibia, sprites e mapas pertencem à CipSoft GmbH.</p>
   </div>
@@ -92,6 +105,7 @@ select{background:#1a140e;color:var(--tx);border:1px solid var(--bd);border-radi
 <script src="../tibia-assets/sprites15.js"></script>
 <script src="../tibia-assets/outfits15.js"></script>
 <script src="../tibia-assets/combate15.js"></script>
+<script src="torres.js"></script>
 <script>
 'use strict';
 /* ================================================================ utilidades e imagens */
@@ -129,32 +143,72 @@ function folhaCriatura(id){const f=CRI[id];if(!f)return null;const im=img(f.src)
 
 /* ================================================================ arena (royale/arena.png, feita por ferramentas/gerar_arena_royale.py) */
 const FW=18,FH=33,MARG=2,TS=32,RIO=[15,18],PONTES=[3.5,14.5];
-function podeAndar(x,y,r){if(x<r||x>FW-r||y<r||y>FH-r)return false;
-  if(y+r>RIO[0]&&y-r<RIO[1])return PONTES.some(b=>Math.abs(x-b)<=1.5-r);return true;}
+/* pula = atravessa o rio por qualquer lugar (Terror Bird) */
+function podeAndar(x,y,r,pula){if(x<r||x>FW-r||y<r||y>FH-r)return false;
+  if(!pula&&y+r>RIO[0]&&y-r<RIO[1])return PONTES.some(b=>Math.abs(x-b)<=1.5-r);return true;}
 const lado=y=>y<16.5?1:0;   /* 0 = sul (você), 1 = norte (oponente) */
+const TSPR=window.TORRES_SPR||{};   /* royale/torres.js: torres, ruínas e construções */
 
 /* ================================================================ cartas */
 /* vel em tiles/s, alc = alcance além dos raios, hit = intervalo, prim = demora do 1º golpe, raio de colisão;
-   ar = voa; atingeAr = acerta quem voa; soPredio = só ataca torres; splash = raio do dano em área; giro = área em volta de quem bate */
+   ar = voa; atingeAr = acerta quem voa; soPredio = só ataca torres e construções; splash = raio do dano em área; giro = área em volta de quem bate;
+   grupo = [[unidade, quantidade], ...] quando a carta solta mais de um tipo; esc = escala do desenho.
+   Mecânicas: investida (corre e bate em dobro), pula (atravessa o rio), dash (salta no alvo e fica invulnerável no salto),
+   invis (some até atacar), rampa (dano que cresce no mesmo alvo), lentoAlvo (cada golpe deixa lento), cura (cura aliados em volta),
+   gera (solta criaturas de tempos em tempos), morte (explode ao morrer), morteGera (solta criaturas ao morrer),
+   predio (construção parada que perde vida com o tempo: vida = segundos) */
+const UNID={
+  esqueleto:{n:'Skeleton',spr:'skeleton',hp:70,dano:65,vel:1.4,alc:.5,hit:1,prim:.3,raio:.3,ef:1},
+  lanceiro:{n:'Goblin Scavenger',spr:'goblin_scavenger',atingeAr:true,hp:110,dano:55,vel:1.4,alc:5,hit:1.2,prim:.4,raio:.3,tiro:1,ef:1},
+  slimeP:{n:'Slime',spr:'slime',hp:420,dano:45,vel:1.05,alc:.5,hit:1.2,prim:.4,raio:.38,ef:17,esc:.7},
+};
 const CARTAS={
+  esqueletos:{n:'Skeletons',d:'Três esqueletos baratos para distrair e girar o baralho.',custo:1,grupo:[['esqueleto',3]],spr:'skeleton'},
+  morcegos:{n:'Bats',d:'Quatro morcegos que voam.',custo:2,qtd:4,spr:'bat',ar:true,atingeAr:true,hp:75,dano:55,vel:1.8,alc:.5,hit:1,prim:.3,raio:.3,ef:1},
   orcs:{n:'Orcs',d:'Três orcs rápidos e baratos.',custo:2,qtd:3,spr:'orc',hp:170,dano:60,vel:1.4,alc:.5,hit:1.1,prim:.4,raio:.32,ef:1},
-  morcegos:{n:'Morcegos',d:'Quatro morcegos que voam.',custo:2,qtd:4,spr:'bat',ar:true,atingeAr:true,hp:75,dano:55,vel:1.8,alc:.5,hit:1,prim:.3,raio:.3,ef:1},
+  goblins:{n:'Goblin Gang',d:'Três goblins rápidos e dois que atiram lanças.',custo:3,spr:'goblin',grupo:[['goblins',3],['lanceiro',2]],hp:150,dano:95,vel:1.8,alc:.5,hit:1.1,prim:.3,raio:.3,ef:1},
+  exercito:{n:'Skeleton Army',d:'Doze esqueletos de uma vez. Cuidado com dano em área!',custo:3,grupo:[['esqueleto',12]],spr:'skeleton_warrior'},
   cacadores:{n:'Hunters',d:'Dupla de arqueiros. Acertam quem voa.',custo:3,qtd:2,spr:'hunter',atingeAr:true,hp:270,dano:80,vel:1.05,alc:5,hit:1.1,prim:.5,raio:.38,tiro:3,ef:1},
   minotauro:{n:'Minotaur Guard',d:'Guerreiro resistente de corpo a corpo.',custo:3,qtd:1,spr:'minotaur_guard',hp:1150,dano:135,vel:1.05,alc:.5,hit:1.3,prim:.5,raio:.45,ef:10},
+  vespas:{n:'Wasps',d:'Três vespas voadoras que cospem veneno.',custo:3,qtd:3,spr:'wasp',ar:true,atingeAr:true,hp:190,dano:85,vel:1.4,alc:2,hit:1,prim:.4,raio:.32,tiro:15,ef:17},
+  bruxa:{n:'Ice Witch',d:'Gelo de longe: cada golpe deixa o alvo lento.',custo:3,qtd:1,spr:'ice_witch',atingeAr:true,hp:620,dano:80,splash:.8,lentoAlvo:2.5,vel:1.05,alc:5.5,hit:1.3,prim:.6,raio:.4,tiro:37,ef:44},
+  assassino:{n:'Assassin',d:'Salta no alvo de 3 a 6 tiles e fica invulnerável no salto.',custo:3,qtd:1,spr:'assassin',dash:true,hp:750,dano:160,vel:1.4,alc:.5,hit:1,prim:.3,raio:.4,ef:10},
+  fantasma:{n:'Ghost',d:'Fica invisível até atacar. Dano em área.',custo:3,qtd:1,spr:'ghost',invis:true,hp:1000,dano:210,splash:1,vel:1.4,alc:.5,hit:1.8,prim:.4,raio:.42,ef:18},
+  slime:{n:'Slime',d:'Ao morrer se divide em dois slimes menores.',custo:3,qtd:1,spr:'slime',hp:1000,dano:90,vel:1.05,alc:.5,hit:1.2,prim:.5,raio:.5,ef:17,morteGera:['slimeP',2]},
+  tumulo:{n:'Grave',d:'Construção: solta esqueletos e mais quatro ao cair.',custo:3,predio:true,sprPredio:'tumulo',vida:40,hp:450,raio:.6,gera:{k:'esqueleto',n:1,cada:3.5},morteGera:['esqueleto',4]},
+  balista:{n:'Ballista',d:'Construção que atira flechas grossas em quem anda.',custo:3,predio:true,sprPredio:'balista',vida:30,hp:750,raio:.7,dano:170,alc:5.5,hit:.9,prim:.3,tiro:2,ef:1},
   elfo:{n:'Elf Arcanist',d:'Magia de energia em área, de longe.',custo:4,qtd:1,spr:'elf_arcanist',atingeAr:true,hp:620,dano:150,splash:1.1,vel:1.05,alc:5,hit:1.5,prim:.7,raio:.4,tiro:5,ef:12},
   dragao:{n:'Dragon',d:'Voa e cospe fogo em área.',custo:4,qtd:1,spr:'dragon',ar:true,atingeAr:true,hp:980,dano:125,splash:1.3,vel:1.35,alc:3.5,hit:1.6,prim:.6,raio:.6,tiro:4,ef:7},
   valquiria:{n:'Valkyrie',d:'Gira o machado e acerta todos em volta.',custo:4,qtd:1,spr:'valkyrie',hp:1450,dano:165,giro:1.5,vel:1.05,alc:.5,hit:1.5,prim:.5,raio:.45,ef:10},
-  behemoth:{n:'Behemoth',d:'Tanque enorme. Só ataca torres.',custo:5,qtd:1,spr:'behemoth',soPredio:true,hp:3300,dano:210,vel:.8,alc:.6,hit:1.5,prim:.6,raio:.7,ef:35},
+  gladiador:{n:'Gladiator',d:'Pouca vida para o custo, mas golpes enormes.',custo:4,qtd:1,spr:'gladiator',hp:1250,dano:520,vel:1.4,alc:.5,hit:1.7,prim:.5,raio:.45,ef:10},
+  monge:{n:'Monk',d:'Luta de perto e cura os aliados em volta.',custo:4,qtd:1,spr:'monk',hp:1100,dano:120,cura:{raio:3,ps:55},vel:1.05,alc:.5,hit:1.3,prim:.5,raio:.45,ef:10},
+  diabo:{n:'Fire Devil',d:'Raio de fogo que esquenta: quanto mais tempo no alvo, mais dano.',custo:4,qtd:1,spr:'fire_devil',atingeAr:true,rampa:[30,100,320],hp:950,vel:1.4,alc:3.5,hit:.4,prim:.4,raio:.4,ef:16},
+  passaro:{n:'Terror Bird',d:'Rápido, pula o rio e só ataca torres e construções.',custo:4,qtd:1,spr:'terror_bird',soPredio:true,pula:true,hp:1450,dano:220,vel:1.8,alc:.5,hit:1.6,prim:.4,raio:.5,ef:10},
+  behemoth:{n:'Behemoth',d:'Tanque enorme. Só ataca torres e construções.',custo:5,qtd:1,spr:'behemoth',soPredio:true,hp:3300,dano:210,vel:.8,alc:.6,hit:1.5,prim:.6,raio:.7,ef:35},
+  necromante:{n:'Necromancer',d:'Magia de morte em área e invoca esqueletos sem parar.',custo:5,qtd:1,spr:'necromancer',atingeAr:true,hp:720,dano:110,splash:1,vel:1.05,alc:5,hit:1.1,prim:.6,raio:.4,tiro:11,ef:18,gera:{k:'esqueleto',n:2,cada:7,ini:1}},
+  orcrider:{n:'Orc Rider',d:'Investida: depois de correr, o primeiro golpe dá dano em dobro.',custo:5,qtd:1,spr:'orc_rider',investida:true,hp:1600,dano:300,vel:1.05,alc:.6,hit:1.4,prim:.4,raio:.55,ef:10},
+  wyvern:{n:'Wyvern',d:'Voa até as torres e explode ao morrer.',custo:5,qtd:1,spr:'wyvern',ar:true,soPredio:true,hp:1200,dano:600,vel:1.05,alc:.3,hit:3,prim:.3,raio:.55,ef:6,morte:{dano:220,raio:1.5,atraso:0,ef:5}},
+  ciclope:{n:'Cyclops',d:'Joga pedras nas torres de longe. Só ataca construções.',custo:6,qtd:1,spr:'cyclops',soPredio:true,hp:2600,dano:150,vel:.8,alc:5,hit:1.7,prim:.6,raio:.65,tiro:12,ef:45},
+  bonebeast:{n:'Bonebeast',d:'Tanque de ossos que solta uma bomba enorme ao morrer.',custo:6,qtd:1,spr:'bonebeast',hp:2800,dano:180,vel:1.05,alc:.5,hit:1.4,prim:.5,raio:.65,ef:10,morte:{dano:650,raio:2.5,atraso:1.2,ef:6}},
   demon:{n:'Demon',d:'Dano devastador, mas lento para bater.',custo:7,qtd:1,spr:'demon',hp:3100,dano:560,vel:1.05,alc:.6,hit:1.8,prim:.6,raio:.7,ef:10},
   tempestade:{n:'Thunderstorm',d:'Runa: raio pequeno que atordoa.',custo:2,feitico:true,item:3202,raio:2,dano:180,atord:.6,tiro:36,ef:38},
+  furia:{n:'Haste',d:'Magia: seus aliados na área andam e batem 35% mais rápido por 6s.',custo:2,feitico:true,icone:'tibiawiki-sprites/tibiawiki-sprites/magias/Haste.gif',aliado:true,raio:4,furia:6,ef:15},
   avalanche:{n:'Avalanche',d:'Runa: gelo em área e deixa lento.',custo:3,feitico:true,item:3161,raio:2.5,dano:250,lento:4,tiro:29,ef:42},
   gfb:{n:'Great Fireball',d:'Runa: muito dano em área.',custo:4,feitico:true,item:3191,raio:2.5,dano:470,tiro:4,ef:7},
+  paralisia:{n:'Paralyze',d:'Runa: congela tudo na área (até torres) por 4s.',custo:4,feitico:true,item:3165,raio:3,dano:90,atord:4,congela:true,ef:43,danoIA:300},
+  veneno:{n:'Poison Bomb',d:'Runa: campo de veneno que machuca por 8s.',custo:4,feitico:true,item:3173,raio:3.5,dot:{ps:70,dur:8},tiro:15,ef:21,danoIA:380},
+  sd:{n:'Sudden Death',d:'Runa: dano enorme num ponto pequeno.',custo:6,feitico:true,item:3155,raio:1.3,dano:1150,tiro:32,ef:18},
 };
+UNID.goblins=CARTAS.goblins;
 const BARALHO_PADRAO=['orcs','cacadores','minotauro','dragao','valquiria','behemoth','gfb','tempestade'];
+const grupos=c=>c.grupo?c.grupo.map(([k,n])=>[UNID[k]||CARTAS[k],n]):[[c,c.qtd||1]];
+const hpTotal=c=>grupos(c).reduce((s,[u,n])=>s+(u.hp||0)*n,0);
+const tipoCarta=c=>c.feitico?'✨':c.predio?'🏠':c.ar?'🪽':'⚔';
 
-/* retrato da carta: criatura parada olhando para o sul, ou o item da runa */
+/* retrato da carta: criatura parada olhando para o sul, construção, ou o item/ícone da runa */
 function pintarRetrato(cv,k){const c=CARTAS[k],g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,cv.width,cv.height);
-  if(c.feitico){const im=img(ITM(c.item));if(!im)return false;g.drawImage(im,0,0,im.naturalWidth,im.naturalHeight,cv.width*.1,cv.height*.1,cv.width*.8,cv.height*.8);return true;}
+  if(c.feitico){const im=img(c.icone||ITM(c.item));if(!im)return false;g.drawImage(im,0,0,im.naturalWidth,im.naturalHeight,cv.width*.1,cv.height*.1,cv.width*.8,cv.height*.8);return true;}
+  if(c.predio){const im=img('royale/torres.png'),t=TSPR[c.sprPredio];if(!im||!t)return false;g.drawImage(im,t.x,0,t.w,t.h,0,0,cv.width,cv.height);return true;}
   const f=folhaCriatura(c.spr);if(!f)return false;
   /* recorta em volta do corpo: folhas de 64 com deslocamento têm o corpo no canto de baixo à direita; as de 32 ficam menores */
   if(f.w===32){const m=cv.width*.15;g.drawImage(f.img,0,2*f.h,32,32,m,m,cv.width-2*m,cv.height-2*m);}
@@ -168,25 +222,32 @@ setInterval(()=>{for(const p of _pendentes)if(pintarRetrato(p[0],p[1]))_pendente
 /* ================================================================ estado da partida */
 let G=null;
 const TIME_COR=[[0,88,88,95],[0,77,77,114]];   /* azul e vermelho na paleta do Tibia */
+/* torres: paladino nas laterais (flecha, e de vez em quando exori con com a lança etérea) e knight no rei (exori hur) */
 function novaTorre(team,tipo,x,y){const rei=tipo==='rei';
   return {torre:true,tipo,team,x,y,raio:rei?2:1.5,tam:rei?4:3,hp:rei?3800:2400,hpMax:rei?3800:2400,vivo:true,alc:rei?7:7.5,dano:rei?100:80,hit:rei?1:.8,
-    tiro:rei?14:3,ef:1,ativo:!rei,prAtk:0,alvo:null,dir:team?2:0};}
+    tiro:rei?2:3,ef:1,esp:rei?{w:'exori hur',tiro:25,ef:10,mult:1.8,cada:4}:{w:'exori con',tiro:28,ef:10,mult:1.8,cada:5},
+    alt:rei?1.75:1.45,look:rei?'131':'129',ativo:!rei,prAtk:0,alvo:null,dir:team?2:0,tiros:0,fala:null,atord:0};}
 function iniciar(baralho,dific){
   $('#lobby').style.display='none';$('#fim').style.display='none';
-  const deckIA=[...BARALHO_PADRAO];/* oponente: baralho sorteado com pelo menos uma runa */
-  {const ks=Object.keys(CARTAS).sort(()=>Math.random()-.5);const d=new Set([pick(['gfb','avalanche','tempestade'])]);for(const k of ks){if(d.size>=8)break;d.add(k);}deckIA.splice(0,8,...d);}
-  G={t:0,fim:false,ents:[],efs:[],tiros:[],txt:[],later:[],cadaveres:[],dific,dur:180,extra:false,
-     jog:[mkJog(baralho),mkJog(deckIA)],coroas:[0,0],sel:-1,arr:null,msg:null};
+  /* oponente: baralho sorteado com pelo menos uma runa e uma tropa que acerta quem voa */
+  const ks=Object.keys(CARTAS).sort(()=>Math.random()-.5);const d=new Set([pick(['gfb','avalanche','tempestade','veneno']),pick(['cacadores','dragao','bruxa','elfo','vespas','morcegos'])]);
+  for(const k of ks){if(d.size>=8)break;d.add(k);}
+  G={t:0,fim:false,ents:[],efs:[],tiros:[],txt:[],later:[],cadaveres:[],campos:[],dific,dur:180,extra:false,
+     jog:[mkJog(baralho),mkJog([...d])],coroas:[0,0],sel:-1,arr:null,msg:null};
   for(const t of [0,1]){const f=y=>t?FH-y:y;
     G.ents.push(novaTorre(t,'princesa',3.5,f(26.5)),novaTorre(t,'princesa',14.5,f(26.5)),novaTorre(t,'rei',9,t?2.5:30.5));}
   aviso('Batalha!');montarMao();}
 function mkJog(deck){const fila=[...deck].sort(()=>Math.random()-.5);return {mana:5,mao:fila.splice(0,4),fila,prox:2};}
-const vivos=()=>G.ents.filter(e=>e.vivo);
+const ehPredio=e=>e.torre||(e.c&&e.c.predio);
+const invisivel=e=>e.c&&e.c.invis&&G.t>(e.visAte||0);
 const inimigos=team=>G.ents.filter(e=>e.vivo&&e.team!==team&&!(e.nasc>G.t));
+const alvos=team=>inimigos(team).filter(e=>!invisivel(e));   /* o que dá para mirar (fantasma invisível não; magia de área pega) */
 function later(s,fn){G.later.push({t:G.t+s,fn});}
 function efeito(id,x,y,atraso=0){if(id&&CB.efeitos[id])G.efs.push({id,x,y,b:G.t+atraso});}
-function tiro(id,a,b){if(!id||!CB.tiros[id])return 0;const dur=.11*Math.sqrt(Math.hypot(b.x-a.x,b.y-a.y))+.04;G.tiros.push({id,x1:a.x,y1:a.y-(a.ar?.6:0)-(a.torre?1:0),x2:b.x,y2:b.y-(b.ar?.6:0),b:G.t,dur});return dur;}
+const altura=e=>e.torre?e.alt:e.ar?.6:0;
+function tiro(id,a,b){if(!id||!CB.tiros[id])return 0;const dur=.11*Math.sqrt(Math.hypot(b.x-a.x,b.y-a.y))+.04;G.tiros.push({id,x1:a.x,y1:a.y-altura(a),x2:b.x,y2:b.y-(b.ar?.6:0),b:G.t,dur});return dur;}
 function texto(x,y,t,cor){G.txt.push({x,y,t:String(t),cor,b:G.t});}
+function falar(e,t){e.fala={t,ate:G.t+1.4};}
 function aviso(t){G.msg={t,b:G.t};}
 
 /* ---------------------------------------------------------------- jogar cartas */
@@ -201,77 +262,118 @@ function ajustarPos(team,c,x,y){if(c.feitico)return [Math.min(FW-.5,Math.max(.5,
   /* procura o ponto válido mais perto (soltar fora da área não desperdiça a carta) */
   let best=null,bd=1e9;for(let yy=.5;yy<FH;yy+=.5)for(let xx=.5;xx<FW;xx+=.5){if(!areaValida(team,xx,yy))continue;const d=Math.hypot(xx-x,yy-y);if(d<bd){bd=d;best=[xx,yy];}}
   return best;}
+/* posições de um grupo: até 4 em quadradinho, mais que isso em anéis */
+function formacao(n){if(n<=4)return [[[0,0]],[[-.5,0],[.5,0]],[[0,-.45],[-.5,.4],[.5,.4]],[[-.45,-.45],[.45,-.45],[-.45,.45],[.45,.45]]][n-1];
+  const o=[[0,0]];let r=.6,k=0;while(o.length<n){const m=Math.round(2*Math.PI*r/.62);for(let i=0;i<m&&o.length<n;i++){const a=i/m*Math.PI*2+k;o.push([Math.cos(a)*r,Math.sin(a)*r]);}r+=.6;k+=.3;}return o;}
+function criarUnidade(team,c,x,y,nasc=1){if(!c.ar&&!podeAndar(x,y,c.raio,c.pula)){const p=[[0,0],[.5,0],[-.5,0],[0,.5],[0,-.5],[1,0],[-1,0]].map(([dx,dy])=>[x+dx,y+dy]).find(([a,b])=>podeAndar(a,b,c.raio,c.pula));if(!p)return null;[x,y]=p;}
+  const u={c,team,x,y,raio:c.raio,hp:c.hp,hpMax:c.hp,vivo:true,ar:!!c.ar,nasc:G.t+nasc,prAtk:0,alvo:null,dir:team?2:0,mov:false,lento:0,atord:0,furia:0,prBusca:0,fase:Math.random()*1000,
+    prGera:c.gera?G.t+nasc+(c.gera.ini??c.gera.cada):0,prCura:0,corre:0,carga:false,visAte:0};
+  G.ents.push(u);return u;}
+function soltarGrupo(team,c,x,y,nasc=1,ef=true){const lista=[];for(const [u,n] of grupos(c))for(let i=0;i<n;i++)lista.push(u);
+  formacao(lista.length).forEach(([dx,dy],i)=>{const u=criarUnidade(team,lista[i],x+dx,y+dy,nasc);if(u&&ef)efeito(11,u.x,u.y);});}
 function jogarCarta(team,i,x,y){const P=G.jog[team],k=P.mao[i],c=CARTAS[k];if(!c||P.mana<c.custo||G.fim)return false;
   const p=ajustarPos(team,c,x,y);if(!p)return false;[x,y]=p;
   P.mana-=c.custo;P.mao[i]=P.fila.shift();P.fila.push(k);
-  if(c.feitico)lancarRuna(team,c,x,y);
-  else{const offs=[[[0,0]],[[-.5,0],[.5,0]],[[0,-.45],[-.5,.4],[.5,.4]],[[-.45,-.45],[.45,-.45],[-.45,.45],[.45,.45]]][c.qtd-1];
-    for(const [dx,dy] of offs){let ux=x+dx,uy=y+dy;if(!c.ar&&!podeAndar(ux,uy,c.raio)){ux=x;uy=y;}
-      G.ents.push({c,k,team,x:ux,y:uy,raio:c.raio,hp:c.hp,hpMax:c.hp,vivo:true,ar:!!c.ar,nasc:G.t+1,prAtk:0,alvo:null,dir:team?2:0,mov:false,lento:0,atord:0,prBusca:0,fase:Math.random()*1000});
-      efeito(11,ux,uy);}}
+  if(c.feitico)lancarRuna(team,c,x,y);else soltarGrupo(team,c,x,y);
   if(team===0)montarMao();
   return true;}
-function lancarRuna(team,c,x,y){const rei=G.ents.find(e=>e.torre&&e.tipo==='rei'&&e.team===team);const dur=tiro(c.tiro,rei,{x,y});
-  later(dur,()=>{for(let ty=Math.floor(y-c.raio);ty<=y+c.raio;ty++)for(let tx=Math.floor(x-c.raio);tx<=x+c.raio;tx++)if(Math.hypot(tx+.5-x,ty+.5-y)<=c.raio)efeito(c.ef,tx+.5,ty+.5);
+function efeitosArea(ef,x,y,r){for(let ty=Math.floor(y-r);ty<=y+r;ty++)for(let tx=Math.floor(x-r);tx<=x+r;tx++)if(Math.hypot(tx+.5-x,ty+.5-y)<=r)efeito(ef,tx+.5,ty+.5,Math.random()*.08);}
+function lancarRuna(team,c,x,y){
+  if(c.aliado){efeitosArea(c.ef,x,y,c.raio);for(const e of G.ents)if(e.vivo&&!e.torre&&e.team===team&&Math.hypot(e.x-x,e.y-y)<=c.raio+e.raio){e.furia=G.t+c.furia;efeito(8,e.x,e.y);}return;}
+  const rei=G.ents.find(e=>e.torre&&e.tipo==='rei'&&e.team===team);const dur=c.tiro?tiro(c.tiro,rei,{x,y}):0;
+  later(dur,()=>{efeitosArea(c.ef,x,y,c.raio);
+    if(c.dot){G.campos.push({team,x,y,r:c.raio,ps:c.dot.ps,ate:G.t+c.dot.dur,pr:G.t});return;}
     for(const e of inimigos(team)){if(Math.hypot(e.x-x,e.y-y)>c.raio+e.raio*.6)continue;
-      ferir(e,Math.round(e.torre?c.dano*.35:c.dano),true);
-      if(c.lento&&!e.torre)e.lento=G.t+c.lento;if(c.atord&&!e.torre){e.atord=G.t+c.atord;e.prAtk=0;}}});}
+      if(c.dano)ferir(e,Math.round(e.torre?c.dano*.35:c.dano),true);
+      if(c.lento&&!e.torre)e.lento=G.t+c.lento;
+      if(c.atord&&(!e.torre||c.congela)){e.atord=G.t+c.atord;e.prAtk=0;e.corre=0;e.carga=false;if(c.congela)e.congelado=G.t+c.atord;}}});}
 
 /* ---------------------------------------------------------------- combate */
-function ferir(e,v,mostrar){if(!e.vivo)return;e.hp-=v;if(e.torre||mostrar)texto(e.x,e.y-(e.torre?1:0),v,e.torre?'#ff4040':'#ffcf40');
-  if(e.torre&&e.tipo==='rei'&&!e.ativo){e.ativo=true;}
+function ferir(e,v,mostrar){if(!e.vivo||e.dashA)return;v=Math.round(v);e.hp-=v;if(e.torre||mostrar)texto(e.x,e.y-(e.torre?1:0),v,e.torre?'#ff4040':'#ffcf40');
+  if(e.torre&&e.tipo==='rei'&&!e.ativo){e.ativo=true;falar(e,'Utito tempo!');}
   if(e.hp<=0)morrer(e);}
 function morrer(e){e.vivo=false;e.hp=0;
   if(e.torre){efeito(6,e.x,e.y);efeito(5,e.x-.7,e.y-.5,.15);efeito(5,e.x+.7,e.y+.3,.3);
     const outro=1-e.team;if(e.tipo==='rei'){G.coroas[outro]=3;fimDeJogo();}
-    else{G.coroas[outro]++;const rei=G.ents.find(t=>t.torre&&t.tipo==='rei'&&t.team===e.team);rei.ativo=true;aviso(outro===0?'👑 Torre derrubada!':'Você perdeu uma torre!');
+    else{G.coroas[outro]++;const rei=G.ents.find(t=>t.torre&&t.tipo==='rei'&&t.team===e.team);if(!rei.ativo){rei.ativo=true;falar(rei,'Utito tempo!');}aviso(outro===0?'👑 Torre derrubada!':'Você perdeu uma torre!');
       if(G.extra)fimDeJogo();}
     return;}
-  efeito(3,e.x,e.y);const cad=CRI[e.c.spr]&&CAD[CRI[e.c.spr].cad];if(cad&&!e.ar)G.cadaveres.push({src:cad.src,w:cad.w,h:cad.h,x:e.x,y:e.y,b:G.t});}
-function atingivel(u,e){if(u.c&&u.c.soPredio&&!e.torre)return false;if(e.ar&&u.c&&!u.c.atingeAr)return false;return true;}
+  const c=e.c;efeito(3,e.x,e.y);
+  const cad=CRI[c.spr]&&CAD[CRI[c.spr].cad];if(cad&&!e.ar)G.cadaveres.push({src:cad.src,w:cad.w,h:cad.h,x:e.x,y:e.y,b:G.t});
+  if(c.morte){const m=c.morte,x=e.x,y=e.y;if(m.atraso)G.bombas=(G.bombas||[]).concat([{x,y,ate:G.t+m.atraso}]);
+    later(m.atraso,()=>{efeitosArea(m.ef,x,y,m.raio);for(const o of inimigos(e.team))if(!o.ar&&Math.hypot(o.x-x,o.y-y)<=m.raio+o.raio*.5)ferir(o,m.dano,true);});}
+  if(c.morteGera){const [k,n]=c.morteGera;for(const [dx,dy] of formacao(n))criarUnidade(e.team,UNID[k],e.x+dx,e.y+dy,.15);}}
+function atingivel(u,e){const c=u.c||u;if(c.soPredio&&!ehPredio(e))return false;if(e.ar&&u.c&&!c.atingeAr)return false;return true;}
 function buscarAlvo(u){let b=null,bd=1e9;const vis=5.5;
-  for(const e of inimigos(u.team)){if(!atingivel(u,e))continue;const d=Math.hypot(e.x-u.x,e.y-u.y)-e.raio;if(d>vis&&!(u.c.soPredio&&e.torre))continue;if(d<bd){bd=d;b=e;}}
+  for(const e of alvos(u.team)){if(!atingivel(u,e))continue;const d=Math.hypot(e.x-u.x,e.y-u.y)-e.raio;if(d>vis&&!(u.c.soPredio&&e.torre))continue;if(d<bd){bd=d;b=e;}}
   return b;}
 /* sem ninguém por perto: a torre do próprio corredor, ou o rei */
 function torrePadrao(u){const ts=G.ents.filter(e=>e.torre&&e.vivo&&e.team!==u.team);const esq=u.x<9;
   return ts.find(t=>t.tipo==='princesa'&&(t.x<9)===esq)||ts.find(t=>t.tipo==='rei')||ts[0];}
 /* atravessa o rio pela ponte mais conveniente */
-function navegar(u,tx,ty){if(u.ar)return [tx,ty];const naFaixa=u.y>RIO[0]-.8&&u.y<RIO[1]+.8;
+function navegar(u,tx,ty){if(u.ar||u.c.pula)return [tx,ty];const naFaixa=u.y>RIO[0]-.8&&u.y<RIO[1]+.8;
   if(lado(u.y)===lado(ty)&&!(u.y>RIO[0]-.1&&u.y<RIO[1]+.1))return [tx,ty];
   const b=PONTES.reduce((m,p)=>Math.abs(u.x-p)+Math.abs(p-tx)<Math.abs(u.x-m)+Math.abs(m-tx)?p:m);
   if(naFaixa&&Math.abs(u.x-b)<1.1){if(lado(u.y)===lado(ty)&&(u.y<RIO[0]-.1||u.y>RIO[1]+.1))return [tx,ty];return [b,lado(ty)?RIO[0]-.9:RIO[1]+.9];}
   return [b,lado(u.y)?RIO[0]-.7:RIO[1]+.7];}
 function virar(u,dx,dy){u.dir=Math.abs(dx)>Math.abs(dy)?(dx>0?1:3):(dy>0?2:0);}
-function golpe(u,a){const c=u.c||u;
-  const impacto=(x,y)=>{if(c.giro){for(const e of inimigos(u.team))if(!e.ar&&Math.hypot(e.x-u.x,e.y-u.y)<=c.giro+e.raio)ferir(e,c.dano);efeito(c.ef,u.x,u.y);return;}
-    if(c.splash){for(const e of inimigos(u.team))if(atingivel(u,e)&&Math.hypot(e.x-x,e.y-y)<=c.splash+e.raio*.5)ferir(e,c.dano);efeito(c.ef,x,y);return;}
-    if(a.vivo){ferir(a,c.dano);efeito(c.ef,a.x,a.y-(a.ar?.6:0));}};
+function golpe(u,a,mult=1,esp){const c=esp?{...u,...esp,splash:0}:(u.c||u);
+  let dano=(c.rampa?c.rampa[Math.min(2,Math.floor((G.t-u.travaDesde)/2))]:c.dano)*mult;
+  if(u.c&&u.carga){dano*=2;u.carga=false;u.corre=0;texto(a.x,a.y-.5,'Investida!','#ffb040');}
+  if(u.c&&u.c.invis)u.visAte=G.t+1.6;
+  const lento=e=>{if(c.lentoAlvo&&!e.torre)e.lento=G.t+c.lentoAlvo;};
+  const impacto=(x,y)=>{if(c.giro){for(const e of inimigos(u.team))if(!e.ar&&Math.hypot(e.x-u.x,e.y-u.y)<=c.giro+e.raio){ferir(e,dano);}efeito(c.ef,u.x,u.y);return;}
+    if(c.splash){for(const e of inimigos(u.team))if(atingivel(u,e)&&Math.hypot(e.x-x,e.y-y)<=c.splash+e.raio*.5){ferir(e,dano);lento(e);}efeito(c.ef,x,y);return;}
+    if(a.vivo){ferir(a,dano);lento(a);efeito(c.ef,a.x,a.y-(a.ar?.6:0));}};
   if(c.tiro){const x=a.x,y=a.y,dur=tiro(c.tiro,u,a);later(dur,()=>impacto(a.vivo?a.x:x,a.vivo?a.y:y));}else impacto(a.x,a.y);}
-function atualizarUnidade(u,dt){if(u.nasc>G.t||u.atord>G.t)return;const c=u.c,lento=u.lento>G.t?.65:1;
-  if(u.alvo&&!u.alvo.vivo){u.alvo=null;u.travado=false;}
+function travar(u,a){if(u.alvo!==a||!u.travado)u.travaDesde=G.t;u.travado=true;u.alvo=a;}
+function atualizarUnidade(u,dt){const c=u.c;if(u.nasc>G.t)return;
+  /* construções perdem vida com o tempo */
+  if(c.predio){u.hp-=u.hpMax/c.vida*dt;if(u.hp<=0){morrer(u);return;}}
+  if(c.gera&&G.t>=u.prGera){u.prGera=G.t+c.gera.cada;const g=UNID[c.gera.k];for(const [dx,dy] of formacao(c.gera.n)){const v=criarUnidade(u.team,g,u.x+dx*1.2,u.y+(u.team?1:-1)*.9+dy,.3);if(v)efeito(11,v.x,v.y);}}
+  if(c.cura&&G.t>=u.prCura){u.prCura=G.t+1;for(const e of G.ents)if(e.vivo&&!e.torre&&e.team===u.team&&e.hp<e.hpMax&&Math.hypot(e.x-u.x,e.y-u.y)<=c.cura.raio){e.hp=Math.min(e.hpMax,e.hp+c.cura.ps);efeito(15,e.x,e.y);}}
+  if(u.atord>G.t)return;
+  const lento=(u.lento>G.t?.65:1)*(u.furia>G.t?1.35:1);
+  if(u.alvo&&(!u.alvo.vivo||invisivel(u.alvo))){u.alvo=null;u.travado=false;}
+  if(!c.dano&&!c.rampa)return;   /* túmulo: só gera */
   if(!u.travado&&G.t>=u.prBusca){u.prBusca=G.t+.25;u.alvo=buscarAlvo(u);}
-  const a=u.alvo||torrePadrao(u);if(!a)return;
+  const a=u.alvo||(c.predio?null:torrePadrao(u));if(!a)return;
   const d=Math.hypot(a.x-u.x,a.y-u.y);
-  if(d<=c.alc+u.raio+a.raio&&atingivel(u,a)){u.travado=true;u.alvo=a;u.mov=false;virar(u,a.x-u.x,a.y-u.y);
+  /* salto do assassino: invulnerável até chegar */
+  if(u.dashA){const l=d||1,s=Math.min(l,7*dt),nx=u.x+(a.x-u.x)/l*s,ny=u.y+(a.y-u.y)/l*s;
+    if(!a.vivo||!podeAndar(nx,ny,u.raio)){u.dashA=null;return;}u.x=nx;u.y=ny;u.mov=true;
+    if(d<=c.alc+u.raio+a.raio+.1){u.dashA=null;u.cdDash=G.t+1.2;travar(u,a);u.prAtk=G.t+c.hit;golpe(u,a,1.5);}return;}
+  if(c.dash&&!a.torre&&G.t>=(u.cdDash||0)&&d>=3&&d<=6&&lado(u.y)===lado(a.y)){u.dashA=a;efeito(3,u.x,u.y);return;}
+  if(d<=(c.alc||0)+u.raio+a.raio&&atingivel(u,a)){travar(u,a);u.mov=false;virar(u,a.x-u.x,a.y-u.y);
     if(!u.prAtk)u.prAtk=G.t+c.prim;
     if(G.t>=u.prAtk){u.prAtk=G.t+c.hit/lento;golpe(u,a);}
     return;}
-  u.travado=false;u.prAtk=0;
-  const [px,py]=navegar(u,a.x,a.y);const dx=px-u.x,dy=py-u.y,l=Math.hypot(dx,dy)||1,s=Math.min(l,c.vel*lento*dt);
+  u.travado=false;u.prAtk=0;if(c.predio)return;
+  /* investida: depois de 2,5 tiles correndo, dobra a velocidade e o próximo golpe */
+  const vel=c.vel*lento*(u.carga?2:1);
+  const [px,py]=navegar(u,a.x,a.y);const dx=px-u.x,dy=py-u.y,l=Math.hypot(dx,dy)||1,s=Math.min(l,vel*dt);
   const nx=u.x+dx/l*s,ny=u.y+dy/l*s;
-  if(u.ar||podeAndar(nx,ny,u.raio)){u.x=nx;u.y=ny;}else if(podeAndar(nx,u.y,u.raio))u.x=nx;else if(podeAndar(u.x,ny,u.raio))u.y=ny;
+  if(u.ar||podeAndar(nx,ny,u.raio,c.pula)){u.x=nx;u.y=ny;}else if(podeAndar(nx,u.y,u.raio,c.pula))u.x=nx;else if(podeAndar(u.x,ny,u.raio,c.pula))u.y=ny;
+  if(c.investida){u.corre+=s;if(u.corre>2.5&&!u.carga){u.carga=true;efeito(3,u.x,u.y);}}
   u.mov=true;virar(u,dx,dy);}
-function atualizarTorre(t){if(!t.ativo)return;
-  if(t.alvo&&(!t.alvo.vivo||Math.hypot(t.alvo.x-t.x,t.alvo.y-t.y)>t.alc+t.alvo.raio))t.alvo=null;
-  if(!t.alvo){let bd=1e9;for(const e of inimigos(t.team)){if(e.torre)continue;const d=Math.hypot(e.x-t.x,e.y-t.y);if(d<=t.alc+e.raio&&d<bd){bd=d;t.alvo=e;}}if(t.alvo)t.prAtk=Math.max(t.prAtk,G.t+.3);}
-  if(t.alvo){virar(t,t.alvo.x-t.x,t.alvo.y-t.y);if(G.t>=t.prAtk){t.prAtk=G.t+t.hit;golpe(t,t.alvo);}}}
-/* as criaturas se empurram para não ficarem umas em cima das outras; torres não se mexem */
+function atualizarTorre(t){if(!t.ativo||t.atord>G.t)return;
+  if(t.alvo&&(!t.alvo.vivo||invisivel(t.alvo)||Math.hypot(t.alvo.x-t.x,t.alvo.y-t.y)>t.alc+t.alvo.raio))t.alvo=null;
+  if(!t.alvo){let bd=1e9;for(const e of alvos(t.team)){if(e.torre)continue;const d=Math.hypot(e.x-t.x,e.y-t.y);if(d<=t.alc+e.raio&&d<bd){bd=d;t.alvo=e;}}if(t.alvo)t.prAtk=Math.max(t.prAtk,G.t+.3);}
+  if(t.alvo){virar(t,t.alvo.x-t.x,t.alvo.y-t.y);if(G.t>=t.prAtk){t.prAtk=G.t+t.hit;t.tiros++;
+      if(t.tiros%t.esp.cada===0){falar(t,t.esp.w);golpe(t,t.alvo,t.esp.mult,t.esp);}else golpe(t,t.alvo);}}}
+/* campos de veneno: dano por segundo em quem está dentro (torres levam 35%) */
+function atualizarCampos(){G.campos=G.campos.filter(f=>G.t<f.ate);
+  for(const f of G.campos){if(G.t<f.pr)continue;f.pr=G.t+1;
+    for(const e of inimigos(f.team))if(Math.hypot(e.x-f.x,e.y-f.y)<=f.r+e.raio*.5)ferir(e,e.torre?f.ps*.35:f.ps);
+    for(let i=0;i<5;i++){const a=Math.random()*Math.PI*2,r=Math.random()*f.r;efeito(21,f.x+Math.cos(a)*r,f.y+Math.sin(a)*r,Math.random()*.6);}}}
+/* as criaturas se empurram para não ficarem umas em cima das outras; torres e construções não se mexem */
 function separar(){const us=G.ents.filter(e=>e.vivo&&!e.torre);
   for(let i=0;i<us.length;i++){const a=us[i];
     for(let j=i+1;j<us.length;j++){const b=us[j];if(a.ar!==b.ar)continue;const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||.01,m=(a.raio+b.raio)*.9;if(d>=m)continue;
-      const ov=m-d,ma=a.hpMax,mb=b.hpMax,ka=ov*mb/(ma+mb),kb=ov*ma/(ma+mb);
+      const fa=a.c.predio||a.dashA?0:1,fb=b.c.predio||b.dashA?0:1;if(!fa&&!fb)continue;
+      const ov=m-d,ma=a.hpMax*fb,mb=b.hpMax*fa,ka=fa*ov*(fb?mb/(ma+mb):1),kb=fb*ov*(fa?ma/(ma+mb):1);
       const ax=a.x-dx/d*ka,ay=a.y-dy/d*ka,bx=b.x+dx/d*kb,by=b.y+dy/d*kb;
-      if(a.ar||podeAndar(ax,ay,a.raio)){a.x=ax;a.y=ay;}if(b.ar||podeAndar(bx,by,b.raio)){b.x=bx;b.y=by;}}
+      if(a.ar||podeAndar(ax,ay,a.raio,a.c.pula)){a.x=ax;a.y=ay;}if(b.ar||podeAndar(bx,by,b.raio,b.c.pula)){b.x=bx;b.y=by;}}
     if(!a.ar)for(const t of G.ents){if(!t.torre||!t.vivo)continue;const dx=a.x-t.x,dy=a.y-t.y,h=t.tam/2+a.raio*.8;
       if(Math.abs(dx)<h&&Math.abs(dy)<h){if(h-Math.abs(dx)<h-Math.abs(dy))a.x=t.x+Math.sign(dx||1)*h;else a.y=t.y+Math.sign(dy||1)*h;}}}}
 
@@ -279,27 +381,33 @@ function separar(){const us=G.ents.filter(e=>e.vivo&&!e.torre);
 function ia(){const P=G.jog[1];if(G.t<P.prox)return;const nv=G.dific;P.prox=G.t+rnd(.5,1.2)*(nv===0?1.8:nv===1?1:.7);
   const meus=G.ents.filter(e=>e.vivo&&!e.torre&&e.team===1),deles=G.ents.filter(e=>e.vivo&&!e.torre&&e.team===0&&e.nasc<=G.t);
   const pode=P.mao.map((k,i)=>({k,i,c:CARTAS[k]})).filter(o=>o.c.custo<=P.mana);if(!pode.length)return;
+  /* haste quando o próprio ataque está chegando nas torres */
+  for(const o of pode.filter(o=>o.c.aliado)){const grupo=meus.filter(e=>e.y>11&&!e.c.predio);if(grupo.length>=3){const cx=grupo.reduce((s,e)=>s+e.x,0)/grupo.length,cy=grupo.reduce((s,e)=>s+e.y,0)/grupo.length;jogarCarta(1,o.i,cx,cy);return;}}
   /* runa onde pega mais coisa (ou para terminar uma torre) */
-  for(const o of pode.filter(o=>o.c.feitico)){let best=null,bv=0;
+  for(const o of pode.filter(o=>o.c.feitico&&!o.c.aliado)){let best=null,bv=0;const dn=o.c.danoIA||o.c.dano;
     for(const e of [...deles,...G.ents.filter(t=>t.torre&&t.vivo&&t.team===0)]){let v=0;
-      for(const f of deles)if(Math.hypot(f.x-e.x,f.y-e.y)<=o.c.raio)v+=Math.min(f.hp,o.c.dano)*(f.y<20?1.4:1);
-      for(const t of G.ents)if(t.torre&&t.vivo&&t.team===0&&Math.hypot(t.x-e.x,t.y-e.y)<=o.c.raio+1&&t.hp<=o.c.dano*.35)v+=2000;
+      for(const f of deles)if(Math.hypot(f.x-e.x,f.y-e.y)<=o.c.raio)v+=Math.min(f.hp,dn)*(f.y<20?1.4:1);
+      for(const t of G.ents)if(t.torre&&t.vivo&&t.team===0&&Math.hypot(t.x-e.x,t.y-e.y)<=o.c.raio+1&&t.hp<=dn*.35)v+=2000;
       if(v>bv){bv=v;best=e;}}
     if(best&&bv>=o.c.custo*(nv===0?160:110)){jogarCarta(1,o.i,best.x,best.y);return;}}
   const tropas=pode.filter(o=>!o.c.feitico);if(!tropas.length)return;
   /* defesa: alguém do jogador já cruzou ou está chegando na ponte */
-  const ameaca=deles.filter(e=>e.y<22).sort((a,b)=>a.y-b.y)[0];
+  const ameaca=deles.filter(e=>e.y<22&&!e.c.predio).sort((a,b)=>a.y-b.y)[0];
   if(ameaca){const temAr=deles.some(e=>e.ar&&e.y<22),grupo=deles.filter(e=>Math.hypot(e.x-ameaca.x,e.y-ameaca.y)<2.5).length;
-    const nota=o=>(temAr&&o.c.atingeAr?3:0)+(grupo>=3&&(o.c.splash||o.c.giro)?3:0)+(o.c.soPredio?-5:0)+(ameaca.c.hp>1500&&o.c.dano>=150?2:0)-o.c.custo*.3+Math.random();
+    const ac=ameaca.c;
+    const nota=o=>{const c=o.c;return (temAr&&c.atingeAr?3:0)+(temAr&&!c.atingeAr&&!c.predio?-2:0)+(grupo>=3&&(c.splash||c.giro||c.grupo)?3:0)+(c.soPredio?-5:0)+(c.predio&&ac.soPredio?4:0)
+      +(ac.hp>1500&&(c.dano>=150||c.rampa)?2:0)-c.custo*.3+Math.random();};
     const o=tropas.sort((a,b)=>nota(b)-nota(a))[0];if(nota(o)<-2)return;
-    const x=Math.min(FW-1,Math.max(1,ameaca.x+rnd(-1,1))),y=Math.min(RIO[0]-1,Math.max(3,ameaca.y-(o.c.alc>2?4.5:2.5)));
+    let x=Math.min(FW-1,Math.max(1,ameaca.x+rnd(-1,1))),y=Math.min(RIO[0]-1,Math.max(3,ameaca.y-((o.c.alc||0)>2?4.5:2.5)));
+    if(o.c.predio){x=9+Math.sign(ameaca.x-9)*1.5;y=8.5;}   /* construção no meio puxa quem só ataca torres */
     jogarCarta(1,o.i,x,y);return;}
   /* ataque: junta mana e manda um tanque com apoio */
-  const ataque=meus.filter(e=>e.y>8).length;
+  const ataque=meus.filter(e=>e.y>8&&!e.c.predio).length;
+  const ofensivas=tropas.filter(o=>!o.c.predio);if(!ofensivas.length)return;
   if(P.mana>=(nv===2?8:9)||(ataque&&P.mana>=4&&Math.random()<.5)){const pista=pick(PONTES);
-    const o=ataque?tropas.sort((a,b)=>(b.c.alc-a.c.alc)+Math.random())[0]:tropas.sort((a,b)=>b.c.hp*(b.c.qtd||1)-a.c.hp*(a.c.qtd||1))[0];
-    const lider=meus.sort((a,b)=>b.y-a.y)[0];
-    const x=ataque&&lider?lider.x:pista+rnd(-.5,.5),y=ataque&&lider?Math.max(1,Math.min(14,lider.y-1.5)):(o.c.hp>1500?4:13);
+    const o=ataque?ofensivas.sort((a,b)=>((b.c.alc||0)-(a.c.alc||0))+Math.random())[0]:ofensivas.sort((a,b)=>hpTotal(b.c)-hpTotal(a.c))[0];
+    const lider=meus.filter(e=>!e.c.predio).sort((a,b)=>b.y-a.y)[0];
+    const x=ataque&&lider?lider.x:pista+rnd(-.5,.5),y=ataque&&lider?Math.max(1,Math.min(14,lider.y-1.5)):(hpTotal(o.c)>1500?4:13);
     jogarCarta(1,o.i,x,y);}}
 
 /* ---------------------------------------------------------------- relógio e fim */
@@ -320,26 +428,27 @@ const cv=$('#cv'),ctx=cv.getContext('2d');let S=1,OX=0,OY=0,DPR=1;
 function redimensionar(){const r=$('#campo').getBoundingClientRect();DPR=Math.min(2,devicePixelRatio||1);cv.width=Math.round(r.width*DPR);cv.height=Math.round(r.height*DPR);
   S=Math.min(cv.width/(FW*TS),cv.height/(FH*TS));   /* a mata das laterais pode ficar de fora em telas estreitas */OX=Math.round((cv.width-(FW+2*MARG)*TS*S)/2+MARG*TS*S);OY=Math.round((cv.height-FH*TS*S)/2);}
 addEventListener('resize',redimensionar);
-const W2=(x,y)=>[OX+x*TS*S,OY+y*TS*S];
 function telaParaCampo(px,py){const r=cv.getBoundingClientRect();return [((px-r.left)*DPR-OX)/(TS*S),((py-r.top)*DPR-OY)/(TS*S)];}
 /* desenha uma folha 15.x centrada em (x,y) do campo; criaturas de 64 px sem deslocamento ocupam a folha toda */
-function desenharFolha(f,dir,x,y,andando,t,sobe=0){
+function desenharFolha(f,dir,x,y,andando,t,sobe=0,esc=1){
   let q=0;if(andando&&f.andar>0)q=f.parado+Math.floor(t*1000/90)%f.andar;else if(f.parado>1){const tot=f.ms.reduce((a,b)=>a+b,0)||1;q=quadro(f.ms,(t*1000)%tot);}
   const off=f.w===32?0:f.desl[0]?8:16;   /* deixa o centro do corpo em (x,y) */
-  ctx.drawImage(f.img,q*f.w,dir*f.h,f.w,f.h,x*TS+16+off-f.w,y*TS+16+off-f.h-sobe,f.w,f.h);}
+  ctx.drawImage(f.img,q*f.w,dir*f.h,f.w,f.h,x*TS+(16+off-f.w)*esc,y*TS+(16+off-f.h)*esc-sobe,f.w*esc,f.h*esc);}
 function barra(x,y,w,fr,cor){ctx.fillStyle='#000';ctx.fillRect(x-w/2-1,y-1,w+2,5);ctx.fillStyle='#333';ctx.fillRect(x-w/2,y,w,3);ctx.fillStyle=cor;ctx.fillRect(x-w/2,y,w*Math.max(0,fr),3);}
-function desenharTorre(t){const s=t.tam*TS,x=t.x*TS-s/2,y=t.y*TS-s/2,cor=t.team?'#d83a3a':'#3a6fd8';
-  if(!t.vivo){ctx.fillStyle='#4a4038';ctx.fillRect(x+4,y+6,s-8,s-10);ctx.fillStyle='#6b6157';for(let i=0;i<7;i++){const a=(i*97%100)/100,b=(i*61%100)/100;ctx.fillRect(x+6+a*(s-18),y+8+b*(s-18),8,6);}return;}
-  /* base de pedra com ameias */
-  ctx.fillStyle='#00000055';ctx.fillRect(x+3,y+5,s,s);
-  const g=ctx.createLinearGradient(0,y,0,y+s);g.addColorStop(0,'#b9b2a6');g.addColorStop(1,'#6e675e');ctx.fillStyle=g;ctx.fillRect(x,y,s,s);
-  ctx.strokeStyle='#00000040';ctx.lineWidth=1;for(let r=8;r<s;r+=8){ctx.beginPath();ctx.moveTo(x,y+r);ctx.lineTo(x+s,y+r);ctx.stroke();for(let c=(r/8%2)*8;c<s;c+=16){ctx.beginPath();ctx.moveTo(x+c,y+r-8);ctx.lineTo(x+c,y+r);ctx.stroke();}}
-  ctx.fillStyle='#8d867b';for(let c=0;c<s;c+=12){ctx.fillRect(x+c,y-5,7,6);ctx.fillRect(x+c,y+s-6,7,6);}
-  ctx.fillStyle=cor;ctx.fillRect(x+s/2-10,y+s-4,20,4);ctx.strokeStyle=cor;ctx.lineWidth=2;ctx.strokeRect(x+1,y+1,s-2,s-2);
-  /* quem guarda a torre: hunter nas laterais, knight no rei (dorme até acordar) */
-  const look=t.tipo==='rei'?'131':'129',f=folhaOutfit(look,TIME_COR[t.team],3);
-  if(f)desenharFolha(f,t.dir,t.x,t.y-(t.tipo==='rei'?.2:0),false,G.t);
-  if(t.tipo==='rei'&&!t.ativo){ctx.font='bold 12px Verdana';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText('z z',t.x*TS+12,t.y*TS-30);}}
+function rotulo(t,x,y,cor,tam=11){ctx.font=`bold ${tam}px Verdana`;ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#000';ctx.strokeText(t,x,y);ctx.fillStyle=cor;ctx.fillText(t,x,y);}
+/* torre de pedra (royale/torres.png) com o guarda em cima e a bandeira do time */
+function desenharTorre(t){const im=img('royale/torres.png'),base=(t.y+t.tam/2)*TS,cor=t.team?'#d83a3a':'#3a6fd8';
+  const sp=TSPR[t.vivo?(t.tipo==='rei'?'rei':'princesa'):(t.tipo==='rei'?'ruina4':'ruina3')];
+  if(im&&sp)ctx.drawImage(im,sp.x,0,sp.w,sp.h,t.x*TS-sp.w/2,base-sp.h,sp.w,sp.h);
+  if(!t.vivo)return;
+  /* bandeira no canto de trás */
+  const fx=t.x*TS+t.tam*TS/2-10,fy=base-sp.h+6;ctx.fillStyle='#5a4426';ctx.fillRect(fx,fy-22,2,26);ctx.fillStyle=cor;ctx.beginPath();ctx.moveTo(fx+2,fy-22);ctx.lineTo(fx+16,fy-17);ctx.lineTo(fx+2,fy-12);ctx.fill();
+  const f=folhaOutfit(t.look,TIME_COR[t.team],3);
+  if(f){if(t.atord>G.t)ctx.globalAlpha=.7;desenharFolha(f,t.dir,t.x,t.y-t.alt+.35,false,G.t);ctx.globalAlpha=1;}
+  if(t.atord>G.t){ctx.fillStyle='rgba(140,210,255,.35)';ctx.fillRect(t.x*TS-sp.w/2,base-sp.h,sp.w,sp.h);}
+  if(t.tipo==='rei'&&!t.ativo)rotulo('z z',t.x*TS+14,(t.y-t.alt)*TS-18,'#fff',10);}
+function desenharPredio(e){const im=img('royale/torres.png'),sp=TSPR[e.c.sprPredio];if(!im||!sp)return;
+  ctx.drawImage(im,sp.x,0,sp.w,sp.h,e.x*TS-sp.w/2,e.y*TS+18-sp.h,sp.w,sp.h);}
 function desenhar(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0b0805';ctx.fillRect(0,0,cv.width,cv.height);
   ctx.setTransform(S,0,0,S,OX-MARG*TS*S,OY);ctx.imageSmoothingEnabled=false;
   const fundo=img('royale/arena.png');if(fundo)ctx.drawImage(fundo,0,0);
@@ -347,18 +456,30 @@ function desenhar(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0b0805';ctx.fi
   /* área onde dá para soltar a carta que está sendo arrastada */
   const sel=G.arr?G.arr.k:G.sel>=0?G.jog[0].mao[G.sel]:null;
   if(sel&&!G.fim&&!CARTAS[sel].feitico){ctx.fillStyle='rgba(220,40,40,.28)';for(let y=0;y<FH;y++)for(let x=0;x<FW;x++)if(!areaValida(0,x+.5,y+.5))ctx.fillRect(x*TS,y*TS,TS,TS);}
+  /* campos de veneno */
+  for(const f of G.campos){ctx.fillStyle='rgba(70,200,60,.18)';ctx.strokeStyle='rgba(90,230,70,.6)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(f.x*TS,f.y*TS,f.r*TS,0,Math.PI*2);ctx.fill();ctx.stroke();}
   for(const c of G.cadaveres){const k=(G.t-c.b)/4;if(k>=1)continue;const im=img(c.src);if(!im)continue;ctx.globalAlpha=k>.7?(1-k)/.3:1;ctx.drawImage(im,c.x*TS+16-c.w,c.y*TS+16-c.h);ctx.globalAlpha=1;}
   G.cadaveres=G.cadaveres.filter(c=>G.t-c.b<4);
+  /* bombas do bonebeast prestes a explodir */
+  G.bombas=(G.bombas||[]).filter(b=>G.t<b.ate);for(const b of G.bombas){const k=(G.t*6)%1;ctx.fillStyle=k<.5?'#ff3020':'#ffd040';ctx.beginPath();ctx.arc(b.x*TS,b.y*TS,6,0,Math.PI*2);ctx.fill();}
   /* chão e torres por ordem de altura; quem voa por cima de tudo, com sombra */
-  const chao=G.ents.filter(e=>e.torre||(e.vivo&&!e.ar)).sort((a,b)=>a.y-b.y),ar=G.ents.filter(e=>e.vivo&&e.ar).sort((a,b)=>a.y-b.y);
+  const chao=G.ents.filter(e=>e.torre||(e.vivo&&!e.ar)).sort((a,b)=>(a.y+(a.torre?a.tam/2:0))-(b.y+(b.torre?b.tam/2:0))),ar=G.ents.filter(e=>e.vivo&&e.ar).sort((a,b)=>a.y-b.y);
   for(const e of [...chao,...ar]){
     if(e.torre){desenharTorre(e);continue;}
-    const f=folhaCriatura(e.c.spr);const nascendo=e.nasc>G.t;
     ctx.fillStyle=e.team?'rgba(230,50,50,.45)':'rgba(60,120,255,.45)';ctx.beginPath();ctx.ellipse(e.x*TS,e.y*TS+e.raio*TS*.55,e.raio*TS*1.05,e.raio*TS*.5,0,0,Math.PI*2);ctx.fill();
-    if(nascendo)ctx.globalAlpha=.45;
-    if(f)desenharFolha(f,e.dir,e.x,e.y,e.mov&&!(e.atord>G.t),G.t+e.fase/1000,e.ar?18:0);
+    if(e.c.predio){desenharPredio(e);continue;}
+    const f=folhaCriatura(e.c.spr);const nascendo=e.nasc>G.t;
+    if(nascendo)ctx.globalAlpha=.45;else if(invisivel(e))ctx.globalAlpha=e.team===0?.35:.12;else if(e.dashA)ctx.globalAlpha=.6;
+    const pulando=e.c.pula&&e.y>RIO[0]-.3&&e.y<RIO[1]+.3;
+    if(f)desenharFolha(f,e.dir,e.x,e.y,e.mov&&!(e.atord>G.t),G.t+e.fase/1000,e.ar?18:pulando?12:0,e.c.esc||1);
     ctx.globalAlpha=1;
-    if(e.lento>G.t){ctx.fillStyle='rgba(120,200,255,.35)';ctx.beginPath();ctx.arc(e.x*TS,e.y*TS-(e.ar?18:0),e.raio*TS,0,Math.PI*2);ctx.fill();}}
+    if(e.congelado>G.t){ctx.fillStyle='rgba(150,220,255,.5)';ctx.beginPath();ctx.arc(e.x*TS,e.y*TS-(e.ar?18:0),e.raio*TS*1.1,0,Math.PI*2);ctx.fill();}
+    else if(e.lento>G.t){ctx.fillStyle='rgba(120,200,255,.35)';ctx.beginPath();ctx.arc(e.x*TS,e.y*TS-(e.ar?18:0),e.raio*TS,0,Math.PI*2);ctx.fill();}
+    if(e.furia>G.t){ctx.strokeStyle='rgba(255,210,60,.8)';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(e.x*TS,e.y*TS+e.raio*TS*.55,e.raio*TS*1.2,e.raio*TS*.6,0,0,Math.PI*2);ctx.stroke();}
+    if(e.carga)rotulo('!',e.x*TS,e.y*TS-30,'#ffb040',12);}
+  /* raio do fire devil: fica mais grosso e quente com o tempo no mesmo alvo */
+  for(const e of G.ents){if(!e.vivo||!e.c||!e.c.rampa||!e.travado||!e.alvo||!e.alvo.vivo||e.atord>G.t)continue;const n=Math.min(2,Math.floor((G.t-e.travaDesde)/2));
+    ctx.strokeStyle=['rgba(255,200,60,.7)','rgba(255,130,30,.8)','rgba(255,50,20,.9)'][n];ctx.lineWidth=2+n*2;ctx.beginPath();ctx.moveTo(e.x*TS,e.y*TS-12);ctx.lineTo(e.alvo.x*TS,(e.alvo.y-altura(e.alvo))*TS);ctx.stroke();}
   /* efeitos e projéteis (8 direções, como no cliente) */
   for(let i=G.efs.length-1;i>=0;i--){const e=G.efs[i],t=(G.t-e.b)*1000;if(t<0)continue;const f=CB.efeitos[e.id],tot=f.ms.reduce((a,b)=>a+b,0);if(t>=tot){G.efs.splice(i,1);continue;}
     const im=img(f.src);if(!im)continue;const q=quadro(f.ms,t);ctx.drawImage(im,f.x+q*f.w,f.y,f.w,f.h,e.x*TS+16-f.w,e.y*TS+16-f.h,f.w,f.h);}
@@ -368,14 +489,17 @@ function desenhar(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0b0805';ctx.fi
   /* fantasma da carta arrastada */
   if(G.arr&&G.arr.dentro){const c=CARTAS[G.arr.k],p=ajustarPos(0,c,G.arr.x,G.arr.y);
     if(p){ctx.globalAlpha=.6;if(c.feitico){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(p[0]*TS,p[1]*TS,c.raio*TS,0,Math.PI*2);ctx.stroke();ctx.fillStyle='rgba(255,255,255,.15)';ctx.fill();}
+      else if(c.predio)desenharPredio({x:p[0],y:p[1],c});
       else{const f=folhaCriatura(c.spr);if(f)desenharFolha(f,0,p[0],p[1],false,0,c.ar?18:0);}ctx.globalAlpha=1;}}
-  /* barras de vida */
+  /* barras de vida e falas (palavras das magias em laranja, como no Tibia) */
   for(const e of G.ents){if(!e.vivo)continue;const cor=e.team?'#e04040':'#3f8bff';
-    if(e.torre){const w=e.tam*TS*.8;barra(e.x*TS,e.y*TS-e.tam*TS/2-12,w,e.hp/e.hpMax,cor);
-      ctx.font='bold 9px Verdana';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#000';ctx.strokeText(Math.ceil(e.hp),e.x*TS,e.y*TS-e.tam*TS/2-15);ctx.fillStyle='#fff';ctx.fillText(Math.ceil(e.hp),e.x*TS,e.y*TS-e.tam*TS/2-15);continue;}
-    if(e.hp<e.hpMax||e.nasc>G.t-1)barra(e.x*TS,e.y*TS-(e.ar?18:0)-(e.raio>.6?40:28),Math.max(14,e.raio*TS*1.4),e.hp/e.hpMax,cor);}
+    if(e.torre){const sp=TSPR[e.tipo==='rei'?'rei':'princesa'],topo=(e.y+e.tam/2)*TS-(sp?sp.h:e.tam*TS),w=e.tam*TS*.8;barra(e.x*TS,topo-8,w,e.hp/e.hpMax,cor);
+      rotulo(Math.ceil(e.hp),e.x*TS,topo-11,'#fff',9);
+      if(e.fala&&e.fala.ate>G.t)rotulo(e.fala.t,e.x*TS,(e.y-e.alt)*TS-30,'#f0a030',11);continue;}
+    if(invisivel(e)&&e.team!==0)continue;
+    if(e.hp<e.hpMax||e.nasc>G.t-1||e.c.predio)barra(e.x*TS,e.y*TS-(e.ar?18:0)-(e.c.predio?34:e.raio>.6?40:28)*(e.c.esc||1),Math.max(14,e.raio*TS*1.4),e.hp/e.hpMax,cor);}
   for(let i=G.txt.length-1;i>=0;i--){const t=G.txt[i],k=(G.t-t.b);if(k>=.9){G.txt.splice(i,1);continue;}
-    ctx.font='bold 11px Verdana';ctx.textAlign='center';ctx.globalAlpha=k>.6?(.9-k)/.3:1;ctx.lineWidth=3;ctx.strokeStyle='#000';ctx.strokeText(t.t,t.x*TS,t.y*TS-20-k*24);ctx.fillStyle=t.cor;ctx.fillText(t.t,t.x*TS,t.y*TS-20-k*24);ctx.globalAlpha=1;}
+    ctx.globalAlpha=k>.6?(.9-k)/.3:1;rotulo(t.t,t.x*TS,t.y*TS-20-k*24,t.cor);ctx.globalAlpha=1;}
   /* placar: relógio e coroas */
   ctx.setTransform(DPR,0,0,DPR,0,0);const vw=cv.width/DPR;
   const rest=Math.max(0,G.dur-G.t),mm=Math.floor(rest/60),ss=Math.floor(rest%60);
@@ -414,8 +538,8 @@ function laco(now){requestAnimationFrame(laco);const dt=Math.min(.05,(now-ult)/1
   if(!G.fim){G.t+=dt;
     for(const P of G.jog)P.mana=Math.min(10,P.mana+dt/(G.dobro||G.extra?1.4:2.8));
     for(let i=G.later.length-1;i>=0;i--)if(G.later[i].t<=G.t){const l=G.later.splice(i,1)[0];l.fn();}
-    for(const e of G.ents){if(!e.vivo)continue;if(e.torre)atualizarTorre(e);else atualizarUnidade(e,dt);}
-    separar();if(G.ents.length>120)G.ents=G.ents.filter(e=>e.vivo||e.torre);
+    for(const e of [...G.ents]){if(!e.vivo)continue;if(e.torre)atualizarTorre(e);else atualizarUnidade(e,dt);}
+    atualizarCampos();separar();if(G.ents.length>160)G.ents=G.ents.filter(e=>e.vivo||e.torre);
     ia();relogio();}
   else G.t+=dt*.3;   /* depois do fim os efeitos terminam devagar */
   desenhar();if(now-ultHud>100){ultHud=now;atualizarMao();}}
@@ -423,20 +547,30 @@ requestAnimationFrame(laco);
 
 /* ================================================================ baralho (lobby) */
 let BARALHO=(()=>{try{const b=JSON.parse(localStorage.getItem('royale_baralho'));if(Array.isArray(b)&&b.length===8&&b.every(k=>CARTAS[k]))return b;}catch(e){}return [...BARALHO_PADRAO];})();
-function mostrarBaralho(){const box=$('#baralho');box.innerHTML='';
-  for(const k of Object.keys(CARTAS)){const c=CARTAS[k],d=document.createElement('div');d.className='carta'+(BARALHO.includes(k)?'':' fora');
-    d.appendChild(retrato(k,48));d.insertAdjacentHTML('beforeend',`<span class="cu">${c.custo}</span><span class="nm">${c.n}</span><span class="ds">${c.d}</span>`);
-    d.onclick=()=>{if(BARALHO.includes(k))BARALHO=BARALHO.filter(x=>x!==k);else if(BARALHO.length<8)BARALHO.push(k);else return;
-      try{localStorage.setItem('royale_baralho',JSON.stringify(BARALHO));}catch(e){}mostrarBaralho();};
-    box.appendChild(d);}
+let FILTRO='todas';
+const FILTROS={todas:['Todas',()=>true],tropa:['⚔ Tropas',c=>!c.feitico&&!c.predio],ar:['🪽 Voam',c=>c.ar],predio:['🏠 Construções',c=>c.predio],feitico:['✨ Runas',c=>c.feitico]};
+function mostrarBaralho(){$('#filtros').innerHTML=Object.entries(FILTROS).map(([k,[n]])=>`<button data-f="${k}" class="${k===FILTRO?'on':''}">${n}</button>`).join('');
+  $('#filtros').querySelectorAll('button').forEach(b=>b.onclick=()=>{FILTRO=b.dataset.f;mostrarBaralho();});
+  const sel=$('#selecionadas');sel.innerHTML='';
+  for(let i=0;i<8;i++){const k=BARALHO[i],d=document.createElement('div');d.className='carta mini'+(k?'':' vazia');
+    if(k){d.appendChild(retrato(k,40));d.insertAdjacentHTML('beforeend',`<span class="cu">${CARTAS[k].custo}</span>`);d.onclick=()=>alternar(k);}sel.appendChild(d);}
+  const box=$('#baralho');box.innerHTML='';
+  const ks=Object.keys(CARTAS).filter(k=>FILTROS[FILTRO][1](CARTAS[k])).sort((a,b)=>CARTAS[a].custo-CARTAS[b].custo);
+  for(const k of ks){const c=CARTAS[k],d=document.createElement('div');d.className='carta'+(BARALHO.includes(k)?' no':'');
+    d.appendChild(retrato(k,48));d.insertAdjacentHTML('beforeend',`<span class="cu">${c.custo}</span><span class="tp">${tipoCarta(c)}</span><span class="nm">${c.n}</span><span class="ds">${c.d}</span>`);
+    d.onclick=()=>alternar(k);box.appendChild(d);}
   $('#contagem').textContent=`(${BARALHO.length}/8)`;$('#btJogar').disabled=BARALHO.length!==8;
   $('#media').textContent=BARALHO.length?`Custo médio: ${(BARALHO.reduce((s,k)=>s+CARTAS[k].custo,0)/BARALHO.length).toFixed(1)} de mana`:'';}
+function alternar(k){if(BARALHO.includes(k))BARALHO=BARALHO.filter(x=>x!==k);else if(BARALHO.length<8)BARALHO.push(k);else{aviso2('Baralho cheio: toque numa carta de cima para tirar.');return;}
+  try{localStorage.setItem('royale_baralho',JSON.stringify(BARALHO));}catch(e){}mostrarBaralho();}
+function aviso2(t){const m=$('#media');m.textContent=t;m.style.color='#ff9a70';setTimeout(()=>{m.style.color='';mostrarBaralho();},1600);}
 $('#btJogar').onclick=()=>{redimensionar();iniciar(BARALHO,+$('#dific').value);};
 $('#btDenovo').onclick=()=>{redimensionar();iniciar(BARALHO,+$('#dific').value);};
 $('#btBaralho').onclick=()=>{$('#fim').style.display='none';$('#lobby').style.display='flex';mostrarBaralho();};
 document.getElementById('manaG').innerHTML='<i></i>'.repeat(10);
 /* pré-carrega o que a batalha usa */
-img('royale/arena.png');for(const k in CARTAS)CARTAS[k].feitico?img(ITM(CARTAS[k].item)):img(CRI[CARTAS[k].spr].src);
+img('royale/arena.png');img('royale/torres.png');
+for(const c of [...Object.values(CARTAS),...Object.values(UNID)]){if(c.feitico)img(c.icone||ITM(c.item));else if(c.spr&&CRI[c.spr])img(CRI[c.spr].src);}
 for(const l of ['129','131'])if(OUTF[l])img(OUTF[l].src);for(let i=0;i<4;i++)img(`tibia-assets/sprites15/combate_${i}.png`);
 mostrarBaralho();redimensionar();
 </script>
