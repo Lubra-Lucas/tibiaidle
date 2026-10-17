@@ -207,6 +207,12 @@ img.ui{width:24px;height:24px;image-rendering:pixelated;flex:none}
 #autoBar .ab{display:flex;align-items:center;gap:3px;background:#0d0f16;color:#8a93ab;border:1px solid #000;box-shadow:inset 0 0 0 1px #2c3248;border-radius:3px;padding:3px 7px;font:inherit;font-size:11px;font-weight:bold;cursor:pointer;opacity:.7}
 #autoBar .ab.on{color:#d8f3d0;box-shadow:inset 0 0 0 1px #3f8a32;opacity:1}#autoBar .ab small{font-size:10px}
 #autoBar .master{min-width:68px;justify-content:center;letter-spacing:.04em;opacity:1}#autoBar .master.on{background:linear-gradient(#3f8a32,#235a1b);color:#fff}#autoBar .master.man{background:#2a2f40;color:#cfd6e6}#autoBar .master.mix{background:linear-gradient(#9a7a22,#5e4710);color:#fff}
+/* PvP: selo vermelho nas caçadas, aviso, barra de status (caveira, PZ lock, frags) */
+.pvb{display:inline-block;background:#b3261e;color:#fff;font:700 10px/1 Verdana,sans-serif;padding:2px 5px;border-radius:3px;letter-spacing:.06em;vertical-align:middle;margin-left:4px;box-shadow:inset 0 0 0 1px #5a0f0b}
+.pvaviso{margin:6px 0;padding:6px 8px;border:1px solid #7a2a24;background:rgba(120,24,18,.25);border-radius:4px;font-size:12px;color:#f3c9c4}.pvlnk{color:#ffb4a8;text-decoration:underline;cursor:pointer}
+.cav{vertical-align:-2px;margin:0 2px;image-rendering:pixelated}
+#pvBar{display:flex;gap:4px 10px;align-items:center;flex-wrap:wrap;justify-content:center;background:rgba(48,14,14,.93);border:1px solid #000;border-radius:4px;padding:3px 8px;font-size:11px;color:#f1d4d0;box-shadow:inset 0 0 0 1px #7a2a24}
+#pvBar b{color:#fff}#pvBar .pvl{color:#ffd84a}#pvBar button{background:#2a0d0b;color:#f1d4d0;border:1px solid #000;box-shadow:inset 0 0 0 1px #7a2a24;border-radius:3px;padding:2px 7px;font:inherit;cursor:pointer}#pvBar button:hover{background:#4a1612}#pvBar label{display:flex;gap:3px;align-items:center;cursor:pointer}
 #autoBar .abKeys{font-size:10px;color:var(--mut);margin-left:4px}#autoBar .abNote{flex-basis:100%;text-align:center;font-size:11px;color:#ffd84a}
 @media(max-width:820px){#autoBar .ab small{display:none}#autoBar .ab{padding:5px 9px;font-size:14px}#autoBar .abKeys{display:none}}
 .ctl{display:flex;flex-direction:column;gap:5px;justify-content:center;min-width:190px}
@@ -717,6 +723,7 @@ button.lnk:hover{color:var(--gold)}
 <div id="hudwrap">
   <div id="arenaBtns" class="hidden"><button class="cbtn" id="combarBtn" data-act="combarAgora" title="O time inteiro dispara o melhor golpe no foco agora (recarga de 20 s). Clique num inimigo no mapa para escolher o foco por 10 s.">⚡ Combar agora</button></div>
   <div id="autoBar" class="hidden"></div>
+  <div id="pvBar" class="hidden"></div>
   <div id="cityBtns">
     <button class="cbtn" data-open="depot"><img class="ui" src="tibia-assets/sprites15/ui/depot.png" alt="">DEPOT</button>
     <button class="cbtn" data-act="quickSell"><img class="ui" src="tibia-assets/sprites15/ui/venda.png" alt="">VENDA RÁPIDA</button>
@@ -724,6 +731,7 @@ button.lnk:hover{color:var(--gold)}
     <button class="cbtn" data-open="forge"><img class="ui" src="tibia-assets/sprites15/ui/forja.png" alt="">FORJA</button>
     <button class="cbtn" data-act="trAbrir"><img class="ui" src="tibia-assets/sprites15/ui/personagem.png" alt="">TREINAR</button>
     <button class="cbtn" data-open="bless"><img class="ui" src="tibia-assets/sprites15/ui/blessings.png" alt="">BLESSINGS</button>
+    <button class="cbtn" data-open="viagem"><img class="ui" src="tibia-assets/sprites15/ui/cidade.png" alt="">VIAJAR</button>
     <div id="cidDica">Arraste itens para o chão, depot ou outro jogador; arraste personagens para empurrar; digite magias no chat.</div>
   </div>
   <div id="hud">
@@ -955,7 +963,11 @@ if(CB)for(const [k,c] of Object.entries(CB.monstros)){
     {hp:c.hp,exp:c.exp,hit:mel?Math.abs(mel.maxDamage):0,arm:c.arm,spd:clamp(Math.round(36000/Math.max(20,c.vel)),250,900),hostil:true,el:c.elementos,
      atq15:c.ataques,def15:c.defesas,invoca15:c.invoca.map(s=>({id:s.nome.replace(/ /g,'_'),chance:s.chance})).filter(s=>CB.monstros[s.id]),maxInv:c.max_invoca,fora:true});}
 /* caçadas: HUNTS[id] = {num,n,desc,lv,mobs,principal,bioma,mapa,pull,...}; o mapa de cada uma é carregado só ao entrar (ensureRegion) */
-const CITY=window.MAPAS&&window.MAPAS.desertcity?{n:'Desertcity',x:0,y:0,z:6,proprio:'desertcity'}:{n:'Thais',x:32369,y:32241,z:7,rw:44,rh:32};
+/* cidades jogáveis: S.cidade = cidade base (loc 'city' = a cidade atual); mapas de Thais/Issavi carregam sob demanda (ferramentas/exportar_mapa15.py) */
+const CIDADES={desertcity:{k:'desertcity',n:'Desertcity',x:0,y:0,z:6,proprio:'desertcity'},thais:{k:'thais',n:'Thais',x:0,y:0,z:7,proprio:'thais',mapa:'tibia-assets/mapas15/thais.js'},issavi:{k:'issavi',n:'Issavi',x:0,y:0,z:7,proprio:'issavi',mapa:'tibia-assets/mapas15/issavi.js'}};
+const VIAGEM_GP=100;
+let CITY=CIDADES.desertcity;
+const cidAtual=()=>CIDADES[S&&S.cidade]||CIDADES.desertcity;
 const HUNTS={};
 const MAPAS=window.MAPAS||{}, MSPR=window.MAPAS_SPRITES||{tiles:{},criaturas:{}};
 for(const [k,h] of Object.entries(CD.hunts).sort((a,b)=>a[1].num-b[1].num))
@@ -964,6 +976,11 @@ const MOB_CACADA=new Set(Object.values(HUNTS).flatMap(h=>Object.keys(h.mobs))); 
 /* caçadas de BOSS (só em party): reaproveitam o mapa de uma caçada normal; ficam em HUNTS para a fila da party funcionar igual, mas as listas normais as ignoram (h.boss) */
 Object.entries(CH.chefes).forEach(([k,c],i)=>{const src=HUNTS[c.mapa];if(!src||!MOBS[c.mob])return;
   HUNTS[k]=Object.assign({},src,{n:c.n,desc:c.desc,lv:c.lv,num:101+i,mobs:c.minions,principal:c.mob,boss:c.mob,bmin:c.min,brec:c.rec,pull:{cauteloso:{n:0,k:0,nome:'Boss'},ousado:{n:0,k:0,nome:'Boss'},agressivo:{n:0,k:0,nome:'Boss'}}});});
+/* ---- PvP: caçadas "PvP" (~20%): as de melhor lucro de cada faixa de level (40-1000), curadas à mão. Só nelas, jogadores online na MESMA caçada podem se atacar (bloco PvP mais abaixo); cidade, arena e as outras caçadas são protegidas. Risco compensado com +10% de exp e de chance de loot. ---- */
+const PVP_CACADAS=['deepling_depths','fire_devil_forge','cyclops_fort','frost_giant_hall','golem_workshop','dragon_nursery','djinn_fortress','demon_skeleton_pit','vampire_crypt','efreet_palace','dragon_lair','giant_spider_lair','lich_crypt','hydra_lair','dragon_lord_citadel','behemoth_caves','hellspawn_pit','fury_inferno','asura_palace','grim_reaper_crypt','hellgore','demon_rift','lava_golem_forge','juggernaut_fortress','infernal_throne'];
+for(const k of PVP_CACADAS)if(HUNTS[k])HUNTS[k].pvp=true;
+const PVP_NIVEL=50,PVP_BONUS=.1,PVP_BRANCA=15*MIN,PVP_LOCK=60e3,PVP_VERM=3*24*H,PVP_FRAG24=3,PVP_FRAG7=5,PVP_REV_T=30e3;   /* nível mínimo (atacar/ser atacado), bônus de exp/loot, caveira branca, PZ lock, caveira vermelha (3 dias reais), frags injustificados 24 h / 7 dias, tempo do revide automático sem nova agressão */
+const pvpBonus=()=>S&&!PT.hunt&&HUNTS[S.loc]&&HUNTS[S.loc].pvp?PVP_BONUS:0;   /* caçada da party (líder simula) é protegida e sem bônus */
 const CHEFE_CD=20*H, CHEFE_TEMPO=20*MIN;   /* cooldown por personagem depois de matar o boss (como os cooldowns de boss do Tibia) e tempo máximo da luta */
 const PULL_MODOS=['cauteloso','ousado','agressivo'];
 /* imbuements com as receitas reais do Tibia (materiais cumulativos por nível) */
@@ -991,6 +1008,7 @@ const CHARM_COST=[10,25,60,150,400];
 
 /* ======================= ESTADO ======================= */
 const PT={ev:null,hunt:null};   /* party (módulo mais abaixo) */
+const PV={ativo:false,modo:null,loc:null,tr:null,remotos:new Map(),alvo:null,alvoAuto:false,on:null,dele:{},hit:{},atqEm:{},ultAtq:null,seq:0,tEnv:0,tBat:0,ult:null,tFicha:0,sigF:'',fichaPend:false,rl:{},dots:[],forca:false,passe:null,tAviso:0,fragV:{},cond:{},den:0};   /* PvP (módulo mais abaixo); on = alvo remoto "embrulhado" enquanto o jogador lança magias nele */
 let S=null, W=null, LOGS={sys:[],loot:[],cmb:[],cid:[]}, chatTab='sys', modal=null, modalArg=null;
 const STARTER={knight:'short_sword',paladin:'spear',sorcerer:'wand_vortex',druid:'rod_snake'};
 function defaultHot(v){
@@ -1032,7 +1050,7 @@ function newState(name,voc){
     imb:{weapon:[null,null],helmet:[null],armor:[null],legs:[null],boots:[null],shield:[null]},
     prey:[0,1,2].map(i=>({opts:null,mob:null,type:null,val:0,est:1,ms:0,auto:false,trava:false,livreEm:0,lib:i===0})),wildcards:0,wcAcc:0,tc:0,favs:{},outfits:{},mount:{atual:0,on:0,owned:[]},
     best:{},bestClaim:{},charmPts:0,charms:{dmg:0,exp:0,loot:0,def:0},
-    bless:false,stamina:STAM_MAX,loc:'city',lastHunt:null,pull:{},lootCfg:{},recordes:{},
+    bless:false,stamina:STAM_MAX,loc:'city',cidade:'desertcity',lastHunt:null,pull:{},lootCfg:{},recordes:{},
     rules:{autoReturn:true,cap:90,minHp:5,minMp:5,autoSell:true,keepMats:true,sellEq:true,refill:[{id:'hp_pot',q:50},{id:'mp_pot',q:voc==='knight'?10:50}],autoBless:false,autoAol:false,autoBack:true,smart:false,backAfterDeath:false,lure:0,ia:true,aCave:true,aAlvo:true,aCura:true,aAtk:true},
     sess:null,lastTick:Date.now(),ui:{}};
   s.sess=newSess(null);return s;
@@ -1092,7 +1110,7 @@ function floorCtx(z,kind){const k=z+kind;if(!floorCache[k])floorCache[k]=(async(
 /* cores do minimapa do Tibia → tipo de tile */
 const KIND={'0,204,0':1,'153,255,102':2,'153,153,153':3,'153,102,51':4,'153,51,0':5,'102,102,102':6,'0,102,0':7,'51,102,153':8,'255,51,0':9,'255,102,0':10,'255,204,153':11,'204,255,255':12,'255,255,255':13,'255,255,0':14,'0,255,0':15};
 const KCOL=['#000','#00cc00','#99ff66','#999999','#996633','#993300','#666666','#006600','#336699','#ff3300','#ff6600','#ffcc99','#ccffff','#ffffff','#ffff00','#00ff00'];
-const locDef=loc=>loc==='city'?CITY:loc==='arena'?ARENA_DEF:loc==='treino'?TREINO_DEF:HUNTS[loc];
+const locDef=loc=>loc==='city'?(CITY=cidAtual()):loc==='arena'?ARENA_DEF:loc==='treino'?TREINO_DEF:HUNTS[loc];
 function regKey(loc){const d=locDef(loc);return `${loc}:${d.x},${d.y},${d.z},${d.rw},${d.rh}`;}
 /* mapa da caçada: injeta o <script> do mapa (window.MAPAS.hNNN + atlas) só quando precisa */
 const mapaCarregando={};
@@ -1261,12 +1279,12 @@ function killMob(m){
   if(m.inv){ef15(me15('poff'),m.x,m.y);return;}   /* invocação: sem cadáver, exp ou loot */
   W.corpses.push({x:m.x,y:m.y,m:m.d,id:m.id,b:performance.now()});if(W.corpses.length>25)W.corpses.shift();
   if(PT.hunt&&PT.hunt.papel==='lider')return ptKill(m);   /* party: exp e loot divididos */
-  const sm=S.stamina>0?1:0,ex=Math.round(m.d.exp*stage(S.level)*(1+charmV('exp')+preyB(m.id,'exp'))*sm);
+  const sm=S.stamina>0?1:0,ex=Math.round(m.d.exp*stage(S.level)*(1+charmV('exp')+preyB(m.id,'exp'))*sm*(1+pvpBonus()));
   if(ex){gainExp(ex);fxt(m.x,m.y-.4,ex+' exp','#ffffff');}
   S.best[m.id]=(S.best[m.id]||0)+1;S.sess.kills[m.id]=(S.sess.kills[m.id]||0)+1;checkBest(m.id);
   const g0=S.gold,ic=[],gold=rint(m.d.gold[0],m.d.gold[1]);S.gold+=gold;S.sess.gold+=gold;
   const got=[];if(gold)got.push(gold+' gold coins');
-  const lm=1+charmV('loot')+preyB(m.id,'loot');let vend=0;
+  const lm=1+charmV('loot')+preyB(m.id,'loot')+pvpBonus();let vend=0;
   for(const [id,c,mc] of m.d.loot){if(Math.random()>=c*lm)continue;const it=ITEMS[id],q=mc>1?rint(1,mc):1;
     if(it.type==='coin'){const g=Math.round(it.v*q*OURO_X);S.gold+=g;S.sess.gold+=g;got.push(Math.round(q*OURO_X)+' '+it.n.toLowerCase()+'s');continue;}   /* moedas viram gold direto (OURO_X) */
     const cf=lootCfgDe(id);if(!cf.pegar)continue;   /* PEGAR desligado: fica no chão */
@@ -1477,11 +1495,12 @@ const JOG={ehLutador:true,eJog:true,
   get c(){return W.pc||(W.pc={buffs:{},dots:[]})},get cd(){return W.cd},get bag(){return W.arena?W.arena.kitJ:S.bag},get slots(){return S.sets[S.set]||[]},
   get aliados(){return (W.aliados||[]).filter(a=>a.dono===JOG)},
   get procs(){return {crit:imbVal('strike'),critX:.5,fatal:(S.eq.weapon.t||0)*.015,ruse:(S.eq.armor.t||0)*.015,agonia:imbVal('agonia')};},
-  get alvo(){const t=W.p.target;return t?(t.ehLutador?t:alvoMob(t)):null},
+  get alvo(){if(PV.on)return PV.on;const t=W.p.target;return t?(t.ehLutador?t:alvoMob(t)):null},
   protecao(){return Math.max(.3,1-imbVal('prot')-charmV('def'))},accDano(d,el){return W.arena?d:accDano(d,el);},   /* acessórios só valem na caçada */
   receber(v,el,at,f,puro){return receberLutador(this,v,el,at,f,puro);},condicao(t,d){condicaoLutador(this,t,d);},resist(){return 1},vivo(){return S.hp>0}};
 /* inimigos de um lutador: na caçada, os monstros hostis; na arena, o outro lutador e as invocações dele */
-function inimigos15(L){if(W.arena){const T2=W.arena.times[1-L.time].filter(x=>x.hp>0);return [...T2,...(W.aliados||[]).filter(a=>T2.includes(a.dono)).map(alvoAliado)];}
+function inimigos15(L){if(PV.on&&L===JOG)return [PV.on];   /* PvP: o único inimigo é o jogador alvo */
+  if(W.arena){const T2=W.arena.times[1-L.time].filter(x=>x.hp>0);return [...T2,...(W.aliados||[]).filter(a=>T2.includes(a.dono)).map(alvoAliado)];}
   return W.mobs.filter(m=>m.d.hostil&&cheb(L,m)<=9).map(alvoMob);}
 function maisPerto(L,lista){let b=null,bd=1e9;for(const t of lista){const d=cheb(L,t);if(d<bd){bd=d;b=t;}}return b;}
 function noTile(lista,tiles){return lista.filter(t=>tiles.some(q=>q[0]===t.x&&q[1]===t.y));}
@@ -1507,7 +1526,7 @@ function lancar15(L,m,s,dry){const T=W.time,g=GRUPO15(m),v=s.v||0,hp=L.hp/L.max*
     case 'onda':case 'self':case 'debuff':{const ref=(m.t==='onda'&&iaTat15(L)&&iaOnda15(L,m,tg,ini))||tg||maisPerto(L,ini);if(!ref)return false;let tiles;
       if(m.t==='onda'){const d=dirPara(L,ref);tiles=tilesArea(m.area,L.x+DXY[d][0],L.y+DXY[d][1],d);}else tiles=tilesArea(m.area||[[3]],L.x,L.y,0);
       tiles=tiles.filter(([x,y])=>livre15(x,y));const hits=noTile(ini,tiles).filter(t=>t.resist(m.el)>=.35);
-      const need=Math.max(1,m.t==='debuff'||W.arena?1:v);   /* na arena (1x1) basta acertar o adversário */
+      const need=Math.max(1,m.t==='debuff'||W.arena||PV.on?1:v);   /* na arena (1x1) basta acertar o adversário */
       if(dry){if(m.t==='debuff'||!hits.length)return false;return danoEsp15(L,m,hits,need);}
       if(hits.length<need)return false;
       paga();if(m.t==='onda')L.dir=dirPara(L,ref);tiles.forEach(([x,y])=>ef15(m.ef,x,y));
@@ -1515,7 +1534,7 @@ function lancar15(L,m,s,dry){const T=W.time,g=GRUPO15(m),v=s.v||0,hp=L.hp/L.max*
       ok=true;break;}
     case 'area':case 'campo':{const ref=(m.t==='area'&&iaTat15(L)&&iaCentro15(L,m,tg,ini))||tg||maisPerto(L,ini);if(!ref||cheb(L,ref)>7)return false;   /* IA: mira o centro que acerta mais monstros */
       const tiles=(m.area?tilesArea(m.area,ref.x,ref.y,0):[[ref.x,ref.y]]).filter(([x,y])=>livre15(x,y));const hits=noTile(ini,tiles);
-      const need=Math.max(1,W.arena?1:v);
+      const need=Math.max(1,W.arena||PV.on?1:v);
       if(dry){if(m.t==='area')return hits.length?danoEsp15(L,m,hits,need):false;return {dano:8+10*hits.length,hits:hits.length,kills:0,need:1,ok:true};}
       if(m.t==='area'&&hits.length<need)return false;
       paga();virar15(L,ref);if(m.tiro)at=tiro15(m.tiro,L,ref);tiles.forEach(([x,y])=>ef15(m.ef,x,y,at));
@@ -1530,13 +1549,13 @@ function lancar15(L,m,s,dry){const T=W.time,g=GRUPO15(m),v=s.v||0,hp=L.hp/L.max*
       paga();const q=Math.min(a.max-a.hp,Math.round(valor15(L,m)));a.hp+=q;ef15(m.ef,a.x,a.y);if(q)fxt(a.x,a.y,'+'+q,'#7fe07f');ok=true;break;}
     case 'util':{if(m.id!=='exeta_res'||dry||!W.pl||!iaTat15(L))return false;const ap=L.eJog?W.p:L,ms=W.mobs.filter(x=>x.aggro&&x.d.hostil&&cheb(x,L)<=1&&x.alvo!==ap);   /* exeta res: puxa o alvo dos monstros colados */
       if(ms.length<2)return false;paga();for(const x of ms){x.alvo=ap;x.reav=T+6000;}ef15(m.ef,L.x,L.y);ok=true;break;}
-    case 'avatar':{if(W.arena||dry)return false;const b=L.c.buffs.avatar;if(b&&b.ate>T)return false;   /* Avatar: solta com ≥v monstros agressivos, chefe por perto ou HP baixo no meio da luta */
+    case 'avatar':{if(W.arena||PV.on||dry)return false;const b=L.c.buffs.avatar;if(b&&b.ate>T)return false;   /* Avatar: solta com ≥v monstros agressivos, chefe por perto ou HP baixo no meio da luta */
       const a=ini.filter(t=>t.mob.aggro||cheb(L,t)<=3);if(!a.length||!(a.length>=Math.max(1,v||4)||a.some(t=>t.mob.chefe)||hp<35))return false;
       paga();L.c.buffs.avatar={id:m.id,recebido:100-AVT15.red,ate:T+m.dur};ef15(m.ef,L.x,L.y);fxt(L.x,L.y-.9,'AVATAR','#ffd84a',true);if(!quiet&&window.AVATAR15&&AVATAR15[L.voc])folhaImg(AVATAR15[L.voc].src);ok=true;break;}
-    case 'empower':{if(W.arena||dry)return false;const e=L.c.emp;if(e&&e.ate>T)return false;   /* Divine Empowerment: campo 3x3 de 5 s, +dano em cima dele */
+    case 'empower':{if(W.arena||PV.on||dry)return false;const e=L.c.emp;if(e&&e.ate>T)return false;   /* Divine Empowerment: campo 3x3 de 5 s, +dano em cima dele */
       const a=ini.filter(t=>t.mob.aggro||cheb(L,t)<=3);if(!a.length||a.length<Math.max(1,v||2)||(v>1&&mp<40))return false;
       paga();L.c.emp={x:L.x,y:L.y,f:AVT15.emp.f,ate:T+AVT15.emp.dur,pulso:T};ef15(m.ef,L.x,L.y);fxt(L.x,L.y-.9,'+'+Math.round((AVT15.emp.f-1)*100)+'% dano','#ffe36a');ok=true;break;}
-    case 'desafio':case 'ofuscar':{if(W.arena||dry)return false;const dz=m.t==='ofuscar',cf=dz?AVT15.dz:AVT15.ch,kk=dz?'dz':'ch';   /* monstros à distância (sem chefes e invocações) vêm lutar de perto; o desafio ainda fixa o alvo em quem lançou */
+    case 'desafio':case 'ofuscar':{if(W.arena||PV.on||dry)return false;const dz=m.t==='ofuscar',cf=dz?AVT15.dz:AVT15.ch,kk=dz?'dz':'ch';   /* monstros à distância (sem chefes e invocações) vêm lutar de perto; o desafio ainda fixa o alvo em quem lançou */
       const rg=ini.map(t=>t.mob).filter(x=>x.d.hostil&&!x.chefe&&!x.inv&&!iaCorpo(x)&&cheb(L,x)<=cf.raio&&!((x[kk]||0)>T+3000)).sort((a,b)=>cheb(L,a)-cheb(L,b)).slice(0,cf.n);
       if(rg.length<Math.max(1,v||1))return false;
       paga();const ap=L.eJog?W.p:L;for(const x of rg){ef15(m.ef,x.x,x.y);x[kk]=x.dist1=T+cf.dur;if(!dz){x.alvo=ap;x.reav=T+cf.dur;}x.aggro=true;x.cdAtk=Math.max(x.cdAtk||0,T+1000);}ok=true;break;}
@@ -1588,7 +1607,7 @@ function lentoOk15(L,t){const A=W.arena,T=W.time;if(!t||(L.cd.paralyze||0)>T)ret
   if(A.modo==='equipe')return false;
   return !!t.ehLutador&&!(t.c.lento&&t.c.lento.ate>T)&&t.voc==='knight'&&cheb(L,t)<=3;}
 /* entre os slots de ataque elegíveis, o de MAIOR dano esperado agora; área com 2+ alvos pode valer mais que a regra do slot (mata vários / atinge muitos) */
-function escolherAtaque15(L,lista,exec){const eq=W.arena&&W.arena.modo==='equipe',ia=iaTat15(L),solo=ia&&W.mobs.filter(m=>m.aggro&&m.d.hostil&&cheb(L,m)<=6).length<=1;let best=null,bs=-1e9;   /* solo: um monstro só por perto */
+function escolherAtaque15(L,lista,exec){const eq=W.arena&&W.arena.modo==='equipe',ia=iaTat15(L),solo=ia&&!PV.on&&W.mobs.filter(m=>m.aggro&&m.d.hostil&&cheb(L,m)<=6).length<=1;let best=null,bs=-1e9;   /* solo: um monstro só por perto */
   for(const {m,s} of lista){if(eq&&reservado15(m)&&!exec)continue;
     const i=lancar15(L,m,s,true);if(!i)continue;
     const sd=solo&&m.runa&&m.t==='alvo'&&reservado15(m);   /* IA nas caçadas, alvo único: SD só para terminar (alvo ≤40% ou a runa mata); com vários monstros, vale como tapa-buraco da área */
@@ -1750,7 +1769,7 @@ function lutadorJogador(){const eq={},t={};for(const k of ['weapon','helmet','ar
 function basico15(L,t){const T=W.time;if((L.cd.basico||0)>T||!t.vivo())return;const d=cheb(L,t),md=mods(L);if(d>L.alcance||md.pacifico)return;L.cd.basico=T+2000;virar15(L,t);
   if(L.wt==='wand'||L.wt==='rod'){const w=L.arma;if(!w||L.mp<(w.mana||0))return;L.mp-=w.mana||0;const el=L.wt==='wand'?'energy':'ice',at=tiro15(L.wt==='wand'?ANI15.energy:ANI15.smallice,L,t);t.receber(rint(w.min||5,w.max||10)*md.feito,el,at,L);return;}
   const sk=L.skill*(L.voc==='knight'?md.melee:md.dist);let at=0;if(L.alcance>1)at=tiro15(L.voc==='paladin'?ANI15.spear:ANI15.arrow,L,t);
-  const arco=W.arena&&L.alcance>1?.7:1;   /* arena: o jogo ainda não modela munição, então o arco sozinho daria dano demais */
+  const arco=(W.arena||PV.on)&&L.alcance>1?.7:1;   /* arena: o jogo ainda não modela munição, então o arco sozinho daria dano demais */
   if(L.eJog&&!W.arena)train(mainSk(),1);t.receber(rnd(.3,1)*(0.085*L.atkArma*sk*L.dmgV+L.nivel/5)*md.feito*arco,'phys',at,L);}
 /* ---- movimento: knight cola no adversário; paladin e magos mantêm 3 tiles ---- */
 function passoLutador(L,O){if(L.mt<1)return;const A=W.arena,lz=L.c.lento;let n;if(lz&&lz.ate>W.time&&lz.f<=.35)return;   /* paralisado: não anda */
@@ -1948,7 +1967,7 @@ function wpLure(){const vivos=W.mobs.filter(m=>m.d.hostil&&!m.aggro&&!m.inv),ss=
    Solo: paladin/mago recuam dos monstros colados (kite), knight e mago juntam monstros antes da área, alvo = quem morre mais rápido.
    Party (líder simula): knight bloqueia, paladin puxa, druid cura (sio), sorcerer dá dano — cada um se posiciona atrás do knight. */
 const iaOn=()=>!!S&&S.rules.ia!==false;
-const iaTat15=L=>!W.arena&&iaOn()&&!!(L.eJog||L.cacada);   /* a IA vale só nas caçadas (a arena não muda) */
+const iaTat15=L=>!W.arena&&!PV.on&&iaOn()&&!!(L.eJog||L.cacada);   /* a IA vale só nas caçadas (a arena não muda) */
 const iaLivre=(x,y)=>livre15(x,y)&&!W.occ[y*W.w+x]&&!ocupado15(x,y);
 const iaD=(x,y,o)=>Math.max(Math.abs(x-o.x),Math.abs(y-o.y));
 function iaDps(d){if(d.__dps!==undefined)return d.__dps;let t=0,r=0;   /* dano médio por segundo de um monstro (sem armadura); __rg = fatia do dano à distância */
@@ -2066,8 +2085,9 @@ function playerLogic(dt){
   const HR=ia?iaRoles():null,rol=HR&&HR.pp[PR.pid],apoio=!!rol&&rol!=='bloqueio'&&!!HR.bq&&HR.bq!==JOG;   /* party: apoio fica atrás do knight */
   if(HR)iaMagiasPT(JOG);
   if(ia&&AUTO('aCura'))iaSup15(JOG);
-  runHot();
+  if(!pvLogic())runHot();   /* PvP: com um jogador como alvo, o ataque vai nele (cura/poções seguem normais) */
   if(andarMao()||!AUTO('aCave')){if(p.target&&cheb(p,p.target)<=V().range&&W.time>=p.cdAtk){autoAttack(p.target);p.cdAtk=W.time+2000;}return;}   /* cavebot desligado: nunca anda sozinho */
+  if(PV.alvo&&pvSegue())return;   /* PvP: anda até o jogador alvo */
   const tg=puxa?null:p.target,R=V().range;
   if(puxa&&p.target&&cheb(p,p.target)<=R&&W.time>=p.cdAtk){autoAttack(p.target);p.cdAtk=W.time+2000;}   /* ataque leve enquanto puxa */
   if(ia&&!puxa&&!apoio&&rol!=='bloqueio'&&R>1&&p.mt>=1&&!(p.lentoAte>W.time)){const k=iaKite(JOG,R,p.target);if(k)stepPlayer(k[0],k[1]);}   /* kite: paladin/mago recuam de quem cola */
@@ -2154,17 +2174,20 @@ function autoChecks(){
   if(why)returnCity(why,true);
 }
 function die(){
+  const pk=pvMorteCtx(),verm=pvSk()===2;   /* PvP: quem me bateu por último (12 s) e se tenho caveira vermelha */
   S.deaths++;const loss=S.bless?.03:.1;S.exp=Math.floor(S.exp*(1-loss));while(S.level>1&&S.exp<expFor(S.level))S.level--;
   const aol=S.eq.amulet.id==='amulet_of_loss';if(aol)S.eq.amulet={id:null,t:0};   /* Amulet of Loss: protege os itens (não a exp) e some ao morrer, com ou sem blessing */
-  let lost=0;if(!S.bless&&!aol){for(const k of Object.keys(S.bag))if(ITEMS[k]&&ITEMS[k].type==='loot'){lost+=S.bag[k];delete S.bag[k];}}
-  log('sys',`☠ Você morreu! Perdeu ${loss*100}% da experiência${aol?' (Amulet of Loss protegeu seus itens e foi consumido)':S.bless?' (blessing protegeu seus itens)':lost?` e ${lost} itens de loot`:''}. Level atual: ${S.level}.`,'r');
+  let lost=0;if((!S.bless&&!aol)||verm){for(const k of Object.keys(S.bag))if(ITEMS[k]&&ITEMS[k].type==='loot'){lost+=S.bag[k];delete S.bag[k];}}
+  log('sys',`☠ Você morreu! Perdeu ${loss*100}% da experiência${aol&&!verm?' (Amulet of Loss protegeu seus itens e foi consumido)':S.bless&&!verm?' (blessing protegeu seus itens)':lost?` e ${lost} itens de loot${verm?' (caveira vermelha: blessing e amuleto não protegem)':''}`:''}. Level atual: ${S.level}.`,'r');
   toast('☠ Você morreu!');S.bless=false;S.hp=maxHp();S.mp=maxMp();
-  travel('city',S.rules.backAfterDeath&&!PT.hunt?{t:0,step:0}:null);
+  pvMorreu(pk);PV.forca=true;
+  try{travel('city',S.rules.backAfterDeath&&!PT.hunt?{t:0,step:0}:null);}finally{PV.forca=false;}
 }
 function returnCity(why,routine){log('sys',`Voltando para a cidade: ${why}.`,'b');travel('city',routine?{t:0,step:0}:null);}
 function showLoading(on,txt){const el=$('#loading');el.classList.toggle('hidden',!on);if(txt)el.firstChild.textContent=txt;}
 function travel(loc,routine){
   if(W&&W.loading)return;
+  if(!quiet&&pvBloqueia(loc))return;   /* PvP: PZ lock e confirmação ao entrar numa caçada PvP */
   const go=()=>{
     if(loc!=='city'&&loc!=='arena'&&loc!=='treino'&&S.sess.hunt!==loc)S.sess=newSess(loc);
     S.loc=loc;buildWorld(loc);if(loc==='arena')montarArena();else if(loc==='treino')log('sys','Você entrou na sala de treino.','b');else if(loc!=='city'){if(!HUNTS[loc].boss)S.lastHunt=loc;iniciarRecorde();log('sys',`Você chegou em ${HUNTS[loc].n}.`,'b');}
@@ -2190,12 +2213,13 @@ function cityLogic(){
     if(S.stamina<30*MIN){log('sys','Stamina baixa: descansando na cidade.','o');return;}
     if((S.rules.minHp>0&&countPots('hp')<S.rules.minHp)||(S.rules.minMp>0&&countPots('mp')<S.rules.minMp)){log('sys','Sem gold para reabastecer: ficando na cidade.','o');return;}
     let dest=S.lastHunt;if(S.rules.smart)dest=bestHunt();
+    if(HUNTS[dest]&&HUNTS[dest].pvp&&(!S.pv||S.pv.auto!==dest))dest=bestHunt();   /* a volta automática só entra numa caçada PvP que você liberou na confirmação */
     if(PT.pend&&PT.pend.ate>Date.now())return;   /* já indo para a caçada da party: não disputa a viagem */
     if(PT.id&&ptSou()&&PT.mb.length>=2&&!PT.hunt&&HUNTS[dest]){if(!PT.fila)ptIniciarCacada(dest);travel(dest,null);return;}   /* líder de party: a volta automática abre a fila da party e já caça sozinho enquanto espera */
     if(PT.id&&!ptSou()&&PT.huntInfo&&!PT.hunt&&HUNTS[PT.huntInfo.loc]){ptIrCaca();return;}   /* membro: a party já está caçando, vai para lá em vez de caçar sozinho */
     travel(dest,null);}
 }
-function bestHunt(){let b=Object.keys(HUNTS)[0];for(const [k,h] of Object.entries(HUNTS))if(!h.boss&&h.lv<=S.level)b=k;return b;}
+function bestHunt(){let b=Object.keys(HUNTS)[0];for(const [k,h] of Object.entries(HUNTS))if(!h.boss&&!h.pvp&&h.lv<=S.level)b=k;return b;}
 
 /* ======================= ECONOMIA ======================= */
 function quickSell(auto){
@@ -2214,6 +2238,18 @@ function refill(){
 const blessPrice=()=>S.level<=30?2000:2000+200*(S.level-30);
 function buyAol(){const a=ITEMS.amulet_of_loss;if(S.eq.amulet.id===a.id)return;if(!S.bag[a.id]){if(S.gold<a.price)return;S.gold-=a.price;S.bag[a.id]=1;log('sys',`Comprou ${a.n} por ${fmt(a.price)} gp.`,'y');}equip(a.id);}
 function buyBless(auto){const p=blessPrice();if(S.bless)return;if(S.gold<p){if(!auto)toast('Gold insuficiente');return;}S.gold-=p;S.bless=true;log('sys',`Você recebeu as blessings (${fmt(p)} gp).`,'y');dirty.all=true;}
+/* viagem entre cidades: S.cidade = cidade base (o 'city' do jogo); cada cidade tem presença/depot-baús próprios (canal de rede = nome da cidade) */
+function cidSelHtml(){const h=(S.cidade||'desertcity');return `<div class="wtool" style="gap:6px;flex-wrap:wrap"><span class="mut sm">Cidade base (viagem: ${VIAGEM_GP} gp):</span>${Object.values(CIDADES).map(c=>rowBtn(c.n,'cidade',c.k,c.k===h,c.k===h?'go':'')).join('')}</div>`;}
+function viajarCidade(k){
+  if(!CIDADES[k]||k===(S.cidade||'desertcity')||(W&&W.loading))return;
+  if(PT.hunt||S.loc==='arena'||S.loc==='treino'){toast('Volte à cidade antes de viajar');return;}
+  if(S.gold<VIAGEM_GP){toast('Gold insuficiente');return;}
+  S.gold-=VIAGEM_GP;const noCid=S.loc==='city';
+  if(noCid){for(const f of (S.chao||[]).slice())cidDevolver(f,'voltou para o seu depot (você viajou)');CID.acao=null;CID.dr=null;prSair();W.routine=null;}
+  S.cidade=k;CITY=CIDADES[k];delete REG.city;
+  for(const f of Object.keys(FOLHAS))if(/\/mapas15\/(thais|issavi)_/.test(f)&&f.indexOf('/'+k+'_')<0)delete FOLHAS[f];   /* libera o atlas da outra cidade */
+  log('sys',`Você ${noCid?'viajou para':'agora tem como cidade base'} ${CITY.n} (-${VIAGEM_GP} gp).`,'y');dirty.all=true;
+  if(noCid){closeModal();travel('city',null);}else if(modal==='hunts')openModal('hunts',null,true);}
 const canEquip0=(it,o)=>!it.voc||it.voc.includes(o.voc);   /* validação de save: só a vocação */
 function canEquip(it){if(it.type!=='eq')return false;if(S.level<it.lv)return false;if(it.slot==='weapon'&&!okWt(S.voc,it.wt))return false;if(it.voc&&!it.voc.includes(S.voc))return false;return true;}
 function bagKey(id,t){return t?id+'#'+t:id;}
@@ -2370,6 +2406,7 @@ function draw(){
   if(W.pl)for(const L of ptLutVivos()){const q=rpos(L),r=Math.round(q.y);(rows[r]=rows[r]||[]).push({lut:L,p:q});}   /* party: lutadores simulados pelo líder */
   if(W.partyR)for(const r of W.partyR.values()){if(r.vivo===0)continue;const q=rpos(r),ry=Math.round(q.y);(rows[ry]=rows[ry]||[]).push({rem:r,p:q});}   /* party: os outros membros (visão do membro) */
   if(W.city&&S.loc==='city'&&W.remotos)for(const r of W.remotos.values()){const q=rpos(r),ry=Math.round(q.y);(rows[ry]=rows[ry]||[]).push({rem:r,p:q});}
+  if(PV.ativo&&!W.city&&S.loc===PV.loc)for(const r of PV.remotos.values()){const q=rpos(r),ry=Math.round(q.y);(rows[ry]=rows[ry]||[]).push({rem:r,p:q});}   /* PvP: jogadores da mesma caçada */
   const labels=[];
   for(let y=y0;y<=y1+1;y++){
     if(y<W.h)for(let x=x0;x<=x1+1&&x<W.w;x++){const i=y*W.w+x,k=W.k[i];if(!k)continue;if(W.proprio){const L=W.tl[i];for(let j=1;j<L.length;j++)drawTile74(L[j],x,y);continue;}const on=objName(k,W.walk[i],x,y);if(!on||on==='!')continue;
@@ -2377,10 +2414,10 @@ function draw(){
       else if(!drawSprite(on,x*TS,y*TS,false)){ctx.fillStyle=KCOL[k];ctx.fillRect(x*TS+4,y*TS+4,24,24);}}
     for(const e of (rows[y]||[])){const X=e.p.x*TS,Y=e.p.y*TS;
       if(e.pl){const dd=drawJogador(X,Y)||drawSprite(V().outfit,X,Y,W.p.dir>0);if(!dd){ctx.save();if(W.p.dir<0){ctx.translate(X*2+32,0);ctx.scale(-1,1);}ctx.drawImage(PSPR[S.voc],X,Y-4);ctx.restore();}
-        labels.push({x:sx(X+16),y:sy(Y+32-(dd?dd.h:40)+6),name:S.name,hp:S.hp/maxHp(),fala:(PR.fala&&PR.fala.ate>now)?PR.fala.txt:null,fcor:PR.fala&&PR.fala.mag?'#ff9a2a':null,pid:PR.pid});}
+        labels.push({x:sx(X+16),y:sy(Y+32-(dd?dd.h:40)+6),name:S.name,hp:S.hp/maxHp(),fala:(PR.fala&&PR.fala.ate>now)?PR.fala.txt:null,fcor:PR.fala&&PR.fala.mag?'#ff9a2a':null,pid:PR.pid,sk:pvSk()});}
       else if(e.dum)drawBoneco(e.dum,X,Y,now,labels,sx,sy);
-      else if(e.rem){const r=e.rem,dd=drawRemoto(r,X,Y);
-        labels.push({x:sx(X+16),y:sy(Y+32-(dd?dd.h:40)+6),name:r.nome,hp:r.hpMax?r.hp/r.hpMax:1,fala:r.falaAte>now?r.fala:null,fcor:r.falaMag?'#ff9a2a':null,pid:r.pid});}
+      else if(e.rem){const r=e.rem,dd=drawRemoto(r,X,Y);if(r.pvR&&PV.alvo===r.pid){ctx.strokeStyle='#ff2a2a';ctx.lineWidth=1.5;ctx.strokeRect(X+1,Y+1,30,30);}
+        labels.push({x:sx(X+16),y:sy(Y+32-(dd?dd.h:40)+6),name:r.nome,hp:r.hpMax?r.hp/r.hpMax:1,fala:r.falaAte>now?r.fala:null,fcor:r.falaMag?'#ff9a2a':null,pid:r.pid,sk:r.pvR?pvSkVis(r):0});}
       else if(e.lut){const L=e.lut,dd=drawLutador(L,X,Y);const fm=W.arena&&W.arena.focoMan[0];if(fm&&fm.L===L&&fm.ate>W.time){ctx.strokeStyle='#ff8a3a';ctx.lineWidth=1.5;ctx.strokeRect(X+1,Y+1,30,30);}
         labels.push({x:sx(X+16),y:sy(Y+32-(dd?dd.h:40)+6),name:L.nome,hp:L.hp/L.max,cor:W.arena&&W.arena.modo==='equipe'?['#6fb4ff','#ff6f6f'][L.time]:null,pid:L.pid});}
       else{const m=e.m,dd=drawCriatura(m,X,Y);
@@ -2398,7 +2435,7 @@ function draw(){
   drawChefeHud();drawArenaHud();
   ctx.textAlign='center';ctx.textBaseline='alphabetic';
   for(const l of labels){const col=l.hp>.6?'#5fd35f':l.hp>.3?'#f0d040':l.hp>.1?'#ff7a3a':'#c01818';
-    ctx.font='bold 11px Verdana';ctx.lineWidth=3;ctx.strokeStyle='#000';ctx.strokeText(l.name,l.x,l.y-6);ctx.fillStyle=l.cor||col;ctx.fillText(l.name,l.x,l.y-6);
+    ctx.font='bold 11px Verdana';ctx.lineWidth=3;ctx.strokeStyle='#000';ctx.strokeText(l.name,l.x,l.y-6);ctx.fillStyle=l.cor||col;ctx.fillText(l.name,l.x,l.y-6);if(l.sk)drawCav(l.x+ctx.measureText(l.name).width/2+3,l.y-15,l.sk);
     if(l.pid&&PT.id){const eb=ptEscudoDe(l.pid);if(eb)drawEscudo(l.x-ctx.measureText(l.name).width/2-13,l.y-17,eb.tipo,eb.glow);}
     ctx.fillStyle='#000';ctx.fillRect(l.x-15,l.y-3,30,4);ctx.fillStyle=col;ctx.fillRect(l.x-14,l.y-2,28*clamp(l.hp,0,1),2);
     if(l.fala){const ls=prQuebrar(l.fala,28);ctx.font='bold 11px Verdana';ctx.fillStyle=l.fcor||'#ffff00';for(let i=0;i<ls.length;i++){const yy=l.y-22-(ls.length-1-i)*13;ctx.strokeText(ls[i],l.x,yy);ctx.fillText(ls[i],l.x,yy);}}}
@@ -2468,7 +2505,7 @@ function renderHot(){
 function hud(){
   if(!S)return;const keysSet=Object.keys(S.sets).join('|');if(sigs.sets!==keysSet){sigs.sets=keysSet;$('#selSet').innerHTML=Object.keys(S.sets).map(k=>`<option>${esc(k)}</option>`).join('');}
 const mh=maxHp(),mm=maxMp();
-  $('#tName').textContent=S.name;$('#tVoc').textContent=`${V().n} Lv ${S.level}`;$('#tGold').textContent=fmt(S.gold);$('#tGoldIc').title=`${Math.floor(S.gold/10000)} crystal · ${Math.floor(S.gold%10000/100)} platinum · ${S.gold%100} gold`;
+  {const sk=pvSk(),sg=S.name+'|'+sk;if(sigs.nm!==sg){sigs.nm=sg;$('#tName').innerHTML=esc(S.name)+(sk?' '+cavHTML(sk,13):'');}}$('#tVoc').textContent=`${V().n} Lv ${S.level}`;$('#tGold').textContent=fmt(S.gold);$('#tGoldIc').title=`${Math.floor(S.gold/10000)} crystal · ${Math.floor(S.gold%10000/100)} platinum · ${S.gold%100} gold`;
   const bonus=(stage(S.level)*(1+charmV('exp'))-1)*100;$('#tRate').textContent=`+${Math.round(bonus)}%`;
   const avk=S.voc+'|'+(S.outfit?JSON.stringify(S.outfit):'');if(sigs.ava!==avk){sigs.ava=avk;$('#tAva').innerHTML=S.outfit?ret15(S.outfit):`<img src="${surl(V().outfit)}" alt="">`;pintarRetratos();}
   $('#bHp').style.width=clamp(S.hp/mh*100,0,100)+'%';$('#sHp').textContent=`${Math.max(0,Math.round(S.hp))}/${mh}`;
@@ -2479,11 +2516,11 @@ const mh=maxHp(),mm=maxMp();
   const city=S.loc==='city';$('#cityBtns').classList.toggle('hidden',!city);
   const ar=!!(W&&W.arena&&!W.arena.fim&&W.arena.modo==='equipe'&&S.loc==='arena');$('#arenaBtns').classList.toggle('hidden',!ar);
   if(ar){const cd=Math.ceil(Math.max(0,W.arena.combarCd-W.time)/1000),b=$('#combarBtn');b.disabled=cd>0||W.time<W.arena.t0;b.textContent=cd>0?`⚡ Combar agora (${cd}s)`:'⚡ Combar agora';}
-  const gb=$('#goBtn');if(city){gb.className='gobtn go';gb.textContent=S.lastHunt?`▶ Caçar: ${HUNTS[S.lastHunt].n}`:'▶ Escolher caçada';}else{gb.className='gobtn stop';gb.textContent='🏠 Voltar à cidade';}
-  const ui=n=>`<img class="ui" src="tibia-assets/sprites15/ui/${n}.png" alt="">`;let st;if(W&&W.loading)st=`${ui('regras')} <b>Carregando mapa...</b>`;else if(city)st=W&&W.routine?`${ui('venda')} <b>Reabastecendo em ${CITY.n}...</b>`:`${ui('cidade')} <b>${CITY.n}</b> — descansando`;else if(S.loc==='treino')st=`${ui('personagem')} <b>Sala de treino</b> — ${trStatus()}`;else if(S.loc==='arena')st=`${ui('arena')} <b>Arena</b>${W&&W.arena?' — contra '+esc(W.arena.op.nome):''}`;else{const n=W.mobs.filter(m=>m.aggro).length;st=`${ui('cacadas')} Caçando em <b>${HUNTS[S.loc].n}</b>${n?` · ${n} monstro${n>1?'s':''} atacando`:''}`;}
+  const gb=$('#goBtn');if(city){gb.className='gobtn go';gb.disabled=false;gb.textContent=S.lastHunt?`▶ Caçar: ${HUNTS[S.lastHunt].n}`:'▶ Escolher caçada';}else{const lk=Math.ceil(pvLock()/1000);gb.className='gobtn stop';gb.disabled=lk>0;gb.title=lk>0?'PZ lock: você atacou um jogador e não pode sair da zona por alguns segundos':'';gb.textContent=lk>0?`🔒 PZ lock (${lk}s)`:'🏠 Voltar à cidade';}
+  const ui=n=>`<img class="ui" src="tibia-assets/sprites15/ui/${n}.png" alt="">`;let st;if(W&&W.loading)st=`${ui('regras')} <b>Carregando mapa...</b>`;else if(city)st=W&&W.routine?`${ui('venda')} <b>Reabastecendo em ${CITY.n}...</b>`:`${ui('cidade')} <b>${CITY.n}</b> — descansando`;else if(S.loc==='treino')st=`${ui('personagem')} <b>Sala de treino</b> — ${trStatus()}`;else if(S.loc==='arena')st=`${ui('arena')} <b>Arena</b>${W&&W.arena?' — contra '+esc(W.arena.op.nome):''}`;else{const n=W.mobs.filter(m=>m.aggro).length;st=`${ui('cacadas')} Caçando em <b>${HUNTS[S.loc].n}</b>${HUNTS[S.loc].pvp?' <span class="pvb">PvP</span>':''}${n?` · ${n} monstro${n>1?'s':''} atacando`:''}`;}
   $('#tStatus').innerHTML=`<span class="dot"></span>${st}`;
   if($('#selSet').value!==S.set)$('#selSet').value=S.set;if($('#selTarget').value!==S.target)$('#selTarget').value=S.target;
-  renderHot();renderAuto();renderInv();renderLoot();renderAna();renderChat();trHud();
+  renderHot();renderAuto();pvUI();renderInv();renderLoot();renderAna();renderChat();trHud();
   if(dirty.all&&modal&&['shop','depot','imbue','forge','bless','char'].includes(modal)){openModal(modal,modalArg,true);}
   dirty.all=false;
 }
@@ -2735,7 +2772,7 @@ const MODALS={
   char:()=>{const sk=Object.keys(SKN).map(k=>{const s=S.skills[k],p=s.t/need(k,s.lv)*100;return `<div class="row"><div class="grow">${SKN[k]}${k===mainSk()&&k!=='magic'?' <span class="green sm" title="Skill da arma equipada: é o que treina e dá dano">● em uso</span>':''}<div class="prog"><div style="width:${p}%"></div></div></div><b style="font-size:16px">${s.lv}</b></div>`;}).join('');
     return {title:'👤 Personagem',body:`<div style="display:flex;gap:14px;align-items:flex-start"><div><div style="width:64px;height:64px">${S.outfit?ret15(S.outfit):ico(V().outfit,'🧑','m64')}</div><div style="margin-top:6px"><button class="btn" data-open="outfit">🎨 Outfit</button></div></div><div class="kv" style="flex:1"><span>Nome</span><b>${esc(S.name)}</b><span>Vocação</span><b>${V().n}</b><span>Level</span><b>${S.level}</b><span>Experiência</span><b>${fmt(S.exp)}</b>
       <span>HP / Mana</span><b>${maxHp()} / ${maxMp()}</b><span>Capacidade</span><b>${maxCap()} oz</b><span>Ataque${V().wt==='wand'||V().wt==='rod'?' (wand/rod)':''}</span><b>${eqi('weapon').atk?atk():eqi('weapon').min+'-'+eqi('weapon').max}</b>
-      ${S.voc==='knight'?`<span>Arma / skill</span><b>${eqi('weapon').n} · ${SKN[mainSk()]} ${S.skills[mainSk()].lv}</b>`:''}<span>Armadura / Defesa</span><b>${armor()} / ${def()}</b><span>Taxa de exp</span><b>${stage(S.level)}x</b><span>Blessings</span><b class="${S.bless?'green':'red'}">${S.bless?'Ativas':'Nenhuma'}</b><span>Mortes</span><b>${S.deaths}</b>
+      ${S.voc==='knight'?`<span>Arma / skill</span><b>${eqi('weapon').n} · ${SKN[mainSk()]} ${S.skills[mainSk()].lv}</b>`:''}<span>Armadura / Defesa</span><b>${armor()} / ${def()}</b><span>Taxa de exp</span><b>${stage(S.level)}x</b><span>Blessings</span><b class="${S.bless?'green':'red'}">${S.bless?'Ativas':'Nenhuma'}</b><span>Mortes</span><b>${S.deaths}</b><span>PvP</span><b>${pvResumo()}</b>
       <span>Roubo de vida / mana</span><b>${Math.round(imbVal('vamp')*100)}% / ${Math.round(imbVal('void')*100)}%</b><span>Crítico (Strike)</span><b>${Math.round(imbVal('strike')*100)}% · +50%</b><span>Fatal (Onslaught)</span><b>${((S.eq.weapon.t||0)*1.5).toFixed(1)}% · +60%</b><span>Esquiva (Ruse)</span><b>${((S.eq.armor.t||0)*1.5).toFixed(1)}%</b><span>Agonia</span><b>${Math.round(imbVal('agonia')*100)}% · +25%</b></div></div><h3>Skills</h3>${sk}`};},
   bestiary:(sel)=>{const ids=[...MOB_CACADA].filter(k=>MOBS[k]&&MOBS[k].hostil).sort((a,b)=>MOBS[a].exp-MOBS[b].exp||MOBS[a].n.localeCompare(MOBS[b].n));sel=sel||ids[0];const m=MOBS[sel],st=bestStage(sel),th=bestTh(sel),k=S.best[sel]||0;
     const cards=ids.map(id=>{const s=bestStage(id),kk=S.best[id]||0,t=bestTh(id);return `<div class="card${id===sel?' on':''}" data-act="bestSel" data-arg="${id}" style="cursor:pointer;padding:6px;text-align:center"><div style="height:48px;${kk?'':'filter:brightness(0)'}">${mi(MOBS[id],'m48')}</div><div class="sm">${kk?MOBS[id].n:'???'}</div><div class="prog"><div style="width:${Math.min(100,kk/t[2]*100)}%"></div></div><div class="mut sm">${'★'.repeat(s)}${'☆'.repeat(3-s)}</div></div>`;}).join('');
@@ -2776,6 +2813,7 @@ const MODALS={
     return {title:'✨ Imbuements',body:`<p class="mut">Use materiais de loot (da mochila ou do depot) para dar bônus ao equipamento. Cada imbuement dura 20 horas de caçada.</p>${out}`};},
   forge:()=>({title:'🔨 Forja',body:`<p class="mut">Melhore seus equipamentos até +5. Cada nível aumenta o ataque em 2 ou a armadura/defesa em 1. Como na forja do Tibia, cada nível da <b>arma</b> dá 1,5% de <b>Onslaught</b> (golpe FATAL, +60% de dano) e cada nível da <b>armadura</b> dá 1,5% de <b>Ruse</b> (DODGE, esquiva o golpe inteiro). A chance de sucesso cai a cada nível; se falhar, você perde o gold.</p>
     ${EQ6.map(k=>{const e=S.eq[k],it=eqi(k);const cost=forgeCost(e),ch=100-e.t*15;return `<div class="row"><div class="ic">${ii(it)}</div><div class="grow"><b>${it.n}${e.t?' +'+e.t:''}</b><div class="mut sm">${e.t<5?`Próximo: +${e.t+1} · ${fmt(cost)} gp · ${ch}% de chance`:'Nível máximo'}</div></div>${e.t<5?rowBtn('Forjar','forge',k,S.gold<cost,'gold'):''}</div>`;}).join('')}`}),
+  viagem:()=>({title:'⛵ Viajar',sm:true,body:`<p>Escolha a cidade para onde viajar (${VIAGEM_GP} gp). Ao voltar das caçadas você retorna à sua cidade base; cada cidade tem seus próprios jogadores.</p>${Object.values(CIDADES).map(c=>`<div class="kv"><span>${c.n}</span>${rowBtn(c.k===(S.cidade||'desertcity')?'Você está aqui':'Viajar','cidade',c.k,c.k===(S.cidade||'desertcity')||S.gold<VIAGEM_GP,'gold')}</div>`).join('')}`}),
   bless:()=>({title:'🙏 Blessings',sm:true,body:`<p>Com blessings, ao morrer você perde só <b>3%</b> da experiência (em vez de 10%) e não perde o loot da mochila. As blessings são consumidas na morte.</p>
     <div class="kv"><span>Status</span><b class="${S.bless?'green':'red'}">${S.bless?'Ativas':'Sem blessings'}</b><span>Preço</span><b class="gold">${fmt(blessPrice())} gp</b></div>
     <div style="margin-top:12px;text-align:right">${rowBtn('Comprar blessings','bless','',S.bless||S.gold<blessPrice(),'gold')}</div>`}),
@@ -2961,7 +2999,7 @@ const tabsCaca=()=>`<div class="wtabs">${TABS_CACA.map(([k,n])=>`<button class="
 /* ---- lista de caçadas ---- */
 function cardCaca(k){const h=HUNTS[k],rc=S.recordes[k],fav=!!S.favs[k],ms=mobsDe(h),cur=S.loc===k,baixo=S.level<h.lv;
   return `<div class="hcard${cur?' cur':''}" data-act="prep" data-arg="${k}"><button class="star${fav?' on':''}" data-act="fav" data-arg="${k}" title="${fav?'Tirar dos favoritos':'Favoritar'}">${ICO_STAR}</button>
-    <div class="hc-top"><div class="hc-mob">${mobAnim(h.principal,64)}</div><div class="hc-tx"><small>${numHunt(h)}${cur?' · caçando aqui':''}</small><b>${esc(h.n)}</b><span>${esc(ms.map(([m])=>MOBS[m].n).join(', '))}</span></div></div>
+    <div class="hc-top"><div class="hc-mob">${mobAnim(h.principal,64)}</div><div class="hc-tx"><small>${numHunt(h)}${cur?' · caçando aqui':''}${h.pvp?' <span class="pvb" title="Zona PvP: jogadores online nesta caçada podem atacar você. +10% de exp e loot">PvP</span>':''}</small><b>${esc(h.n)}</b><span>${esc(ms.map(([m])=>MOBS[m].n).join(', '))}</span></div></div>
     <div class="hc-foot"><span class="rec">${rc?`${fmt(rc.exp)} exp/h${rc.lucro>-1e11?` · ${fmt(rc.lucro)} gp/h`:''}`:'Sem recorde ainda'}</span><span class="lvl${baixo?' baixo':''}" title="Level recomendado">Lv ${h.lv}+</span></div></div>`;}
 function huntsModal(){
   const ks=listaCacadas(),[a,b]=lvFaixa();let corpo;
@@ -2973,7 +3011,7 @@ function huntsModal(){
   else if(HF.tab==='treino')corpo=`<div class="wscroll">${trCorpo()}</div>`;
   else{const t={boss:['Bosses','Chefes com mecânicas próprias e loot raro.'],quest:['Quests','Missões com recompensas únicas.'],treino:['Treino','Treinar skills com o boneco de treino.']}[HF.tab]||['',''];
     corpo=`<div class="wsoon">${uiI('cacadas')}<h3>${t[0]}</h3><p>${t[1]}</p><b>Em breve</b></div>`;}
-  return {wide:true,html:`${cabWide('cacadas','Caçadas',`Level ${S.level}`)}${tabsCaca()}${corpo}`};}
+  return {wide:true,html:`${cabWide('cacadas','Caçadas',`Level ${S.level}`)}${tabsCaca()}${cidSelHtml()}${corpo}`};}
 function refrescaGrade(){const g=$('#hGrid');if(!g)return;const ks=listaCacadas();g.innerHTML=ks.map(cardCaca).join('')||'<div class="wsoon">Nenhuma caçada encontrada.</div>';
   const c=$('#hCount');if(c)c.textContent=ks.length+' caçadas';animReg();}
 
@@ -2996,10 +3034,10 @@ function prepModal(hk){if(!HUNTS[hk])hk=S.lastHunt&&HUNTS[S.lastHunt]?S.lastHunt
   const qt=w=>PULL_MODOS.map(md=>{const p=h.pull[md];return `<i class="${pm===md?'on':''}">${Math.max(1,Math.round(p.n*p.k*w/sw))}</i>`;}).join('');
   const chips=ms.map(([id,w])=>{const m=MOBS[id];return `<div class="mchip">${mobAnim(id,64)}<b>${esc(m.n)}</b><small>HP ${fmt(m.hp)} · ${fmt(m.exp)} exp</small><span class="q" title="Quantidade aproximada: Cauteloso / Ousado / Agressivo">${qt(w)}</span></div>`;}).join('');
   const rec=rc?`<div class="rv"><b>${fmt(rc.exp)}</b> exp/h</div>${rc.lucro>-1e11?`<div class="rv"><b class="gold">${fmt(rc.lucro)}</b> gp/h</div>`:''}<small>pull ${h.pull[rc.pull]?h.pull[rc.pull].nome:rc.pull}, level ${rc.lv}</small>`:'<i>Complete uma caçada de 5 minutos para marcar um recorde.</i>';
-  const btn=cur?'Recomeçar caçada':S.loc==='city'?'Iniciar caçada':'Trocar para esta caçada';
+  const btn=(cur?'Recomeçar caçada':S.loc==='city'?'Iniciar caçada':'Trocar para esta caçada')+(h.pvp?' (PvP)':'');
   return {wide:true,html:`${cabWide('cacadas','Prepare sua caçada','',true)}${tabsCaca()}
-    <div class="pph"><div class="pph-mob">${mobAnim(h.principal,96)}</div><div class="pph-tx"><div class="pph-t"><h2>${esc(h.n)}</h2><button class="star${fav?' on':''}" data-act="fav" data-arg="${hk}" title="${fav?'Tirar dos favoritos':'Favoritar'}">${ICO_STAR}</button><small>${numHunt(h)}</small></div>
-      <p>${esc(h.desc)}</p><div class="pph-m">Level recomendado <b class="${baixo?'red':'green'}">${h.lv}</b><span>${esc(h.bioma)}${h.sub?' · subsolo':''}</span>${baixo?`<span class="red">seu level é ${S.level}</span>`:''}</div></div>
+    <div class="pph"><div class="pph-mob">${mobAnim(h.principal,96)}</div><div class="pph-tx"><div class="pph-t"><h2>${esc(h.n)}</h2><button class="star${fav?' on':''}" data-act="fav" data-arg="${hk}" title="${fav?'Tirar dos favoritos':'Favoritar'}">${ICO_STAR}</button><small>${numHunt(h)}</small>${h.pvp?'<span class="pvb">PvP</span>':''}</div>
+      <p>${esc(h.desc)}</p>${h.pvp?`<div class="pvaviso">⚠ <b>Zona PvP:</b> outros jogadores online nesta caçada podem atacar você (e você a eles, só de propósito). Você ganha <b>+${Math.round(PVP_BONUS*100)}% de exp e de chance de loot</b> pelo risco. Cidade e as demais caçadas continuam protegidas. <span class="pvlnk" data-act="pvWiki">Ver regras</span></div>`:''}<div class="pph-m">Level recomendado <b class="${baixo?'red':'green'}">${h.lv}</b><span>${esc(h.bioma)}${h.sub?' · subsolo':''}</span>${baixo?`<span class="red">seu level é ${S.level}</span>`:''}</div></div>
       <div class="pph-rec"><b>Seu recorde</b>${rec}</div></div>
     <div class="pbody"><div class="pl" data-keep="pl"><h4>Tamanho do pull</h4><div class="pulls">${pulls}</div>
       <h4>Monstros deste pull</h4><div class="mchips">${chips}</div>
@@ -3368,7 +3406,7 @@ function leiTickUI(mudou){$$('#mbox [data-lfim]').forEach(e=>e.textContent=fmtTe
 
 /* ======================= TELAS: WIKI ======================= */
 const WK={tab:'mob',q:'',mob:null,item:null,classe:'',tipo:'todos',voc:'todas',grupo:'todos',sub:'mag',ord:'exp',bioma:'',lim:120};
-const TABS_WK=[['mob','Monstros'],['item','Itens'],['mag','Magias'],['caca','Caçadas']];
+const TABS_WK=[['mob','Monstros'],['item','Itens'],['mag','Magias'],['caca','Caçadas'],['pvp','PvP']];
 const EL_NOME={phys:'Físico',energy:'Energia',earth:'Terra',fire:'Fogo',ice:'Gelo',holy:'Sagrado',death:'Morte',drown:'Afogamento',lifedrain:'Drenar vida',manadrain:'Drenar mana',poison:'Veneno'};
 const EL_COR=Object.assign({},ELC,{drown:'#5aa0e8',lifedrain:'#e06a8a',manadrain:'#6a8ae0'});
 const EL_ORDEM=['phys','fire','ice','energy','earth','holy','death','drown','lifedrain','manadrain'];
@@ -3432,13 +3470,13 @@ function wkMagiasHTML(){const pl=(arr,cur,act)=>`<div class="pills">${arr.map(([
     <div class="wkm hd"><span></span><span>MAGIA</span><span>PALAVRAS</span><span class="r">LV</span><span class="r">MANA</span><span class="r">RECARGA</span><span>TIPO</span><span>ELEMENTO</span><span>VOCAÇÃO</span></div><div class="wscroll" id="wkCorpoL" data-keep="wkS">${wkMagLinhas()}</div>`;
   return `<div class="wtool"><input type="text" id="wkQ" placeholder="Buscar runa..." value="${esc(WK.q)}" autocomplete="off">${sub}<span class="cnt">${wkContagem()}</span></div>
     <div class="wkm hd run"><span></span><span>RUNA</span><span class="r">LV</span><span class="r">NÍV. MÁGICO</span><span class="r">PREÇO</span><span>GRUPO</span><span>ELEMENTO</span></div><div class="wscroll" id="wkCorpoL" data-keep="wkS">${wkRunaLinhas()}</div>`;}
-function wkCacLinhas(){return wkCacadas().map(k=>{const h=HUNTS[k];return `<div class="wkc"><b class="nu">${numHunt(h)}</b><div class="mb2">${mobAnim(h.principal,40)}</div><div class="nm"><b>${esc(h.n)}</b><small>${esc(h.desc)}</small></div><span class="lvl${S.level<h.lv?' baixo':''}">Lv ${h.lv}+</span><span class="bm">${BIOMA_NOME[h.bioma]||h.bioma}${h.sub?' · subsolo':''}</span>
+function wkCacLinhas(){return wkCacadas().map(k=>{const h=HUNTS[k];return `<div class="wkc"><b class="nu">${numHunt(h)}</b><div class="mb2">${mobAnim(h.principal,40)}</div><div class="nm"><b>${esc(h.n)}</b>${h.pvp?' <span class="pvb">PvP</span>':''}<small>${esc(h.desc)}</small></div><span class="lvl${S.level<h.lv?' baixo':''}">Lv ${h.lv}+</span><span class="bm">${BIOMA_NOME[h.bioma]||h.bioma}${h.sub?' · subsolo':''}</span>
     <div class="ms">${mobsDe(h).map(([m])=>wkMobLink(m)).join(', ')}</div><button class="wbtn" data-act="wkPrep" data-arg="${k}">Preparar</button></div>`;}).join('')||'<div class="wsoon">Nenhuma caçada.</div>';}
 function wkCacadasHTML(){
   const bi=`<select id="wkBioma"><option value="">Todos os biomas</option>${Object.entries(BIOMA_NOME).map(([k,n])=>`<option value="${k}" ${WK.bioma===k?'selected':''}>${n}</option>`).join('')}</select>`;
   return `<div class="wtool"><input type="text" id="wkQ" placeholder="Buscar por caçada ou monstro..." value="${esc(WK.q)}" autocomplete="off">${bi}<span class="cnt">${wkContagem()}</span></div><div class="wscroll" data-keep="wkS" id="wkCorpoL">${wkCacLinhas()}</div>`;}
 function wkCorpoHTML(){
-  if(WK.tab==='mag')return wkMagiasHTML();if(WK.tab==='caca')return wkCacadasHTML();
+  if(WK.tab==='mag')return wkMagiasHTML();if(WK.tab==='caca')return wkCacadasHTML();if(WK.tab==='pvp')return wkPvpHTML();
   const mob=WK.tab==='mob',sel=mob?WK.mob:WK.item;
   const filtro=mob?`<select id="wkClasse"><option value="">Todas as classes</option>${[...new Set(Object.values(CD.mobs).map(m=>m.classe).filter(Boolean))].sort().map(c=>`<option ${WK.classe===c?'selected':''}>${c}</option>`).join('')}</select>
       <div class="pills">${[['exp','Exp'],['hp','Vida'],['nome','Nome']].map(([k,n])=>`<button class="${WK.ord===k?'on':''}" data-act="wkOrd" data-arg="${k}">${n}</button>`).join('')}</div>`
@@ -3488,6 +3526,7 @@ function act(a,arg){
     S=personagemForte(newState(name,voc));S.hp=maxHp();S.mp=maxMp();buildWorld('city');closeModal();setupWins();log('sys',`Bem-vindo a ${CITY.n}, ${name}!`,'y');log('sys','Abra 🗺️ Caçadas e seu personagem já começa no level 100 com todas as magias. Experimente a hunt de Goblins de Edron. A hotbar já vem configurada.','m');save();presenteImbuements();return;}
   if(!S)return;
   if(PTACT[a]){PTACT[a](arg);return;}
+  if(PVACT[a]){PVACT[a](arg);return;}
   if(/^(mk|lei|wk)[A-Z]/.test(a)){mkAct(a,arg);return;}
   switch(a){
     case 'closeModal':closeModal();return;
@@ -3551,6 +3590,7 @@ function act(a,arg){
     case 'imbDel':{const [slot,i]=arg.split(':');S.imb[slot][+i]=null;openModal('imbue',null,true);break;}
     case 'forge':{const e=S.eq[arg],cost=forgeCost(e);if(S.gold<cost||e.t>=5)break;S.gold-=cost;if(Math.random()*100<100-e.t*15){e.t++;log('sys',`🔨 Sucesso! ${ITEMS[e.id].n} agora é +${e.t}.`,'y');toast(`🔨 ${ITEMS[e.id].n} +${e.t}!`);}else{log('sys',`🔨 A forja falhou. ${fmt(cost)} gp perdidos.`,'r');toast('🔨 A forja falhou');}openModal('forge',null,true);break;}
     case 'bless':buyBless(false);openModal('bless');break;
+    case 'cidade':viajarCidade(arg);break;
     case 'bestSel':openModal('bestiary',arg,true);return;
     case 'charm':{const lv=S.charms[arg],cost=CHARM_COST[lv];if(lv<5&&S.charmPts>=cost){S.charmPts-=cost;S.charms[arg]++;}openModal('bestiary',modalArg,true);break;}
     case 'preyPick':{const [i,m]=arg.split(':'),p=S.prey[+i];if(!p||!preyLib(+i)||!MOBS[m])break;p.mob=m;p.ms=PREY_TIME;p.opts=null;preyRolaBonus(p,false);log('sys',`Prey ativa: ${MOBS[m].n} (+${p.val}% ${PREY_TIPOS[p.type]}, ${p.est} estrela${p.est>1?'s':''}).`,'y');openModal('prey',null,true);break;}
@@ -3634,6 +3674,7 @@ function hotMagia(m,s){const L=JOG,T=W.time,g=GRUPO15(m),p=W.p;
   if(L.nivel<m.lv)return toast(`Você precisa do level ${m.lv} para usar esta magia.`);
   if((L.cd[g]||0)>T||(L.cd[m.id]||0)>T)return toast('Você está exausto.');
   const b=m.buff||{},defensivo=m.t==='buff'&&((b.feito&&b.feito<100)||(b.recebido&&b.recebido<100)),v=(['cura','regen','escudo','cura_cond'].includes(m.t)||defensivo)?101:1;   /* 101 = ignora o limite de HP do slot */
+  if(g==='atk'&&PV.alvo&&pvNaZona()){const r=PV.remotos.get(PV.alvo);if(r&&!pvPodeAtacar(r)){PV.on=pvAlvoObj(r);try{if(lancar15(L,m,{a:s.a,v}))return true;}finally{PV.on=null;}toast('Jogador fora do alcance.');return false;}}   /* PvP: a tecla da magia vai no jogador alvo */
   if(g!=='cura'){const rng=m.runa?7:(m.alcance||3),cur=p.target&&W.mobs.includes(p.target)?p.target:null;
     if(!cur||((m.t==='alvo'||m.t==='dot')&&cheb(p,cur)>rng)){const n=hotPerto(m.t==='alvo'||m.t==='dot'?rng:8);if(n){p.target=n;p.tgMan=n;}}}
   if(m.t==='haste'||m.t==='buff'){   /* manual: sem as travas do automático (Charge só com alvo longe, buff ofensivo só com alvo, Swift Foot só para fugir) */
@@ -3937,7 +3978,7 @@ function save(){if(!S||ON.parado)return;if(ON.modo==='online'){ON.sujo=true;try{
 function load(){try{const r=localStorage.getItem(KEY);if(!r)return null;return carregarSave(JSON.parse(r));}catch(e){return null;}}
 /* valida e migra um save (local ou da nuvem) e devolve o estado, ou null */
 function carregarSave(d){try{if(!d||!VOC[d.voc])return null;const b=newState(d.name,d.voc);
-  const o=Object.assign(b,d);o.rules=Object.assign(newState(d.name,d.voc).rules,d.rules);o.sess=Object.assign(newSess(null),d.sess);o.charms=Object.assign({dmg:0,exp:0,loot:0,def:0},d.charms);o.pull=d.pull||{};o.lootCfg=d.lootCfg||{};o.recordes=d.recordes||{};o.ui=d.ui||{};o.favs=d.favs||{};o.wildcards=clamp(Math.floor(+d.wildcards)||0,0,1000);o.wcAcc=+d.wcAcc||0;o.tc=+d.tc||0;migraPrey(o);migraOutfits(o);
+  const o=Object.assign(b,d);o.rules=Object.assign(newState(d.name,d.voc).rules,d.rules);o.sess=Object.assign(newSess(null),d.sess);o.charms=Object.assign({dmg:0,exp:0,loot:0,def:0},d.charms);o.pull=d.pull||{};o.lootCfg=d.lootCfg||{};o.recordes=d.recordes||{};o.ui=d.ui||{};o.favs=d.favs||{};o.wildcards=clamp(Math.floor(+d.wildcards)||0,0,1000);o.wcAcc=+d.wcAcc||0;o.tc=+d.tc||0;o.pv=pvLimpa(d.pv);migraPrey(o);migraOutfits(o);
   o.imb=Object.assign(newState('x',o.voc).imb,d.imb||{});for(const [k,n] of Object.entries(IMB_SLOTS)){o.imb[k]=(o.imb[k]||[]).slice(0,n);while(o.imb[k].length<n)o.imb[k].push(null);}
   /* saves antigos tinham um skill 'melee' só: espada, machado e clava começam com o mesmo nível e tentativas dele (ninguém perde progresso); o 'melee' é descartado */
   {const ds=d.skills||{},sk=Object.assign({},b.skills,ds),m=ds.melee;if(m)for(const k of MELEE)if(!ds[k])sk[k]={lv:m.lv,t:m.t};delete sk.melee;
@@ -3962,6 +4003,7 @@ function carregarSave(d){try{if(!d||!VOC[d.voc])return null;const b=newState(d.n
   if(o.loc!=='city'&&o.loc!=='treino'&&!HUNTS[o.loc])o.loc='city';if(o.lastHunt&&!HUNTS[o.lastHunt])o.lastHunt=null;return o;}catch(e){return null;}}
 function tickLoop(){
   if(!S||!W||ON.parado||modal==='create')return;const now=Date.now();let el=now-S.lastTick;if(el<STEP)return;
+  if(S.pv&&S.pv.fuga){S.pv.fuga=0;if(el>30000){S.lastTick=now;log('sys','☠ Você fechou a página com PZ lock ativo (estava atacando jogadores): sem progresso offline desta vez.','r');toast('Sem progresso offline: fechou com PZ lock');save();return;}}   /* fugir fechando a página custa o offline */
   if(el>60000&&S.loc==='arena'){W.arena=null;S.loc='city';buildWorld('city');}
   if(el>60000&&S.loc==='treino'&&!PT.hunt){const r=trOffline(el);S.lastTick=now;if(r.usadas>0||el>120000)openModal('trResumo',r);hud();save();return;}   /* treino: aplica as cargas do tempo fora (não usa o offline da caçada) */
   if(el>60000&&PT.hunt){S.lastTick=now;if(S.loc!=='city'&&S.loc!=='arena'){quiet=true;travel('city',null);quiet=false;}log('sys','A caçada da party não rende progresso offline.','o');return;}
@@ -3988,19 +4030,20 @@ function prTrLocal(chave){const bc=new BroadcastChannel('tibiaidle-'+chave);let 
   const env=(m)=>{try{if(vivo)bc.postMessage(m);}catch(e){}};
   bc.onmessage=ev=>{const m=ev.data;if(!m||typeof m!=='object'||!h||m.pid===PR.pid||typeof m.pid!=='string')return;
     if(m.t==='oi'){h.entrou(m.pid,m.meta);if(!m.r&&meuMeta)env({t:'oi',r:1,pid:PR.pid,meta:meuMeta()});}
-    else if(m.t==='tchau')h.saiu(m.pid);else if(m.t==='pos'||m.t==='fala'||m.t==='convite'||m.t==='resposta'||m.t==='cid')h.rec(m.t,m);};
+    else if(m.t==='tchau')h.saiu(m.pid);else if(m.t==='pos'||m.t==='fala'||m.t==='convite'||m.t==='resposta'||m.t==='cid'||m.t==='pv')h.rec(m.t,m);};
   return {entrar(hh,mf){h=hh;meuMeta=mf;env({t:'oi',pid:PR.pid,meta:mf()});},atualizar(meta){env({t:'oi',r:1,pid:PR.pid,meta});},
     enviar(t,pl){env(Object.assign({t,pid:PR.pid},pl));},sair(){env({t:'tchau',pid:PR.pid});vivo=false;try{bc.close();}catch(e){}}};}
-function prTrRealtime(chave){let ch=null,h=null,vivo=true,meuMeta=null,tim=null,n=0,ok=false;const fila=[];
+function prTrRealtime(chave,pre){let ch=null,h=null,vivo=true,meuMeta=null,tim=null,n=0,ok=false;const fila=[];
   const envia=(t,pl)=>{try{if(ch)ch.send({type:'broadcast',event:t,payload:Object.assign({pid:PR.pid},pl)});}catch(e){}};
   const abrir=()=>{if(!vivo)return;try{
-    const c=ch=SB.channel('cidade:'+chave,{config:{presence:{key:PR.pid},broadcast:{self:false}}});
+    const c=ch=SB.channel((pre||'cidade:')+chave,{config:{presence:{key:PR.pid},broadcast:{self:false}}});   /* pre: 'cacada:' = canal de presença de uma caçada PvP */
     ch.on('presence',{event:'sync'},()=>{try{const st=ch.presenceState(),m=new Map();for(const k of Object.keys(st)){const a=st[k];if(a&&a.length)m.set(k,a[a.length-1]);}h.sync(m);}catch(e){}});
     ch.on('broadcast',{event:'pos'},m=>{try{h.rec('pos',m.payload);}catch(e){}});
     ch.on('broadcast',{event:'fala'},m=>{try{h.rec('fala',m.payload);}catch(e){}});
     ch.on('broadcast',{event:'convite'},m=>{try{h.rec('convite',m.payload);}catch(e){}});
     ch.on('broadcast',{event:'resposta'},m=>{try{h.rec('resposta',m.payload);}catch(e){}});
     ch.on('broadcast',{event:'cid'},m=>{try{h.rec('cid',m.payload);}catch(e){}});
+    ch.on('broadcast',{event:'pv'},m=>{try{h.rec('pv',m.payload);}catch(e){}});
     ch.subscribe(st=>{if(!vivo||c!==ch)return;   /* c!==ch: retorno de um canal antigo já descartado (não pode derrubar o novo) */
       if(st==='SUBSCRIBED'){n=0;PR.erro=null;ok=true;try{ch.track(meuMeta());}catch(e){}while(fila.length){const q=fila.shift();envia(q[0],q[1]);}}
       else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){PR.erro=st;ok=false;religar();}});
@@ -4082,6 +4125,209 @@ document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='chatTxt'){if
 addEventListener('pagehide',prSair);addEventListener('beforeunload',prSair);
 setInterval(prTick,100);
 
+/* ======================= PvP (zonas PvP) =======================
+   Caçadas marcadas com h.pvp (PVP_CACADAS, selo vermelho "PvP"): jogadores ONLINE na MESMA caçada entram num canal de presença próprio ('cacada:'+id, mesmo transporte da cidade:
+   Supabase Realtime, ou BroadcastChannel com ?rede=local) e se veem andando (roupa/montaria, nome, caveira, barra de vida). Os MONSTROS continuam por cliente (cada um simula os seus):
+   o canal só leva jogadores, então ninguém vê os monstros do outro, só o outro. Cidade, arena, treino, bosses/party e as demais caçadas são protegidas.
+   Ataque só de propósito: clique no jogador (menu "Atacar"), tecla T (jogador mais próximo; de novo troca/limpa) ou o "Revidar automaticamente" (liga por padrão: quem foi atacado revida em quem o atacou,
+   para o personagem idle se defender). O modo automático NUNCA escolhe jogadores. Atacar = ataque básico da arma + as magias/runas de ataque da hotbar, com as MESMAS fórmulas da arena
+   (receberLutador: metade do dano entre jogadores, armadura/bloqueio/absorção/escudo do alvo): o atacante calcula o golpe bruto (lancar15/basico15 com o jogador "embrulhado" em pvAlvoObj) e
+   manda 'atk' {al,d,el}; a VÍTIMA aplica em si (JOG.receber: acessórios, escudo de mana, Ruse, crítico pela ficha do atacante), roda as próprias curas e responde 'ack' com o dano real.
+   SEM servidor autoritativo: dá para trapacear (cliente modificado). Mitigação: cada cliente publica sua ficha (ptFicha) ao entrar e quando equipamento/hotbar/level mudam; a vítima valida o golpe
+   (<= 1,3x o máximo calculado da ficha do atacante, e no máximo 8x isso por 3 s), ignora quem tem level < 50, membro da própria party, ou se ela mesma tem level < 50.
+   Caveiras (regras do Tibia simplificadas, tempo real, persistidas em S.pv): atacar quem NÃO tem caveira e NÃO te atacou nos últimos 15 min = agressão injustificada -> caveira branca por 15 min (renova a cada agressão)
+   e PZ lock de 60 s para qualquer ataque (não sai da zona: viagem/volta à cidade bloqueadas). Revidar não dá caveira. Matar sem justificativa = frag; 3 frags em 24 h ou 5 em 7 dias -> caveira vermelha por 3 dias reais
+   (renova a cada frag): na morte perde TODO o loot da mochila mesmo com blessing/Amulet of Loss, e qualquer um a ataca sem ganhar caveira. Vítima de PvP perde exp/loot como em qualquer morte;
+   o loot perdido simplesmente some (sem repasse ao assassino: evita duplicar itens sem servidor). O assassino conta o frag quando a vítima avisa a morte ('morte'). */
+const CAV_PX=['.XXXXX.','XXXXXXX','XOOXOOX','XOOXOOX','XXXXXXX','.XXXXX.','.X.X.X.'],CAV_COR=['','#f4f4f4','#ff3030','#ffd84a'],CAV_NOME=['','Caveira branca','Caveira vermelha','Caveira amarela'];   /* sem sprite de caveira no cliente extraído: desenhada em pixels */
+function drawCav(x,y,t,s=1.3){const c=CAV_COR[t];if(!c)return;ctx.save();for(let j=0;j<7;j++)for(let i=0;i<7;i++){const q=CAV_PX[j][i];if(q==='.')continue;ctx.fillStyle=q==='O'?'#2a0a0a':c;ctx.fillRect(Math.round(x+i*s),Math.round(y+j*s),Math.ceil(s),Math.ceil(s));}ctx.restore();}
+function cavHTML(t,px=14){if(!t)return '';let r='';CAV_PX.forEach((l,j)=>{for(let i=0;i<7;i++){const q=l[i];if(q!=='.')r+=`<rect x="${i}" y="${j}" width="1" height="1" fill="${q==='O'?'#2a0a0a':CAV_COR[t]}"/>`;}});
+  return `<svg class="cav" viewBox="0 0 7 7" width="${px}" height="${px}" shape-rendering="crispEdges"><title>${CAV_NOME[t]}</title>${r}</svg>`;}
+function pvLimpa(d){const n=Date.now(),o={br:0,vm:0,lock:0,fr:[],kills:0,mortes:0,rev:true,auto:null,fuga:0};if(!d||typeof d!=='object')return o;
+  const t=(v,mx)=>{v=+v;return Number.isFinite(v)&&v>n?Math.min(Math.round(v),n+mx):0;};
+  o.br=t(d.br,PVP_BRANCA);o.vm=t(d.vm,PVP_VERM);o.lock=t(d.lock,PVP_LOCK);o.fr=Array.isArray(d.fr)?d.fr.map(Number).filter(v=>Number.isFinite(v)&&v>n-7*24*H&&v<=n).slice(-50):[];
+  o.kills=prNum(d.kills,0,1e6,0);o.mortes=prNum(d.mortes,0,1e6,0);o.rev=d.rev!==false;o.auto=typeof d.auto==='string'&&HUNTS[d.auto]&&HUNTS[d.auto].pvp?d.auto:null;o.fuga=d.fuga?1:0;return o;}
+const pvS=()=>S.pv&&typeof S.pv==='object'?S.pv:(S.pv=pvLimpa(null));
+const pvSk=()=>{const s=S&&S.pv;if(!s)return 0;const n=Date.now();return s.vm>n?2:s.br>n?1:0;};   /* 0 nada · 1 branca · 2 vermelha */
+const pvLock=()=>S&&S.pv?Math.max(0,S.pv.lock-Date.now()):0;
+const pvSkPid=pid=>{const r=PV.remotos.get(pid);return r?r.sk|0:0;};
+const pvSkVis=r=>r.sk>=2?2:r.sk===1?1:(PV.dele[r.pid]>Date.now()-60e3?3:0);   /* amarela: só aparece para quem foi atacado, em quem o atacou há pouco e não tem caveira (ex.: me atacou porque eu estava marcado) */
+function pvFrags(){const n=Date.now(),f=(S.pv&&S.pv.fr)||[];return [f.filter(t=>t>n-24*H).length,f.filter(t=>t>n-7*24*H).length];}
+function pvResumo(){const s=S.pv||{kills:0,mortes:0},[a,b]=pvFrags();return `${s.kills} frags · injustificados 24 h ${a}/${PVP_FRAG24} · 7 dias ${b}/${PVP_FRAG7} · mortes em PvP ${s.mortes}`;}
+const pvNaZona=()=>!!(S&&W&&!W.loading&&!W.city&&!PT.hunt&&!ON.parado&&!PV.morto&&HUNTS[S.loc]&&HUNTS[S.loc].pvp);   /* PV.morto: depois de morrer você já não está mais "na zona" (o teletransporte para a cidade leva ~0,4 s) */
+/* PZ lock (nada de sair da zona logo após atacar) e confirmação ao entrar numa caçada PvP; chamado pelo travel() */
+function pvBloqueia(loc){if(!S||loc===S.loc)return false;
+  if(!PV.forca&&pvLock()>0&&pvNaZona()){const n=Date.now();if(n-PV.tAviso>4000){PV.tAviso=n;log('sys',`🔒 PZ lock: você atacou um jogador e não pode sair da zona por mais ${Math.ceil(pvLock()/1000)} s.`,'o');toast('🔒 PZ lock ativo');}return true;}
+  const h=HUNTS[loc];if(h&&h.pvp&&!h.boss&&!PV.forca&&!PV.passe&&!PT.pend&&!(S.pv&&S.pv.auto===loc)){openModal('pvConf',loc);return true;}
+  return false;}
+Object.assign(MODALS,{pvConf:hk=>{const h=HUNTS[hk]||{n:'?'},rm=S.level<PVP_NIVEL;
+  return {title:'⚠ Zona PvP',sm:true,body:`<p><b>${esc(h.n)}</b> <span class="pvb">PvP</span></p><ul style="margin:6px 0 6px 18px;font-size:12px;line-height:1.5">
+    <li>Outros jogadores <b>online nesta caçada</b> podem atacar você (e você a eles, só de propósito).</li><li>Se você morrer, perde exp e loot como em qualquer morte; <b>caveira vermelha perde tudo</b>.</li>
+    <li>Atacar quem não tem caveira dá <b>caveira branca</b> (${PVP_BRANCA/MIN} min) e <b>PZ lock</b> (${PVP_LOCK/1000} s sem poder sair). Revidar não dá caveira.</li><li>Em troca: <b>+${Math.round(PVP_BONUS*100)}% de exp e de chance de loot</b>.</li>
+    <li>${rm?`Seu level (${S.level}) é menor que ${PVP_NIVEL}: você está <b>protegido</b> (não ataca nem é atacado).`:`Protegido apenas abaixo do level ${PVP_NIVEL}; caçadas da party não têm PvP.`}</li></ul>
+    <label style="display:flex;gap:6px;align-items:center;font-size:12px;margin:8px 0"><input type="checkbox" id="pvAuto" ${S.pv&&S.pv.auto===hk?'checked':''}> Permitir que a volta automática (após reabastecer) retorne a esta caçada</label>
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="wbtn" data-act="closeModal">Cancelar</button><button class="wbtn pri" data-act="pvIr" data-arg="${hk}">Entrar na zona PvP</button></div>`};}});
+function wkPvpHTML(){const L=PVP_CACADAS.filter(k=>HUNTS[k]).sort((a,b)=>HUNTS[a].lv-HUNTS[b].lv);
+  return `<div class="wscroll" style="padding:4px 14px 14px;line-height:1.55;font-size:13px"><h3>⚔ PvP — jogador contra jogador</h3>
+  <p>Algumas caçadas têm o selo vermelho <span class="pvb">PvP</span>. Nelas, jogadores <b>online na mesma caçada</b> se veem andando e podem se atacar. Cidade, arena, treino, bosses, caçadas da party e as demais caçadas são sempre protegidas. Ao entrar numa zona PvP o jogo pede confirmação. Em troca do risco: <b>+${Math.round(PVP_BONUS*100)}% de exp e de chance de loot</b>.</p>
+  <h3>Como atacar</h3><ul><li>Só de propósito: clique no jogador e escolha <b>Atacar</b>, ou tecle <b>T</b> (jogador mais próximo; de novo troca de alvo, <b>Esc</b> limpa). O modo automático nunca escolhe jogadores.</li>
+  <li>O ataque usa a arma e as magias/runas de ataque da sua hotbar, com as mesmas fórmulas da arena (metade do dano entre jogadores; armadura, bloqueio, absorções e escudo de mana do alvo valem).</li>
+  <li><b>Revidar automaticamente</b> (ligado por padrão, na barra PvP): quem é atacado passa a atacar quem o atacou, assim o personagem idle se defende. Para após ${PVP_REV_T/1000} s sem agressão.</li></ul>
+  <h3>Caveiras</h3><ul><li>${cavHTML(1)} <b>Branca</b>: atacar quem não tem caveira e não te atacou nos últimos ${PVP_BRANCA/MIN} min. Dura ${PVP_BRANCA/MIN} min desde a última agressão. Revidar quem te atacou, ou atacar quem tem caveira, <b>não</b> dá caveira.</li>
+  <li>${cavHTML(3)} <b>Amarela</b>: só você a vê, em quem acabou de te atacar sem ter caveira.</li>
+  <li>${cavHTML(2)} <b>Vermelha</b>: ${PVP_FRAG24} frags injustificados em 24 h ou ${PVP_FRAG7} em 7 dias (matar quem não tinha caveira nem te atacou). Dura ${PVP_VERM/H/24} dias reais e renova a cada frag. Quem a tem <b>perde todo o loot da mochila ao morrer, mesmo com blessing ou Amulet of Loss</b>; qualquer um pode atacá-la sem ganhar caveira.</li>
+  <li><b>PZ lock</b>: depois de atacar um jogador, ${PVP_LOCK/1000} s sem poder voltar à cidade ou trocar de caçada (o botão mostra o tempo). Fechar a página com PZ lock ativo faz você perder o progresso offline daquela vez.</li></ul>
+  <h3>Morte e proteções</h3><ul><li>Morrer em PvP custa o mesmo que morrer para monstros (exp: ${'3% com blessing, 10% sem'}; loot perdido sem blessing/amuleto). O loot perdido simplesmente some: não vai para o assassino.</li>
+  <li>Abaixo do <b>level ${PVP_NIVEL}</b> ninguém ataca nem é atacado. Membros da mesma party nunca se ferem. Você só pode ser atacado com a página aberta e dentro da zona; fechar a página tira você da zona (o offline continua como sempre, mas protegido).</li>
+  <li>Abas em segundo plano continuam na zona e se defendem sozinhas (revide automático) enquanto o navegador mantiver a aba ativa.</li></ul>
+  <h3>Limitações</h3><p>Não há servidor autoritativo: cada navegador calcula o próprio personagem. Os golpes são validados pela vítima contra a ficha publicada do atacante (máximo ×1,3), mas um cliente modificado ainda pode trapacear. Os monstros são simulados por cada jogador (você não vê os monstros do outro).</p>
+  <h3>Caçadas PvP (${L.length})</h3><div style="columns:2;font-size:12px">${L.map(k=>`<div>${numHunt(HUNTS[k])} ${esc(HUNTS[k].n)} <span class="mut">Lv ${HUNTS[k].lv}+</span></div>`).join('')}</div></div>`;}
+/* ---- presença na caçada ---- */
+function pvMeta(){const p=W&&W.p||{x:0,y:0,face:0};return {pid:PR.pid,nome:prTxt(S.name,20),voc:S.voc,level:S.level,outfit:outJog(),x:p.x,y:p.y,dir:p.face||0,hp:Math.round(S.hp),hm:maxHp(),sk:pvSk()};}
+function pvAplicar(r,m){r.nome=prTxt(m.nome,20)||r.nome||'Jogador';r.voc=VOC[m.voc]?m.voc:r.voc||'knight';r.level=prNum(m.level,1,9999,r.level||1);if(m.outfit!==undefined)r.outfit=prOutfit(m.outfit);
+  r.hpMax=prNum(m.hm,1,200000,r.hpMax||100);r.hp=prNum(m.hp,0,r.hpMax,r.hpMax);r.sk=prNum(m.sk,0,2,0);}
+function pvEntrou(pid,m){try{if(!PV.ativo||typeof pid!=='string'||pid===PR.pid||!m||typeof m!=='object'||!W||W.city)return;pid=pid.slice(0,64);
+  let r=PV.remotos.get(pid);const now=performance.now();
+  if(!r){if(PV.remotos.size>=PR_MAX){let o=null;for(const [k,v] of PV.remotos)if(!o||v.visto<o[1].visto)o=[k,v];if(o)PV.remotos.delete(o[0]);}
+    r={pid,pvR:true,x:0,y:0,fx:0,fy:0,face:0,andaDesde:0,dur:0,t0:0,visto:now,ficha:null,maxHit:0,hp:1,hpMax:1,sk:0,nome:'Jogador',level:1,voc:'knight',outfit:null};PV.remotos.set(pid,r);
+    r.x=r.fx=prNum(m.x,0,W.w-1,0);r.y=r.fy=prNum(m.y,0,W.h-1,0);r.face=prNum(m.dir,0,3,0);PV.fichaPend=true;pvAplicar(r,m);log('sys',`${r.nome} (Lv ${r.level}) entrou na zona PvP.`,'b');return;}
+  pvAplicar(r,m);r.visto=now;}catch(e){}}
+function pvSaiu(pid){const r=PV.remotos.get(pid);if(r&&PV.ativo)log('sys',`${r.nome} saiu da zona PvP.`,'b');PV.remotos.delete(pid);if(PV.alvo===pid){PV.alvo=null;PV.alvoAuto=false;}}
+function pvSync(mapa){try{const now=performance.now();for(const [pid,m] of mapa)pvEntrou(pid,m);
+  for(const pid of [...PV.remotos.keys()])if(!mapa.has(pid)&&now-PV.remotos.get(pid).visto>3000)pvSaiu(pid);}catch(e){}}
+const PV_H={sync:pvSync,entrou:pvEntrou,saiu:pvSaiu,rec:(t,m)=>pvRec(t,m)};
+function pvConectar(){if(PV.ativo)return;const modo=prModoRede();if(!modo||!S)return;
+  try{PV.modo=modo;if(!PR.pid)PR.pid=modo==='rt'?prPidRt():(PR.pidL||(PR.pidL='L'+Math.random().toString(36).slice(2,10)));
+    PV.loc=S.loc;const chave=(modo==='local'?'cacada_':'')+(REDE_RT?'rt_':'')+S.loc;
+    PV.tr=modo==='local'?prTrLocal(chave):prTrRealtime(chave,'cacada:');PV.ativo=true;PV.remotos.clear();PV.ult=null;PV.sigF='';PV.tFicha=0;PV.fichaPend=true;PV.dele={};PV.hit={};PV.atqEm={};PV.rl={};PV.dots=[];
+    PV.tr.entrar(PV_H,pvMeta);log('sys',`⚔ ${HUNTS[S.loc].n} é uma zona PvP: jogadores online aqui podem atacar você.`,'o');}catch(e){PV.ativo=false;PV.tr=null;}}
+function pvDesconectar(){if(!PV.ativo)return;PV.ativo=false;try{PV.tr.sair();}catch(e){}PV.tr=null;PV.remotos.clear();PV.alvo=null;PV.alvoAuto=false;PV.dots=[];PV.on=null;}
+function pvTick(){try{
+  if(PV.morto&&S.loc!==PV.locMorte)PV.morto=false;
+  const z=pvNaZona(),modo=prModoRede(),now=performance.now();
+  if(PV.ativo&&(!z||PV.loc!==S.loc||PV.modo!==modo||(modo==='rt'&&PR.pid!==prPidRt()))){if(PV.morto&&!PV.tSai)PV.tSai=now;if(!PV.morto||now-PV.tSai>800)pvDesconectar();}   /* morto: espera 0,8 s para o aviso 'morte' sair antes de fechar o canal */
+  if(z&&!PV.ativo&&modo)pvConectar();
+  if(!PV.ativo||!z){if(PV.alvo){PV.alvo=null;PV.alvoAuto=false;}return;}
+  const p=W.p,hp=Math.round(S.hp),sk=pvSk(),u=PV.ult,mudou=!u||u.x!==p.x||u.y!==p.y||u.d!==(p.face||0)||u.hp!==hp||u.sk!==sk;
+  if((mudou&&now-PV.tEnv>=120)||(!mudou&&now-PV.tBat>=3000)){PV.tEnv=PV.tBat=now;PV.ult={x:p.x,y:p.y,d:p.face||0,hp,sk};PV.tr.enviar('pv',{k:'est',x:p.x,y:p.y,dir:p.face||0,hp,hm:maxHp(),sk,level:S.level});}
+  const sg=S.level+'|'+S.set+JSON.stringify(S.sets[S.set]||[])+JSON.stringify(S.eq)+JSON.stringify(outJog());   /* ficha: ao entrar, quando alguém chega, quando equipamento/hotbar/level mudam e a cada 15 s */
+  if((PV.fichaPend||sg!==PV.sigF||now-PV.tFicha>15000)&&now-PV.tFicha>1200){PV.sigF=sg;PV.tFicha=now;PV.fichaPend=false;PV.tr.enviar('pv',{k:'ficha',f:ptFicha()});}
+  for(const [k,r] of PV.remotos)if(now-r.visto>PR_SUMIR){PV.remotos.delete(k);if(PV.alvo===k){PV.alvo=null;PV.alvoAuto=false;}}
+}catch(e){}}
+setInterval(pvTick,100);
+function pvRec(t,m){try{if(t!=='pv'||!m||typeof m!=='object'||typeof m.pid!=='string'||m.pid===PR.pid||!PV.ativo||!W||W.city)return;const now=performance.now(),k=m.k;let r=PV.remotos.get(m.pid);
+  if(k==='est'){if(!r){pvEntrou(m.pid,{nome:'Jogador',voc:'knight',level:m.level,x:m.x,y:m.y,dir:m.dir,hp:m.hp,hm:m.hm,sk:m.sk});r=PV.remotos.get(m.pid);if(!r)return;}
+    const nx=prNum(m.x,0,W.w-1,r.x),ny=prNum(m.y,0,W.h-1,r.y),dr=prNum(m.dir,0,3,r.face);r.visto=now;
+    r.hpMax=prNum(m.hm,1,200000,r.hpMax);r.hp=prNum(m.hp,0,r.hpMax,r.hp);r.sk=prNum(m.sk,0,2,0);if(m.level!==undefined)r.level=prNum(m.level,1,9999,r.level);
+    if(nx!==r.x||ny!==r.y){const d=Math.max(Math.abs(nx-r.x),Math.abs(ny-r.y));
+      if(d>2){r.x=r.fx=nx;r.y=r.fy=ny;r.t0=0;r.dur=0;}
+      else{const gap=r.ultMsg?now-r.ultMsg:220,dur=clamp(gap,90,300)*(d>1?1.4:1),q=rpos(r),mid=vmt(r)<1;r.fx=mid?q.x:r.x;r.fy=mid?q.y:r.y;r.x=nx;r.y=ny;iniciarPasso(r,dur);r.t0=now;r.dur=dur;}
+      r.ultMsg=now;}
+    r.face=dr;return;}
+  if(!r)return;r.visto=now;
+  if(k==='ficha'){const f=ptValFicha(m.f);if(f){r.ficha=f;r.maxHit=pvMaxHit(f);}}
+  else if(k==='atk'&&m.al===PR.pid)pvRecAtk(r,m);
+  else if(k==='cond'&&m.al===PR.pid)pvRecCond(r,m);
+  else if(k==='ack'&&m.al===PR.pid){const d=Math.round(+m.d);r.hpMax=prNum(m.hm,1,200000,r.hpMax);r.hp=prNum(m.hp,0,r.hpMax,r.hp);
+    if(d>0){fxt(r.x,r.y,String(d),'#ff9a2a');log('cmb',`Você causou ${d} de dano em ${r.nome}.`,'m');}else if(d===-1)fxt(r.x,r.y,'bloqueou','#9ad');}
+  else if(k==='morte')pvRecMorte(r,m);
+}catch(e){}}
+/* maior golpe (antes da armadura) que a ficha consegue: arma básica e as magias/runas de ataque da hotbar; ×1,15 de folga (buffs/Empowerment). A vítima ainda aceita até 1,3× isso */
+function pvMaxHit(f){try{const B=lutadorBot({nome:f.nome,voc:f.voc,nivel:f.nivel,sk:f.sk},{eq:f.eq,t:f.t,procs:f.procs,slots:f.slots,folha:null});let mx=0;
+  if(B.wt==='wand'||B.wt==='rod')mx=B.arma?(B.arma.max||10):0;else mx=.085*B.atkArma*B.skill*B.dmgV+B.nivel/5;
+  for(const s of B.slots){if(!s)continue;const m=MAGIAS15[s.a]||RUNAS15[s.a];if(!m||!m.fn||GRUPO15(m)!=='atk'||(!m.runa&&!m.voc.includes(B.voc)))continue;
+    let r;try{r=m.ftipo==='sk'?m.fn(Object.assign({level:B.nivel,ml:B.ml},PL15),B.skill,B.atkArma,1):m.fn(Object.assign({level:B.nivel,ml:B.ml},PL15),B.nivel,B.ml);}catch(e){continue;}
+    mx=Math.max(mx,Math.abs(r[0]),Math.abs(r[1]));if(m.dot)for(const d of m.dot)mx=Math.max(mx,Math.abs(d[2]||0));}
+  return Math.max(40,Math.round(mx*1.15));}catch(e){return 60;}}
+/* ---- atacar ---- */
+function pvPodeAtacar(r){if(!pvNaZona()||!PV.ativo)return 'fora de uma zona PvP';if(S.level<PVP_NIVEL)return `protegido: seu level é menor que ${PVP_NIVEL}`;if(r.level<PVP_NIVEL)return `alvo protegido (level menor que ${PVP_NIVEL})`;
+  if(PT.id&&ptM(r.pid))return 'membro da sua party';if(r.hp<=0)return 'alvo morto';if(S.hp<=0)return 'você morreu';return '';}
+const pvJusto=r=>r.sk>0||PV.dele[r.pid]>Date.now()-PVP_BRANCA;   /* alvo com caveira ou que me atacou há pouco: sem caveira para mim */
+function pvMarcaAtaque(r){const s=pvS(),n=Date.now();PV.atqEm[r.pid]=n;
+  if(!(s.lock>n))log('sys',`🔒 PZ lock: você não pode voltar à cidade nem trocar de caçada por ${PVP_LOCK/1000} s.`,'o');s.lock=n+PVP_LOCK;
+  if(!pvJusto(r)){const novo=!(s.br>n)&&!(s.vm>n);s.br=n+PVP_BRANCA;if(novo){log('sys',`💀 Você atacou ${r.nome} sem motivo: caveira branca por ${PVP_BRANCA/MIN} min (renova a cada agressão).`,'r');toast('💀 Caveira branca!');}}}
+function pvEnvAtk(r,v,el,puro){v=Math.round(v);if(!(v>0)||pvPodeAtacar(r)||!PV.tr)return 0;pvMarcaAtaque(r);PV.tr.enviar('pv',{k:'atk',al:r.pid,d:v,el:String(el||'phys'),pu:puro?1:0,q:++PV.seq});return v;}
+function pvAlvoObj(r){return r.__a||(r.__a={ehLutador:true,pv:r,mob:{aggro:false,chefe:false,d:{hostil:false}},c:{buffs:{},dots:[],lento:null,escudo:null},
+  get x(){return r.x},get y(){return r.y},get hp(){return r.hp},get max(){return r.hpMax},get mp(){return 0},get nome(){return r.nome},get voc(){return r.voc},
+  vivo:()=>PV.remotos.get(r.pid)===r&&r.hp>0,resist:()=>1,
+  receber(v,el,at,f,puro){return pvEnvAtk(r,v,el,puro);},
+  condicao(tp,d){const A=this,T=W.time;
+    if(tp==='dot'){A.c.dots=A.c.dots.filter(q=>q.id!==d.id&&q.ate>T);A.c.dots.push({id:d.id,ate:T+d.iv*d.fila.length+500});PV.dots.push({pid:r.pid,el:d.el,fila:d.fila.slice(0,30),iv:d.iv,prox:d.prox});}
+    else if(tp==='lento'&&!pvPodeAtacar(r)){A.c.lento={ate:T+d.dur,f:d.f};pvMarcaAtaque(r);PV.tr.enviar('pv',{k:'cond',al:r.pid,tp:'lento',f:d.f,dur:d.dur});}}});}
+function pvDots(){if(!PV.dots.length)return;const T=W.time;
+  PV.dots=PV.dots.filter(q=>{const r=PV.remotos.get(q.pid);if(!r||pvPodeAtacar(r))return false;if(T>=q.prox){q.prox+=q.iv;pvEnvAtk(r,q.fila.shift(),q.el,true);}return q.fila.length>0;});}
+function pvLogic(){
+  if(!PV.ativo||quiet||PT.hunt){if(PV.alvo){PV.alvo=null;PV.alvoAuto=false;}return false;}
+  const n=Date.now();let r=PV.alvo&&PV.remotos.get(PV.alvo);
+  if(PV.alvo){const mot=r?pvPodeAtacar(r):'saiu da zona',exp=PV.alvoAuto&&n-(PV.hit[PV.alvo]||0)>PVP_REV_T;   /* revide automático acaba 30 s depois do último golpe recebido */
+    if(mot||exp){log('sys',`Alvo PvP encerrado${mot?' ('+mot+')':''}.`,'m');PV.alvo=null;PV.alvoAuto=false;r=null;}}
+  pvDots();if(!r)return false;
+  usarHotbar15(JOG,{nc:!AUTO('aCura'),na:true});   /* curas, suporte e poções seguem a hotbar normal */
+  const A=pvAlvoObj(r);PV.on=A;
+  try{if(cheb(W.p,r)<=7){usarHotbar15(JOG,{nc:true,na:!AUTO('aAtk')});basico15(JOG,A);}}finally{PV.on=null;}
+  return true;}
+function pvSegue(){const r=PV.remotos.get(PV.alvo);if(!r)return false;const p=W.p,R=V().range,d=cheb(p,r);
+  if(p.mt>=1&&!(p.lentoAte>W.time)&&(d>R||d===0)){const nx=bfs(p.x,p.y,(x,y)=>{const dd=Math.max(Math.abs(x-r.x),Math.abs(y-r.y));return dd>=1&&dd<=R;},false);if(nx&&nx!=='here')stepPlayer(nx[0],nx[1]);}
+  return true;}
+function pvTecla(){if(!PV.ativo||!pvNaZona())return toast('Nenhuma zona PvP ativa aqui.');
+  const p=W.p,L=[...PV.remotos.values()].filter(r=>!pvPodeAtacar(r)&&cheb(p,r)<=12).sort((a,b)=>cheb(p,a)-cheb(p,b)||(a.pid<b.pid?-1:1));
+  if(!L.length)return toast('Nenhum jogador atacável por perto.');const k=L.findIndex(r=>r.pid===PV.alvo);
+  if(k>=0&&L.length===1){PV.alvo=null;PV.alvoAuto=false;return toast('Alvo PvP limpo');}
+  const r=L[(k+1)%L.length];PV.alvo=r.pid;PV.alvoAuto=false;toast(`Atacando ${r.nome}`+(pvJusto(r)?'':' — caveira branca!'));}
+document.addEventListener('keydown',e=>{if(!S||e.ctrlKey||e.altKey||e.metaKey||e.repeat||modal)return;const tg=e.target;if(tg&&(/INPUT|TEXTAREA|SELECT/.test(tg.tagName||'')||tg.isContentEditable))return;
+  if(e.key.toLowerCase()==='t'&&PV.ativo){e.preventDefault();pvTecla();}else if(e.key==='Escape'&&PV.alvo){PV.alvo=null;PV.alvoAuto=false;}});
+function pvClique(e){if(e.button||!PV.ativo||!pvNaZona()||!W.cam||quiet)return;const wx=(e.clientX/ZOOM+W.cam.x)/TS,wy=(e.clientY/ZOOM+W.cam.y)/TS;let b=null,bd=.9;
+  for(const r of PV.remotos.values()){const q=rpos(r),d=Math.hypot(q.x+.5-wx,q.y-.1-wy);if(d<bd){bd=d;b=r;}}
+  if(!b)return;const mot=pvPodeAtacar(b),sk=pvSkVis(b),c=$('#ctx');
+  c.innerHTML=`<div class="ttl">${esc(b.nome)} ${cavHTML(sk,13)}</div><div class="info">${esc((VOC[b.voc]||{n:''}).n)} · Level ${esc(b.level)} · HP ${b.hp}/${b.hpMax}${sk?' · '+CAV_NOME[sk]:''}</div>`+
+    (PV.alvo===b.pid?`<button data-act="pvParar">Parar de atacar</button>`:`<button data-act="pvAtacar" data-arg="${esc(b.pid)}" ${mot?'disabled':''}>⚔ Atacar${mot?' — '+mot:pvJusto(b)?'':' (você receberá caveira branca)'}</button>`);
+  c.classList.remove('hidden');const r=c.getBoundingClientRect();c.style.left=clamp(e.clientX,4,innerWidth-r.width-4)+'px';c.style.top=clamp(e.clientY,4,innerHeight-r.height-4)+'px';e.stopImmediatePropagation();e.preventDefault();}
+cv.addEventListener('click',pvClique,true);   /* captura: roda antes do clique que manda andar/mirar monstros */
+const PVACT={pvAtacar:a=>{hideCtx();const r=PV.remotos.get(a),mot=r?pvPodeAtacar(r):'jogador não está mais aqui';if(mot){toast('Não é possível atacar: '+mot);return;}PV.alvo=a;PV.alvoAuto=false;toast(`Atacando ${r.nome}`+(pvJusto(r)?'':' — caveira branca!'));},
+  pvParar:()=>{hideCtx();PV.alvo=null;PV.alvoAuto=false;sigs.pv=null;},pvTecla:()=>pvTecla(),pvRevTog:()=>{const s=pvS();s.rev=!s.rev;sigs.pv=null;toast(s.rev?'Revidar automaticamente: ligado':'Revidar automaticamente: desligado');save();},
+  pvIr:a=>{if(!HUNTS[a]||!HUNTS[a].pvp)return;const c=$('#pvAuto'),s=pvS();if(c&&c.checked)s.auto=a;else if(s.auto===a)s.auto=null;closeModal();PV.passe=a;try{travel(a,null);}finally{PV.passe=null;}},
+  pvWiki:()=>{WK.tab='pvp';openModal('wiki');}};
+/* ---- receber: golpes, condições e mortes de outros jogadores ---- */
+function pvAgress(r){return pvNaZona()&&PV.ativo&&S.hp>0&&S.level>=PVP_NIVEL&&r.level>=PVP_NIVEL&&!(PT.id&&ptM(r.pid))&&!!r.ficha;}
+function pvAgrediu(r){const n=Date.now(),antes=PV.hit[r.pid]||0;PV.hit[r.pid]=n;PV.ultAtq={pid:r.pid,nome:r.nome,t:n};
+  if(!(PV.atqEm[r.pid]>n-PVP_BRANCA))PV.dele[r.pid]=n;   /* provocação: só conta se EU não o ataquei antes (quem revida não vira "agressor" aos olhos de quem começou) */
+  if(n-antes>PVP_REV_T)log('sys',`⚔ ${r.nome} atacou você!`,'r');
+  if(!PV.alvo&&pvS().rev!==false&&!pvPodeAtacar(r)){PV.alvo=r.pid;PV.alvoAuto=true;log('sys',`⚔ Revidando ${r.nome} automaticamente (revidar não dá caveira).`,'o');}}
+function pvDenuncia(r,v,cap){const n=Date.now();if(n-PV.den<8000)return;PV.den=n;log('sys',`⚠ Dano suspeito de ${r.nome} ignorado (${Math.round(v)} > ${Math.round(cap)}).`,'o');}
+function pvRecAtk(r,m){if(!pvAgress(r))return;const d=+m.d,el=String(m.el||'phys').slice(0,12);
+  if(!Number.isFinite(d)||d<=0||!(ELS_AB.includes(el)||el==='poison'))return;
+  const cap=Math.max(40,r.maxHit)*1.3,N=performance.now();if(d>cap){pvDenuncia(r,d,cap);return;}
+  const b=PV.rl[r.pid]||(PV.rl[r.pid]={t:N,s:0});if(N-b.t>3000){b.t=N;b.s=0;}b.s+=d;if(b.s>8*cap){pvDenuncia(r,b.s,8*cap);return;}
+  pvAgrediu(r);
+  const dano=JOG.receber(Math.round(d),el,0,{ehLutador:true,procs:r.ficha.procs,nome:r.nome},m.pu===1);   /* fonte "lutador": metade do dano entre jogadores, crítico/fatal/agonia pela ficha do atacante */
+  if(PV.tr)PV.tr.enviar('pv',{k:'ack',al:r.pid,d:dano,hp:Math.round(S.hp),hm:maxHp()});}
+function pvRecCond(r,m){if(!pvAgress(r)||m.tp!=='lento')return;const f=+m.f,dur=+m.dur,N=performance.now();if(!Number.isFinite(f)||!Number.isFinite(dur)||f<.3||f>1||dur<=0||dur>8000)return;
+  if(N-(PV.cond[r.pid]||-1e9)<10000)return;PV.cond[r.pid]=N;pvAgrediu(r);condicaoLutador(JOG,'lento',{f,dur});}
+/* morte: a vítima avisa; quem a matou conta o frag; todos na zona leem "X matou Y" */
+const pvMorteCtx=()=>{const u=PV.ultAtq;return u&&Date.now()-u.t<=12000&&pvNaZona()?u:null;};
+function pvMorreu(pk){if(S.pv)S.pv.lock=0;PV.alvo=null;PV.alvoAuto=false;if(pvNaZona()){PV.morto=true;PV.locMorte=S.loc;PV.tSai=0;}if(!pk)return;pvS().mortes++;log('sys',`☠ ${pk.nome} matou você.`,'r');
+  try{if(PV.ativo&&PV.tr)PV.tr.enviar('pv',{k:'morte',mat:pk.pid,kn:prTxt(pk.nome,20),vn:prTxt(S.name,20)});}catch(e){}PV.ultAtq=null;}
+function pvRecMorte(r,m){const n=Date.now();if(PV.fragV[r.pid]&&n-PV.fragV[r.pid]<1500)return;PV.fragV[r.pid]=n;
+  const kn=m.mat===PR.pid?'Você':prTxt(m.kn,20)||'?',vn=prTxt(m.vn,20)||r.nome;log('sys',`☠ ${kn==='Você'?'Você matou':kn+' matou'} ${vn}.`,'r');if(m.mat===PR.pid)pvFrag(r);}
+function pvFrag(r){const s=pvS(),n=Date.now();if(!(PV.atqEm[r.pid]>n-20000))return;
+  const justo=pvJusto(r);s.kills++;if(justo){log('sys',`⚔ Abate justificado de ${r.nome} (ele tinha caveira ou te atacou): sem frag.`,'y');return;}
+  s.fr=(s.fr||[]).filter(t=>t>n-7*24*H);s.fr.push(n);const [a,b]=pvFrags();
+  log('sys',`☠ Frag injustificado em ${r.nome}: ${a}/${PVP_FRAG24} em 24 h · ${b}/${PVP_FRAG7} em 7 dias.`,'o');
+  if(a>=PVP_FRAG24||b>=PVP_FRAG7){const novo=!(s.vm>n);s.vm=n+PVP_VERM;if(novo){log('sys',`💀 CAVEIRA VERMELHA por ${PVP_VERM/H/24} dias! Ao morrer você perde todo o loot e qualquer um pode atacá-lo.`,'r');toast('💀 Caveira vermelha!');}}
+  save();}
+/* ---- interface: barra de status PvP ---- */
+function pvUI(){const el=$('#pvBar');if(!el||!S)return;const s=S.pv,n=Date.now(),z=pvNaZona(),sk=pvSk(),lk=Math.ceil(pvLock()/1000);
+  if(!(z||sk||lk>0)){if(sigs.pv!==''){sigs.pv='';el.classList.add('hidden');}return;}
+  const tmp=sk===2?s.vm-n:sk===1?s.br-n:0,[f24,f7]=pvFrags(),al=PV.alvo&&PV.remotos.get(PV.alvo),rev=!s||s.rev!==false;
+  const sig=[z,PV.ativo,sk,Math.ceil(tmp/1000),lk,PV.remotos.size,PV.alvo,rev,f24,f7,al&&al.nome,S.level<PVP_NIVEL].join('|');if(sigs.pv===sig)return;sigs.pv=sig;el.classList.remove('hidden');
+  el.innerHTML=(z?`<b>⚔ PvP</b> <span>${S.level<PVP_NIVEL?`🛡 protegido (level < ${PVP_NIVEL})`:PV.ativo?`${PV.remotos.size+1} online aqui`:'sem conexão: ninguém pode atacar você'}</span>`:'<b>⚔ PvP</b>')+
+    (sk?`<span>${cavHTML(sk)} ${CAV_NOME[sk]} <span class="pvl">${fmtTempo(tmp)}</span></span>`:'')+(lk>0?`<span>🔒 PZ lock <span class="pvl">${lk}s</span></span>`:'')+
+    `<span title="Frags injustificados: ${PVP_FRAG24} em 24 h ou ${PVP_FRAG7} em 7 dias = caveira vermelha">Frags 24h <b>${f24}</b>/${PVP_FRAG24} · 7d <b>${f7}</b>/${PVP_FRAG7}</span>`+
+    (z&&PV.ativo&&S.level>=PVP_NIVEL?(al?`<span>Alvo: <b>${esc(al.nome)}</b></span><button data-act="pvParar">Parar</button>`:'')+`<button data-act="pvTecla" title="Ataca o jogador mais próximo (tecla T)">⚔ Atacar jogador (T)</button><label title="Quem atacar você passa a ser atacado de volta, sem caveira para você"><input type="checkbox" data-act="pvRevTog" ${rev?'checked':''}> Revidar automaticamente</label>`:'');}
+/* fechar a página com PZ lock = fuga: perde o progresso offline (ver tickLoop) */
+function pvFuga(){try{if(S&&S.pv&&pvLock()>0&&pvNaZona()){S.pv.fuga=1;save();}}catch(e){}}
+addEventListener('pagehide',pvFuga);addEventListener('beforeunload',pvFuga);
+
 /* ======================= CIDADE INTERATIVA (depot clicável, arrastar itens/personagens, magias no chat) =======================
    Clique no mapa anda até o tile (bfs); os baús do depot abrem ao chegar do lado. Arraste itens da mochila para o depot, o chão ou outro jogador; itens do chão de volta
    para a mochila; personagens para empurrar (puxar). Magias de suporte digitadas no chat valem na cidade.
@@ -4094,7 +4340,8 @@ const CID_ALC=7,CID_MAX=24,CID_IDRE=/^[A-Za-z0-9]{1,16}$/,CID_AJUDA='Arraste ite
 const cidOk=()=>!!(S&&W&&W.city&&S.loc==='city'&&!W.loading&&!ON.parado&&!PT.hunt);
 const cidId=()=>Math.random().toString(36).slice(2,10).padEnd(8,'0');
 const cidTile=e=>({x:Math.floor((e.clientX/ZOOM+W.cam.x)/TS),y:Math.floor((e.clientY/ZOOM+W.cam.y)/TS)});
-const cidDepotEm=(x,y)=>CID_DEPOTS.some(d=>d[0]===x&&d[1]===y);
+const cidDepots=()=>{const m=MAPAS[locDef('city').proprio];return (m&&m.depots)||CID_DEPOTS;};   /* baús do depot da cidade atual (Thais/Issavi: 'depots' no js do mapa) */
+const cidDepotEm=(x,y)=>cidDepots().some(d=>d[0]===x&&d[1]===y);
 const cidChao=()=>S.chao||(S.chao=[]);
 const cidKey=k=>{if(typeof k!=='string'||k.length>48)return null;const p=parseKey(k),it=ITEMS[p.id];return it&&p.t>=0&&p.t<=10&&bagKey(p.id,p.t)===k?it:null;};   /* chave de item válida (rede: nada de ids inventados) */
 const cidNome=k=>{const p=parseKey(k),it=ITEMS[p.id];return it?it.n+(p.t?' +'+p.t:''):'?';};
@@ -4700,7 +4947,7 @@ function drawEscudo(x,y,tipo,glow){ctx.save();if(glow){ctx.shadowColor=glow;ctx.
 const ptEscSVG=(t,f)=>`<svg class="pesc ${f}" viewBox="0 0 10 12" width="10" height="12"><path d="M.8 1.4L5 .4l4.2 1v5.1Q9.2 10 5 11.6 .8 10 .8 6.5z" fill="${t===1?'#f2c14e':'#4a8cf0'}" stroke="${t===1?'#8a6a24':'#1f4a9a'}" stroke-width="1"/><path d="M2.4 2.4h1.4v4H2.4z" fill="#fff" opacity=".5"/></svg>`;
 const ptVocBadge=v=>`<span class="pv" style="background:${VOC[v].col.b}" title="${VOC[v].n}">${VOC[v].n[0]}</span>`;
 function ptRender(){const b=$('#partyBody');if(!b||!S)return;const ex=PT.id?ptExp():null,HU=PT.hunt;
-  const sig=JSON.stringify([PT.id,PT.lider,PT.expOn,PT.st,PT.mb.map(x=>[x.pid,x.nome,x.level,x.hp,x.hpMax,x.mp,x.mpMax,x.loc]),PT.conv.map(c=>c.de),ex&&[ex.flag,ex.motivo,ex.nv],PT.huntInfo,HU&&HU.ep,S.loc,S.rules.ptAuto,S.rules.ia,PT.fila&&[PT.fila.fid,Object.keys(PT.fila.pr),Math.floor((Date.now()-PT.fila.t0)/1000)],PT.filaM&&[PT.filaM.fid,PT.filaM.ok]]);
+  const sig=JSON.stringify([PT.id,PT.lider,PT.expOn,PT.st,PT.mb.map(x=>[x.pid,x.nome,x.level,x.hp,x.hpMax,x.mp,x.mpMax,x.loc]),PT.conv.map(c=>c.de),ex&&[ex.flag,ex.motivo,ex.nv],PT.huntInfo,HU&&HU.ep,S.loc,S.rules.ptAuto,S.rules.ia,PT.fila&&[PT.fila.fid,Object.keys(PT.fila.pr),Math.floor((Date.now()-PT.fila.t0)/1000)],PT.filaM&&[PT.filaM.fid,PT.filaM.ok],pvSk(),PT.mb.map(x=>pvSkPid(x.pid))]);
   if(sig===PT.sig)return;PT.sig=sig;let h=PT.conv.map((c,i)=>`<div class="ptc"><b>${esc(c.nome)}</b> convidou você para a party.<div class="ptb"><button class="btn go" data-act="ptAceitar" data-arg="${i}">Aceitar</button><button class="btn" data-act="ptRecusar" data-arg="${i}">Recusar</button></div></div>`).join('');
   if(!PT.id)h+=PT.conv.length?'':'<p class="mut sm">Você não está em uma party. Na cidade, clique em um jogador para convidá-lo.</p>';
   else{const sou=ptSou(),ord=PT.mb.slice().sort((a,c)=>(a.pid===PT.lider?-1:c.pid===PT.lider?1:0));
@@ -4709,7 +4956,7 @@ function ptRender(){const b=$('#partyBody');if(!b||!S)return;const ex=PT.id?ptEx
     else if(FM&&HUNTS[FM.loc])h+=`<div class="ptc"><b>Caçada da party:</b> ${esc(HUNTS[FM.loc].n)} — ${FM.ok===1?'você está pronto, aguardando os outros…':FM.ok===0?'você recusou.':'Pronto?'}${FM.ok===undefined?'<div class="ptb"><button class="btn go" data-act="ptPronto">Pronto</button><button class="btn" data-act="ptNaoPronto">Recusar</button></div>':''}</div>`;
     const ptPp=HU&&S.rules.ia!==false?iaPapeis(PT.mb.filter(x=>VOC[x.voc])):{};   /* papel por vocação (o líder simula; todos veem) */
     h+=ord.map(x=>{const lid=x.pid===PT.lider,eu=x.pid===PR.pid,pc=(v,m)=>Math.round(clamp(v/Math.max(1,m),0,1)*100);
-      return `<div class="ptm"><div>${x.outfit?ret15(x.outfit):`<div class="ph">${esc((x.nome||'?')[0])}</div>`}</div><div class="pti"><div class="ptn">${ptEscSVG(lid?1:2,ex&&ex.flag||'off')}<b>${esc(x.nome)}</b>${eu?'<small>(você)</small>':''}</div>
+      return `<div class="ptm"><div>${x.outfit?ret15(x.outfit):`<div class="ph">${esc((x.nome||'?')[0])}</div>`}</div><div class="pti"><div class="ptn">${ptEscSVG(lid?1:2,ex&&ex.flag||'off')}<b>${esc(x.nome)}</b>${cavHTML(eu?pvSk():pvSkPid(x.pid),12)}${eu?'<small>(você)</small>':''}</div>
         <div class="mut sm">${esc(VOC[x.voc].n)} · Level ${x.level}${HU&&ptPp[x.pid]?` · <b title="Papel na caçada">${IA_ROL_TXT[ptPp[x.pid]]}</b>`:''}${HU&&x.loc!==HU.loc&&x.pid!==PR.pid&&HU.papel==='lider'&&!HU.lut.has(x.pid)?' · fora da caçada':''}</div>
         <div class="ptbar hp"><i style="width:${pc(x.hp,x.hpMax)}%"></i><span>${x.hp}/${x.hpMax}</span></div><div class="ptbar mp"><i style="width:${pc(x.mp,x.mpMax)}%"></i><span>${x.mp}/${x.mpMax}</span></div></div>
         ${sou&&!eu?`<div class="pta"><button data-act="ptKick" data-arg="${esc(x.pid)}">Expulsar</button>${HU||F?'':`<button data-act="ptLider" data-arg="${esc(x.pid)}">Passar líder</button>`}</div>`:''}</div>`;}).join('');
