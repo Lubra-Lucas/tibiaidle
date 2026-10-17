@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Tibia Royale</title>
+<style>
+:root{--bg:#120d08;--pn:#2a2118;--pn2:#3a2e22;--bd:#6b5636;--tx:#e8dcc4;--mut:#a8987c;--gold:#e6b450;--azul:#3f7bff;--verm:#e04040;--mana:#b44dff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font:14px Verdana,Tahoma,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center}
+#campo{flex:1;width:100%;min-height:0;position:relative}
+canvas#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+#barra{width:100%;max-width:560px;padding:6px 8px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(#3a2e22,#21180f);border-top:2px solid var(--bd)}
+#mao{display:flex;gap:6px;align-items:flex-end}
+#prox{width:44px;flex:none;text-align:center;font-size:9px;color:var(--mut)}
+#prox .carta{width:44px;height:58px;cursor:default}
+#prox .carta canvas{width:36px;height:36px}
+.cartas4{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.carta{position:relative;height:clamp(66px,12vh,100px);background:linear-gradient(#5b4a32,#3a2c1c);border:2px solid #8b6d3d;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:grab;touch-action:none;overflow:hidden}
+.carta canvas{width:clamp(40px,7vh,56px);height:clamp(40px,7vh,56px);image-rendering:pixelated;pointer-events:none}
+.carta .nm{font-size:9px;line-height:1.1;text-align:center;padding:0 2px;pointer-events:none;color:#f3e6c8;text-shadow:1px 1px 0 #000}
+.carta .cu{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#e3a3ff,#7a1fc4);border:1px solid #2b0b45;font:bold 12px Verdana;display:flex;align-items:center;justify-content:center;color:#fff;text-shadow:1px 1px 0 #000;pointer-events:none}
+.carta.sem{filter:grayscale(.85) brightness(.7)}
+.carta.sel{border-color:#fff;box-shadow:0 0 0 2px var(--gold);transform:translateY(-6px)}
+.carta.arrast{opacity:.35}
+#mana{margin-top:6px;height:20px;background:#1a0f22;border:1px solid #000;border-radius:10px;position:relative;overflow:hidden}
+#manaF{position:absolute;inset:0;width:0;background:linear-gradient(#d68cff,#8524d6)}
+#manaG{position:absolute;inset:0;display:grid;grid-template-columns:repeat(10,1fr)}
+#manaG i{border-right:1px solid #0006}
+#manaT{position:absolute;left:8px;top:0;font:bold 13px/20px Verdana;text-shadow:1px 1px 0 #000}
+.tela{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(circle at 50% 25%,#2d2015 0,#0b0805 75%);overflow:auto;z-index:20}
+.caixa{background:var(--pn);border:2px solid var(--bd);border-radius:8px;padding:16px;max-width:560px;width:100%;box-shadow:0 10px 40px #000a;margin:auto}
+h1{margin:0;font-size:30px;color:var(--gold);text-align:center;text-shadow:0 2px 0 #000}
+h2{margin:0 0 8px;font-size:16px;color:var(--gold)}
+.sub{color:var(--mut);text-align:center;margin:4px 0 14px;font-size:13px}
+#baralho{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+#baralho .carta{cursor:pointer;height:96px}
+#baralho .carta.fora{opacity:.45;filter:grayscale(.6)}
+#baralho .carta .ds{font-size:8px;color:var(--mut);pointer-events:none;text-align:center;padding:0 2px}
+.linha{display:flex;gap:8px;margin-top:14px;justify-content:center;flex-wrap:wrap;align-items:center}
+button{background:#5a4526;color:var(--tx);border:1px solid #8b6d3d;border-radius:5px;padding:10px 14px;font:bold 14px Verdana,sans-serif;cursor:pointer}
+button.go{background:#3f6b22;border-color:#6ea83f;font-size:17px;padding:12px 28px}
+button:disabled{opacity:.5}
+.ajuda{margin-top:12px;color:var(--mut);font-size:12px;line-height:1.55}
+#media{color:var(--mut);font-size:12px;text-align:center;margin-top:6px}
+select{background:#1a140e;color:var(--tx);border:1px solid var(--bd);border-radius:5px;padding:9px;font:inherit}
+#fim .caixa{text-align:center;max-width:380px}
+#fTit{font-size:30px;margin:0 0 4px}
+.coroas{font-size:36px;letter-spacing:4px;margin:8px 0}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="campo"><canvas id="cv"></canvas></div>
+  <div id="barra">
+    <div id="mao"><div id="prox"><div>Próxima</div></div><div class="cartas4" id="cartas"></div></div>
+    <div id="mana"><div id="manaF"></div><div id="manaG"></div><div id="manaT">5</div></div>
+  </div>
+</div>
+
+<div class="tela" id="lobby">
+  <div class="caixa">
+    <h1>⚔ Tibia Royale</h1>
+    <p class="sub">Monte seu baralho com criaturas e runas do Tibia e derrube as torres do inimigo.</p>
+    <h2>Seu baralho <small id="contagem" style="color:var(--mut);font-size:12px"></small></h2>
+    <div id="baralho"></div>
+    <div id="media"></div>
+    <div class="linha">
+      <select id="dific"><option value="0">Oponente fácil</option><option value="1" selected>Oponente normal</option><option value="2">Oponente difícil</option></select>
+      <button class="go" id="btJogar">Batalhar!</button>
+    </div>
+    <div class="ajuda">
+      Toque nas cartas para montar um baralho de 8. Na batalha, <b>arraste uma carta</b> até o campo (ou toque nela e depois no campo).
+      Cada carta custa <b style="color:#d68cff">mana</b>, que enche sozinha (dobra no último minuto).
+      Criaturas só podem ser postas no seu lado do rio; runas, em qualquer lugar.
+      Derrube uma torre lateral para ganhar 👑 e poder invadir aquele lado. Derrubar o rei vale 3 👑.
+    </div>
+    <p class="sub" style="margin:12px 0 0;font-size:11px">Projeto de fã sem fins lucrativos. Tibia, sprites e mapas pertencem à CipSoft GmbH.</p>
+  </div>
+</div>
+
+<div class="tela" id="fim" style="display:none">
+  <div class="caixa">
+    <h2 id="fTit"></h2>
+    <div class="coroas" id="fCoroas"></div>
+    <div class="sub" id="fSub"></div>
+    <div class="linha"><button id="btBaralho">Baralho</button><button class="go" id="btDenovo">Jogar de novo</button></div>
+  </div>
+</div>
+
+<script src="../tibia-assets/sprites15.js"></script>
+<script src="../tibia-assets/outfits15.js"></script>
+<script src="../tibia-assets/combate15.js"></script>
+<script>
+'use strict';
+/* ================================================================ utilidades e imagens */
+const $=s=>document.querySelector(s);
+const A=s=>'../'+s;   /* os caminhos dos assets são relativos à raiz do repositório */
+const rnd=(a,b)=>a+Math.random()*(b-a), pick=a=>a[Math.floor(Math.random()*a.length)];
+const IMGS={};
+function img(src){let i=IMGS[src];if(!i){i=new Image();IMGS[src]=i;i.src=src.startsWith('royale/')?src.slice(7):A(src);}return i.complete&&i.naturalWidth?i:null;}
+function quadro(ms,t){let q=0;while(q<ms.length-1&&(t-=ms[q])>=0)q++;return q;}
+const CRI=window.SPR15.criaturas, CAD=window.SPR15.cadaveres, CB=window.COMB15, OUTF=window.OUTFITS15||{};
+const ITM=id=>'tibia-assets/sprites15/itens/'+id+'.png';
+
+/* paleta de 133 cores do Tibia (Outfit::getColor do OTClient) e pintura da máscara, como no Tibia Idle */
+function cor15(c){const H=19,SI=7;if(c>=H*SI)c=0;let h,s,i;
+  if(c%H){h=c%H/18;[s,i]=[[.25,1],[.25,.75],[.5,.75],[.667,.75],[1,1],[1,.75],[1,.5]][Math.floor(c/H)];}else{h=0;s=0;i=1-c/H/SI;}
+  if(!i)return [0,0,0];if(!s){const v=Math.floor(i*255);return [v,v,v];}let r,g,b;
+  if(h<1/6){r=i;b=i*(1-s);g=b+(i-b)*6*h;}else if(h<2/6){g=i;b=i*(1-s);r=g-(i-b)*(6*h-1);}else if(h<3/6){g=i;r=i*(1-s);b=r+(i-r)*(6*h-2);}
+  else if(h<4/6){b=i;r=i*(1-s);g=b-(i-r)*(6*h-3);}else if(h<5/6){b=i;g=i*(1-s);r=g+(i-g)*(6*h-4);}else{r=i;g=i*(1-s);b=r-(i-g)*(6*h-5);}
+  return [Math.floor(r*255),Math.floor(g*255),Math.floor(b*255)];}
+function pintarFolha(im,O,addons,C){const cols=O.parado+O.andar,Wd=O.w*cols,Ht=O.h*4,cv=document.createElement('canvas');cv.width=Wd;cv.height=Ht;const g=cv.getContext('2d');
+  const tmp=document.createElement('canvas');tmp.width=Wd;tmp.height=Ht;const tg=tmp.getContext('2d',{willReadFrequently:true});
+  for(const py of [0,...(O.addons?[1,2].filter(p=>addons&p):[])]){
+    tg.clearRect(0,0,Wd,Ht);tg.drawImage(im,0,py*2*Ht,Wd,Ht,0,0,Wd,Ht);
+    try{const base=tg.getImageData(0,0,Wd,Ht);tg.clearRect(0,0,Wd,Ht);tg.drawImage(im,0,(py*2+1)*Ht,Wd,Ht,0,0,Wd,Ht);const mk=tg.getImageData(0,0,Wd,Ht).data,b=base.data;
+      for(let i=0;i<b.length;i+=4){if(!mk[i+3])continue;const r=mk[i],gg=mk[i+1],bb=mk[i+2],q=(r&&gg&&!bb)?C[0]:(r&&!gg)?C[1]:(gg&&!r)?C[2]:bb?C[3]:null;
+        if(q){b[i]=b[i]*q[0]/255;b[i+1]=b[i+1]*q[1]/255;b[i+2]=b[i+2]*q[2]/255;}}
+      tg.putImageData(base,0,0);}catch(e){tg.clearRect(0,0,Wd,Ht);tg.drawImage(im,0,py*2*Ht,Wd,Ht,0,0,Wd,Ht);}   /* sem permissão de ler pixels (file://): fica sem cor */
+    g.drawImage(tmp,0,0);}
+  return cv;}
+const _folhas={};
+/* folha de um outfit de jogador pintado nas cores do time (torres) */
+function folhaOutfit(look,cores,addons){const k=look+':'+cores+':'+addons;if(_folhas[k])return _folhas[k];const O=OUTF[look];if(!O)return null;const im=img(O.src);if(!im)return null;
+  return _folhas[k]={img:pintarFolha(im,O,addons,cores.map(cor15)),w:O.w,h:O.h,parado:O.parado,andar:O.andar,ms:O.ms,desl:O.desl};}
+function folhaCriatura(id){const f=CRI[id];if(!f)return null;const im=img(f.src);return im?{img:im,...f}:null;}
+
+/* ================================================================ arena (royale/arena.png, feita por ferramentas/gerar_arena_royale.py) */
+const FW=18,FH=33,MARG=2,TS=32,RIO=[15,18],PONTES=[3.5,14.5];
+function podeAndar(x,y,r){if(x<r||x>FW-r||y<r||y>FH-r)return false;
+  if(y+r>RIO[0]&&y-r<RIO[1])return PONTES.some(b=>Math.abs(x-b)<=1.5-r);return true;}
+const lado=y=>y<16.5?1:0;   /* 0 = sul (você), 1 = norte (oponente) */
+
+/* ================================================================ cartas */
+/* vel em tiles/s, alc = alcance além dos raios, hit = intervalo, prim = demora do 1º golpe, raio de colisão;
+   ar = voa; atingeAr = acerta quem voa; soPredio = só ataca torres; splash = raio do dano em área; giro = área em volta de quem bate */
+const CARTAS={
+  orcs:{n:'Orcs',d:'Três orcs rápidos e baratos.',custo:2,qtd:3,spr:'orc',hp:170,dano:60,vel:1.4,alc:.5,hit:1.1,prim:.4,raio:.32,ef:1},
+  morcegos:{n:'Morcegos',d:'Quatro morcegos que voam.',custo:2,qtd:4,spr:'bat',ar:true,atingeAr:true,hp:75,dano:55,vel:1.8,alc:.5,hit:1,prim:.3,raio:.3,ef:1},
+  cacadores:{n:'Hunters',d:'Dupla de arqueiros. Acertam quem voa.',custo:3,qtd:2,spr:'hunter',atingeAr:true,hp:270,dano:80,vel:1.05,alc:5,hit:1.1,prim:.5,raio:.38,tiro:3,ef:1},
+  minotauro:{n:'Minotaur Guard',d:'Guerreiro resistente de corpo a corpo.',custo:3,qtd:1,spr:'minotaur_guard',hp:1150,dano:135,vel:1.05,alc:.5,hit:1.3,prim:.5,raio:.45,ef:10},
+  elfo:{n:'Elf Arcanist',d:'Magia de energia em área, de longe.',custo:4,qtd:1,spr:'elf_arcanist',atingeAr:true,hp:620,dano:150,splash:1.1,vel:1.05,alc:5,hit:1.5,prim:.7,raio:.4,tiro:5,ef:12},
+  dragao:{n:'Dragon',d:'Voa e cospe fogo em área.',custo:4,qtd:1,spr:'dragon',ar:true,atingeAr:true,hp:980,dano:125,splash:1.3,vel:1.35,alc:3.5,hit:1.6,prim:.6,raio:.6,tiro:4,ef:7},
+  valquiria:{n:'Valkyrie',d:'Gira o machado e acerta todos em volta.',custo:4,qtd:1,spr:'valkyrie',hp:1450,dano:165,giro:1.5,vel:1.05,alc:.5,hit:1.5,prim:.5,raio:.45,ef:10},
+  behemoth:{n:'Behemoth',d:'Tanque enorme. Só ataca torres.',custo:5,qtd:1,spr:'behemoth',soPredio:true,hp:3300,dano:210,vel:.8,alc:.6,hit:1.5,prim:.6,raio:.7,ef:35},
+  demon:{n:'Demon',d:'Dano devastador, mas lento para bater.',custo:7,qtd:1,spr:'demon',hp:3100,dano:560,vel:1.05,alc:.6,hit:1.8,prim:.6,raio:.7,ef:10},
+  tempestade:{n:'Thunderstorm',d:'Runa: raio pequeno que atordoa.',custo:2,feitico:true,item:3202,raio:2,dano:180,atord:.6,tiro:36,ef:38},
+  avalanche:{n:'Avalanche',d:'Runa: gelo em área e deixa lento.',custo:3,feitico:true,item:3161,raio:2.5,dano:250,lento:4,tiro:29,ef:42},
+  gfb:{n:'Great Fireball',d:'Runa: muito dano em área.',custo:4,feitico:true,item:3191,raio:2.5,dano:470,tiro:4,ef:7},
+};
+const BARALHO_PADRAO=['orcs','cacadores','minotauro','dragao','valquiria','behemoth','gfb','tempestade'];
+
+/* retrato da carta: criatura parada olhando para o sul, ou o item da runa */
+function pintarRetrato(cv,k){const c=CARTAS[k],g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,cv.width,cv.height);
+  if(c.feitico){const im=img(ITM(c.item));if(!im)return false;g.drawImage(im,0,0,im.naturalWidth,im.naturalHeight,cv.width*.1,cv.height*.1,cv.width*.8,cv.height*.8);return true;}
+  const f=folhaCriatura(c.spr);if(!f)return false;
+  /* recorta em volta do corpo: folhas de 64 com deslocamento têm o corpo no canto de baixo à direita; as de 32 ficam menores */
+  if(f.w===32){const m=cv.width*.15;g.drawImage(f.img,0,2*f.h,32,32,m,m,cv.width-2*m,cv.height-2*m);}
+  else if(f.desl[0])g.drawImage(f.img,18,2*f.h+18,44,44,0,0,cv.width,cv.height);
+  else g.drawImage(f.img,0,2*f.h,64,64,0,0,cv.width,cv.height);
+  return true;}
+const _pendentes=new Set();
+function retrato(k,tam){const cv=document.createElement('canvas');cv.width=cv.height=tam;if(!pintarRetrato(cv,k))_pendentes.add([cv,k]);return cv;}
+setInterval(()=>{for(const p of _pendentes)if(pintarRetrato(p[0],p[1]))_pendentes.delete(p);},200);
+
+/* ================================================================ estado da partida */
+let G=null;
+const TIME_COR=[[0,88,88,95],[0,77,77,114]];   /* azul e vermelho na paleta do Tibia */
+function novaTorre(team,tipo,x,y){const rei=tipo==='rei';
+  return {torre:true,tipo,team,x,y,raio:rei?2:1.5,tam:rei?4:3,hp:rei?3800:2400,hpMax:rei?3800:2400,vivo:true,alc:rei?7:7.5,dano:rei?100:80,hit:rei?1:.8,
+    tiro:rei?14:3,ef:1,ativo:!rei,prAtk:0,alvo:null,dir:team?2:0};}
+function iniciar(baralho,dific){
+  $('#lobby').style.display='none';$('#fim').style.display='none';
+  const deckIA=[...BARALHO_PADRAO];/* oponente: baralho sorteado com pelo menos uma runa */
+  {const ks=Object.keys(CARTAS).sort(()=>Math.random()-.5);const d=new Set([pick(['gfb','avalanche','tempestade'])]);for(const k of ks){if(d.size>=8)break;d.add(k);}deckIA.splice(0,8,...d);}
+  G={t:0,fim:false,ents:[],efs:[],tiros:[],txt:[],later:[],cadaveres:[],dific,dur:180,extra:false,
+     jog:[mkJog(baralho),mkJog(deckIA)],coroas:[0,0],sel:-1,arr:null,msg:null};
+  for(const t of [0,1]){const f=y=>t?FH-y:y;
+    G.ents.push(novaTorre(t,'princesa',3.5,f(26.5)),novaTorre(t,'princesa',14.5,f(26.5)),novaTorre(t,'rei',9,t?2.5:30.5));}
+  aviso('Batalha!');montarMao();}
+function mkJog(deck){const fila=[...deck].sort(()=>Math.random()-.5);return {mana:5,mao:fila.splice(0,4),fila,prox:2};}
+const vivos=()=>G.ents.filter(e=>e.vivo);
+const inimigos=team=>G.ents.filter(e=>e.vivo&&e.team!==team&&!(e.nasc>G.t));
+function later(s,fn){G.later.push({t:G.t+s,fn});}
+function efeito(id,x,y,atraso=0){if(id&&CB.efeitos[id])G.efs.push({id,x,y,b:G.t+atraso});}
+function tiro(id,a,b){if(!id||!CB.tiros[id])return 0;const dur=.11*Math.sqrt(Math.hypot(b.x-a.x,b.y-a.y))+.04;G.tiros.push({id,x1:a.x,y1:a.y-(a.ar?.6:0)-(a.torre?1:0),x2:b.x,y2:b.y-(b.ar?.6:0),b:G.t,dur});return dur;}
+function texto(x,y,t,cor){G.txt.push({x,y,t:String(t),cor,b:G.t});}
+function aviso(t){G.msg={t,b:G.t};}
+
+/* ---------------------------------------------------------------- jogar cartas */
+function torreEm(x,y,r=0){return G.ents.find(e=>e.torre&&e.vivo&&Math.abs(x-e.x)<e.tam/2+r&&Math.abs(y-e.y)<e.tam/2+r);}
+/* onde cada time pode pôr criaturas: o próprio lado e, com a torre lateral inimiga caída, um bolsão do outro lado */
+function areaValida(team,x,y){if(x<.5||x>FW-.5||y<.5||y>FH-.5)return false;if(y>RIO[0]-.2&&y<RIO[1]+.2)return false;if(torreEm(x,y,.2))return false;
+  if(team===0?y>=RIO[1]:y<=RIO[0])return true;
+  const esq=x<9,pr=G.ents.find(e=>e.torre&&e.tipo==='princesa'&&e.team!==team&&(e.x<9)===esq);
+  return !pr.vivo&&(team===0?y>=RIO[0]-4:y<=RIO[1]+4);}
+function ajustarPos(team,c,x,y){if(c.feitico)return [Math.min(FW-.5,Math.max(.5,x)),Math.min(FH-.5,Math.max(.5,y))];
+  if(areaValida(team,x,y))return [x,y];
+  /* procura o ponto válido mais perto (soltar fora da área não desperdiça a carta) */
+  let best=null,bd=1e9;for(let yy=.5;yy<FH;yy+=.5)for(let xx=.5;xx<FW;xx+=.5){if(!areaValida(team,xx,yy))continue;const d=Math.hypot(xx-x,yy-y);if(d<bd){bd=d;best=[xx,yy];}}
+  return best;}
+function jogarCarta(team,i,x,y){const P=G.jog[team],k=P.mao[i],c=CARTAS[k];if(!c||P.mana<c.custo||G.fim)return false;
+  const p=ajustarPos(team,c,x,y);if(!p)return false;[x,y]=p;
+  P.mana-=c.custo;P.mao[i]=P.fila.shift();P.fila.push(k);
+  if(c.feitico)lancarRuna(team,c,x,y);
+  else{const offs=[[[0,0]],[[-.5,0],[.5,0]],[[0,-.45],[-.5,.4],[.5,.4]],[[-.45,-.45],[.45,-.45],[-.45,.45],[.45,.45]]][c.qtd-1];
+    for(const [dx,dy] of offs){let ux=x+dx,uy=y+dy;if(!c.ar&&!podeAndar(ux,uy,c.raio)){ux=x;uy=y;}
+      G.ents.push({c,k,team,x:ux,y:uy,raio:c.raio,hp:c.hp,hpMax:c.hp,vivo:true,ar:!!c.ar,nasc:G.t+1,prAtk:0,alvo:null,dir:team?2:0,mov:false,lento:0,atord:0,prBusca:0,fase:Math.random()*1000});
+      efeito(11,ux,uy);}}
+  if(team===0)montarMao();
+  return true;}
+function lancarRuna(team,c,x,y){const rei=G.ents.find(e=>e.torre&&e.tipo==='rei'&&e.team===team);const dur=tiro(c.tiro,rei,{x,y});
+  later(dur,()=>{for(let ty=Math.floor(y-c.raio);ty<=y+c.raio;ty++)for(let tx=Math.floor(x-c.raio);tx<=x+c.raio;tx++)if(Math.hypot(tx+.5-x,ty+.5-y)<=c.raio)efeito(c.ef,tx+.5,ty+.5);
+    for(const e of inimigos(team)){if(Math.hypot(e.x-x,e.y-y)>c.raio+e.raio*.6)continue;
+      ferir(e,Math.round(e.torre?c.dano*.35:c.dano),true);
+      if(c.lento&&!e.torre)e.lento=G.t+c.lento;if(c.atord&&!e.torre){e.atord=G.t+c.atord;e.prAtk=0;}}});}
+
+/* ---------------------------------------------------------------- combate */
+function ferir(e,v,mostrar){if(!e.vivo)return;e.hp-=v;if(e.torre||mostrar)texto(e.x,e.y-(e.torre?1:0),v,e.torre?'#ff4040':'#ffcf40');
+  if(e.torre&&e.tipo==='rei'&&!e.ativo){e.ativo=true;}
+  if(e.hp<=0)morrer(e);}
+function morrer(e){e.vivo=false;e.hp=0;
+  if(e.torre){efeito(6,e.x,e.y);efeito(5,e.x-.7,e.y-.5,.15);efeito(5,e.x+.7,e.y+.3,.3);
+    const outro=1-e.team;if(e.tipo==='rei'){G.coroas[outro]=3;fimDeJogo();}
+    else{G.coroas[outro]++;const rei=G.ents.find(t=>t.torre&&t.tipo==='rei'&&t.team===e.team);rei.ativo=true;aviso(outro===0?'👑 Torre derrubada!':'Você perdeu uma torre!');
+      if(G.extra)fimDeJogo();}
+    return;}
+  efeito(3,e.x,e.y);const cad=CRI[e.c.spr]&&CAD[CRI[e.c.spr].cad];if(cad&&!e.ar)G.cadaveres.push({src:cad.src,w:cad.w,h:cad.h,x:e.x,y:e.y,b:G.t});}
+function atingivel(u,e){if(u.c&&u.c.soPredio&&!e.torre)return false;if(e.ar&&u.c&&!u.c.atingeAr)return false;return true;}
+function buscarAlvo(u){let b=null,bd=1e9;const vis=5.5;
+  for(const e of inimigos(u.team)){if(!atingivel(u,e))continue;const d=Math.hypot(e.x-u.x,e.y-u.y)-e.raio;if(d>vis&&!(u.c.soPredio&&e.torre))continue;if(d<bd){bd=d;b=e;}}
+  return b;}
+/* sem ninguém por perto: a torre do próprio corredor, ou o rei */
+function torrePadrao(u){const ts=G.ents.filter(e=>e.torre&&e.vivo&&e.team!==u.team);const esq=u.x<9;
+  return ts.find(t=>t.tipo==='princesa'&&(t.x<9)===esq)||ts.find(t=>t.tipo==='rei')||ts[0];}
+/* atravessa o rio pela ponte mais conveniente */
+function navegar(u,tx,ty){if(u.ar)return [tx,ty];const naFaixa=u.y>RIO[0]-.8&&u.y<RIO[1]+.8;
+  if(lado(u.y)===lado(ty)&&!(u.y>RIO[0]-.1&&u.y<RIO[1]+.1))return [tx,ty];
+  const b=PONTES.reduce((m,p)=>Math.abs(u.x-p)+Math.abs(p-tx)<Math.abs(u.x-m)+Math.abs(m-tx)?p:m);
+  if(naFaixa&&Math.abs(u.x-b)<1.1){if(lado(u.y)===lado(ty)&&(u.y<RIO[0]-.1||u.y>RIO[1]+.1))return [tx,ty];return [b,lado(ty)?RIO[0]-.9:RIO[1]+.9];}
+  return [b,lado(u.y)?RIO[0]-.7:RIO[1]+.7];}
+function virar(u,dx,dy){u.dir=Math.abs(dx)>Math.abs(dy)?(dx>0?1:3):(dy>0?2:0);}
+function golpe(u,a){const c=u.c||u;
+  const impacto=(x,y)=>{if(c.giro){for(const e of inimigos(u.team))if(!e.ar&&Math.hypot(e.x-u.x,e.y-u.y)<=c.giro+e.raio)ferir(e,c.dano);efeito(c.ef,u.x,u.y);return;}
+    if(c.splash){for(const e of inimigos(u.team))if(atingivel(u,e)&&Math.hypot(e.x-x,e.y-y)<=c.splash+e.raio*.5)ferir(e,c.dano);efeito(c.ef,x,y);return;}
+    if(a.vivo){ferir(a,c.dano);efeito(c.ef,a.x,a.y-(a.ar?.6:0));}};
+  if(c.tiro){const x=a.x,y=a.y,dur=tiro(c.tiro,u,a);later(dur,()=>impacto(a.vivo?a.x:x,a.vivo?a.y:y));}else impacto(a.x,a.y);}
+function atualizarUnidade(u,dt){if(u.nasc>G.t||u.atord>G.t)return;const c=u.c,lento=u.lento>G.t?.65:1;
+  if(u.alvo&&!u.alvo.vivo){u.alvo=null;u.travado=false;}
+  if(!u.travado&&G.t>=u.prBusca){u.prBusca=G.t+.25;u.alvo=buscarAlvo(u);}
+  const a=u.alvo||torrePadrao(u);if(!a)return;
+  const d=Math.hypot(a.x-u.x,a.y-u.y);
+  if(d<=c.alc+u.raio+a.raio&&atingivel(u,a)){u.travado=true;u.alvo=a;u.mov=false;virar(u,a.x-u.x,a.y-u.y);
+    if(!u.prAtk)u.prAtk=G.t+c.prim;
+    if(G.t>=u.prAtk){u.prAtk=G.t+c.hit/lento;golpe(u,a);}
+    return;}
+  u.travado=false;u.prAtk=0;
+  const [px,py]=navegar(u,a.x,a.y);const dx=px-u.x,dy=py-u.y,l=Math.hypot(dx,dy)||1,s=Math.min(l,c.vel*lento*dt);
+  const nx=u.x+dx/l*s,ny=u.y+dy/l*s;
+  if(u.ar||podeAndar(nx,ny,u.raio)){u.x=nx;u.y=ny;}else if(podeAndar(nx,u.y,u.raio))u.x=nx;else if(podeAndar(u.x,ny,u.raio))u.y=ny;
+  u.mov=true;virar(u,dx,dy);}
+function atualizarTorre(t){if(!t.ativo)return;
+  if(t.alvo&&(!t.alvo.vivo||Math.hypot(t.alvo.x-t.x,t.alvo.y-t.y)>t.alc+t.alvo.raio))t.alvo=null;
+  if(!t.alvo){let bd=1e9;for(const e of inimigos(t.team)){if(e.torre)continue;const d=Math.hypot(e.x-t.x,e.y-t.y);if(d<=t.alc+e.raio&&d<bd){bd=d;t.alvo=e;}}if(t.alvo)t.prAtk=Math.max(t.prAtk,G.t+.3);}
+  if(t.alvo){virar(t,t.alvo.x-t.x,t.alvo.y-t.y);if(G.t>=t.prAtk){t.prAtk=G.t+t.hit;golpe(t,t.alvo);}}}
+/* as criaturas se empurram para não ficarem umas em cima das outras; torres não se mexem */
+function separar(){const us=G.ents.filter(e=>e.vivo&&!e.torre);
+  for(let i=0;i<us.length;i++){const a=us[i];
+    for(let j=i+1;j<us.length;j++){const b=us[j];if(a.ar!==b.ar)continue;const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||.01,m=(a.raio+b.raio)*.9;if(d>=m)continue;
+      const ov=m-d,ma=a.hpMax,mb=b.hpMax,ka=ov*mb/(ma+mb),kb=ov*ma/(ma+mb);
+      const ax=a.x-dx/d*ka,ay=a.y-dy/d*ka,bx=b.x+dx/d*kb,by=b.y+dy/d*kb;
+      if(a.ar||podeAndar(ax,ay,a.raio)){a.x=ax;a.y=ay;}if(b.ar||podeAndar(bx,by,b.raio)){b.x=bx;b.y=by;}}
+    if(!a.ar)for(const t of G.ents){if(!t.torre||!t.vivo)continue;const dx=a.x-t.x,dy=a.y-t.y,h=t.tam/2+a.raio*.8;
+      if(Math.abs(dx)<h&&Math.abs(dy)<h){if(h-Math.abs(dx)<h-Math.abs(dy))a.x=t.x+Math.sign(dx||1)*h;else a.y=t.y+Math.sign(dy||1)*h;}}}}
+
+/* ---------------------------------------------------------------- oponente */
+function ia(){const P=G.jog[1];if(G.t<P.prox)return;const nv=G.dific;P.prox=G.t+rnd(.5,1.2)*(nv===0?1.8:nv===1?1:.7);
+  const meus=G.ents.filter(e=>e.vivo&&!e.torre&&e.team===1),deles=G.ents.filter(e=>e.vivo&&!e.torre&&e.team===0&&e.nasc<=G.t);
+  const pode=P.mao.map((k,i)=>({k,i,c:CARTAS[k]})).filter(o=>o.c.custo<=P.mana);if(!pode.length)return;
+  /* runa onde pega mais coisa (ou para terminar uma torre) */
+  for(const o of pode.filter(o=>o.c.feitico)){let best=null,bv=0;
+    for(const e of [...deles,...G.ents.filter(t=>t.torre&&t.vivo&&t.team===0)]){let v=0;
+      for(const f of deles)if(Math.hypot(f.x-e.x,f.y-e.y)<=o.c.raio)v+=Math.min(f.hp,o.c.dano)*(f.y<20?1.4:1);
+      for(const t of G.ents)if(t.torre&&t.vivo&&t.team===0&&Math.hypot(t.x-e.x,t.y-e.y)<=o.c.raio+1&&t.hp<=o.c.dano*.35)v+=2000;
+      if(v>bv){bv=v;best=e;}}
+    if(best&&bv>=o.c.custo*(nv===0?160:110)){jogarCarta(1,o.i,best.x,best.y);return;}}
+  const tropas=pode.filter(o=>!o.c.feitico);if(!tropas.length)return;
+  /* defesa: alguém do jogador já cruzou ou está chegando na ponte */
+  const ameaca=deles.filter(e=>e.y<22).sort((a,b)=>a.y-b.y)[0];
+  if(ameaca){const temAr=deles.some(e=>e.ar&&e.y<22),grupo=deles.filter(e=>Math.hypot(e.x-ameaca.x,e.y-ameaca.y)<2.5).length;
+    const nota=o=>(temAr&&o.c.atingeAr?3:0)+(grupo>=3&&(o.c.splash||o.c.giro)?3:0)+(o.c.soPredio?-5:0)+(ameaca.c.hp>1500&&o.c.dano>=150?2:0)-o.c.custo*.3+Math.random();
+    const o=tropas.sort((a,b)=>nota(b)-nota(a))[0];if(nota(o)<-2)return;
+    const x=Math.min(FW-1,Math.max(1,ameaca.x+rnd(-1,1))),y=Math.min(RIO[0]-1,Math.max(3,ameaca.y-(o.c.alc>2?4.5:2.5)));
+    jogarCarta(1,o.i,x,y);return;}
+  /* ataque: junta mana e manda um tanque com apoio */
+  const ataque=meus.filter(e=>e.y>8).length;
+  if(P.mana>=(nv===2?8:9)||(ataque&&P.mana>=4&&Math.random()<.5)){const pista=pick(PONTES);
+    const o=ataque?tropas.sort((a,b)=>(b.c.alc-a.c.alc)+Math.random())[0]:tropas.sort((a,b)=>b.c.hp*(b.c.qtd||1)-a.c.hp*(a.c.qtd||1))[0];
+    const lider=meus.sort((a,b)=>b.y-a.y)[0];
+    const x=ataque&&lider?lider.x:pista+rnd(-.5,.5),y=ataque&&lider?Math.max(1,Math.min(14,lider.y-1.5)):(o.c.hp>1500?4:13);
+    jogarCarta(1,o.i,x,y);}}
+
+/* ---------------------------------------------------------------- relógio e fim */
+function fimDeJogo(){if(G.fim)return;G.fim=true;G.sel=-1;
+  const [a,b]=G.coroas;let r=a>b?'v':a<b?'d':'e';
+  if(r==='e'){/* empate depois da prorrogação: perde quem tem a torre mais machucada */
+    const pior=t=>Math.min(...G.ents.filter(e=>e.torre&&e.team===t).map(e=>e.vivo?e.hp/e.hpMax:0));const p0=pior(0),p1=pior(1);if(Math.abs(p0-p1)>.001)r=p0>p1?'v':'d';}
+  setTimeout(()=>{$('#fTit').textContent=r==='v'?'🏆 Vitória!':r==='d'?'☠ Derrota':'🤝 Empate';$('#fTit').style.color=r==='v'?'#e6b450':r==='d'?'#e05040':'#ccc';
+    $('#fCoroas').innerHTML=`<span style="color:#6f9bff">${'👑'.repeat(a)||'—'}</span> × <span style="color:#ff7070">${'👑'.repeat(b)||'—'}</span>`;
+    $('#fSub').textContent=r==='v'?'As torres inimigas caíram diante do seu exército.':r==='d'?'O oponente levou a melhor desta vez.':'Ninguém conseguiu vantagem.';
+    $('#fim').style.display='flex';},1600);}
+function relogio(){if(G.t>=G.dur){
+    if(!G.extra&&G.coroas[0]===G.coroas[1]){G.extra=true;G.dur+=60;aviso('Prorrogação! Próxima torre vence');}else fimDeJogo();}
+  if(!G.dobro&&G.dur-G.t<=60&&!G.extra){G.dobro=true;aviso('Mana em dobro!');}}
+
+/* ================================================================ desenho */
+const cv=$('#cv'),ctx=cv.getContext('2d');let S=1,OX=0,OY=0,DPR=1;
+function redimensionar(){const r=$('#campo').getBoundingClientRect();DPR=Math.min(2,devicePixelRatio||1);cv.width=Math.round(r.width*DPR);cv.height=Math.round(r.height*DPR);
+  S=Math.min(cv.width/(FW*TS),cv.height/(FH*TS));   /* a mata das laterais pode ficar de fora em telas estreitas */OX=Math.round((cv.width-(FW+2*MARG)*TS*S)/2+MARG*TS*S);OY=Math.round((cv.height-FH*TS*S)/2);}
+addEventListener('resize',redimensionar);
+const W2=(x,y)=>[OX+x*TS*S,OY+y*TS*S];
+function telaParaCampo(px,py){const r=cv.getBoundingClientRect();return [((px-r.left)*DPR-OX)/(TS*S),((py-r.top)*DPR-OY)/(TS*S)];}
+/* desenha uma folha 15.x centrada em (x,y) do campo; criaturas de 64 px sem deslocamento ocupam a folha toda */
+function desenharFolha(f,dir,x,y,andando,t,sobe=0){
+  let q=0;if(andando&&f.andar>0)q=f.parado+Math.floor(t*1000/90)%f.andar;else if(f.parado>1){const tot=f.ms.reduce((a,b)=>a+b,0)||1;q=quadro(f.ms,(t*1000)%tot);}
+  const off=f.w===32?0:f.desl[0]?8:16;   /* deixa o centro do corpo em (x,y) */
+  ctx.drawImage(f.img,q*f.w,dir*f.h,f.w,f.h,x*TS+16+off-f.w,y*TS+16+off-f.h-sobe,f.w,f.h);}
+function barra(x,y,w,fr,cor){ctx.fillStyle='#000';ctx.fillRect(x-w/2-1,y-1,w+2,5);ctx.fillStyle='#333';ctx.fillRect(x-w/2,y,w,3);ctx.fillStyle=cor;ctx.fillRect(x-w/2,y,w*Math.max(0,fr),3);}
+function desenharTorre(t){const s=t.tam*TS,x=t.x*TS-s/2,y=t.y*TS-s/2,cor=t.team?'#d83a3a':'#3a6fd8';
+  if(!t.vivo){ctx.fillStyle='#4a4038';ctx.fillRect(x+4,y+6,s-8,s-10);ctx.fillStyle='#6b6157';for(let i=0;i<7;i++){const a=(i*97%100)/100,b=(i*61%100)/100;ctx.fillRect(x+6+a*(s-18),y+8+b*(s-18),8,6);}return;}
+  /* base de pedra com ameias */
+  ctx.fillStyle='#00000055';ctx.fillRect(x+3,y+5,s,s);
+  const g=ctx.createLinearGradient(0,y,0,y+s);g.addColorStop(0,'#b9b2a6');g.addColorStop(1,'#6e675e');ctx.fillStyle=g;ctx.fillRect(x,y,s,s);
+  ctx.strokeStyle='#00000040';ctx.lineWidth=1;for(let r=8;r<s;r+=8){ctx.beginPath();ctx.moveTo(x,y+r);ctx.lineTo(x+s,y+r);ctx.stroke();for(let c=(r/8%2)*8;c<s;c+=16){ctx.beginPath();ctx.moveTo(x+c,y+r-8);ctx.lineTo(x+c,y+r);ctx.stroke();}}
+  ctx.fillStyle='#8d867b';for(let c=0;c<s;c+=12){ctx.fillRect(x+c,y-5,7,6);ctx.fillRect(x+c,y+s-6,7,6);}
+  ctx.fillStyle=cor;ctx.fillRect(x+s/2-10,y+s-4,20,4);ctx.strokeStyle=cor;ctx.lineWidth=2;ctx.strokeRect(x+1,y+1,s-2,s-2);
+  /* quem guarda a torre: hunter nas laterais, knight no rei (dorme até acordar) */
+  const look=t.tipo==='rei'?'131':'129',f=folhaOutfit(look,TIME_COR[t.team],3);
+  if(f)desenharFolha(f,t.dir,t.x,t.y-(t.tipo==='rei'?.2:0),false,G.t);
+  if(t.tipo==='rei'&&!t.ativo){ctx.font='bold 12px Verdana';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText('z z',t.x*TS+12,t.y*TS-30);}}
+function desenhar(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0b0805';ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.setTransform(S,0,0,S,OX-MARG*TS*S,OY);ctx.imageSmoothingEnabled=false;
+  const fundo=img('royale/arena.png');if(fundo)ctx.drawImage(fundo,0,0);
+  ctx.setTransform(S,0,0,S,OX,OY);
+  /* área onde dá para soltar a carta que está sendo arrastada */
+  const sel=G.arr?G.arr.k:G.sel>=0?G.jog[0].mao[G.sel]:null;
+  if(sel&&!G.fim&&!CARTAS[sel].feitico){ctx.fillStyle='rgba(220,40,40,.28)';for(let y=0;y<FH;y++)for(let x=0;x<FW;x++)if(!areaValida(0,x+.5,y+.5))ctx.fillRect(x*TS,y*TS,TS,TS);}
+  for(const c of G.cadaveres){const k=(G.t-c.b)/4;if(k>=1)continue;const im=img(c.src);if(!im)continue;ctx.globalAlpha=k>.7?(1-k)/.3:1;ctx.drawImage(im,c.x*TS+16-c.w,c.y*TS+16-c.h);ctx.globalAlpha=1;}
+  G.cadaveres=G.cadaveres.filter(c=>G.t-c.b<4);
+  /* chão e torres por ordem de altura; quem voa por cima de tudo, com sombra */
+  const chao=G.ents.filter(e=>e.torre||(e.vivo&&!e.ar)).sort((a,b)=>a.y-b.y),ar=G.ents.filter(e=>e.vivo&&e.ar).sort((a,b)=>a.y-b.y);
+  for(const e of [...chao,...ar]){
+    if(e.torre){desenharTorre(e);continue;}
+    const f=folhaCriatura(e.c.spr);const nascendo=e.nasc>G.t;
+    ctx.fillStyle=e.team?'rgba(230,50,50,.45)':'rgba(60,120,255,.45)';ctx.beginPath();ctx.ellipse(e.x*TS,e.y*TS+e.raio*TS*.55,e.raio*TS*1.05,e.raio*TS*.5,0,0,Math.PI*2);ctx.fill();
+    if(nascendo)ctx.globalAlpha=.45;
+    if(f)desenharFolha(f,e.dir,e.x,e.y,e.mov&&!(e.atord>G.t),G.t+e.fase/1000,e.ar?18:0);
+    ctx.globalAlpha=1;
+    if(e.lento>G.t){ctx.fillStyle='rgba(120,200,255,.35)';ctx.beginPath();ctx.arc(e.x*TS,e.y*TS-(e.ar?18:0),e.raio*TS,0,Math.PI*2);ctx.fill();}}
+  /* efeitos e projéteis (8 direções, como no cliente) */
+  for(let i=G.efs.length-1;i>=0;i--){const e=G.efs[i],t=(G.t-e.b)*1000;if(t<0)continue;const f=CB.efeitos[e.id],tot=f.ms.reduce((a,b)=>a+b,0);if(t>=tot){G.efs.splice(i,1);continue;}
+    const im=img(f.src);if(!im)continue;const q=quadro(f.ms,t);ctx.drawImage(im,f.x+q*f.w,f.y,f.w,f.h,e.x*TS+16-f.w,e.y*TS+16-f.h,f.w,f.h);}
+  for(let i=G.tiros.length-1;i>=0;i--){const m=G.tiros[i],t=(G.t-m.b)/m.dur;if(t>=1){G.tiros.splice(i,1);continue;}const f=CB.tiros[m.id],im=img(f.src);if(!im)continue;
+    const k=Math.round(Math.atan2(m.y2-m.y1,m.x2-m.x1)/(Math.PI/4)),[px,py]={0:[2,1],1:[2,2],2:[1,2],3:[0,2],4:[0,1],'-4':[0,1],'-1':[2,0],'-2':[1,0],'-3':[0,0]}[k];
+    const x=m.x1+(m.x2-m.x1)*t,y=m.y1+(m.y2-m.y1)*t;ctx.drawImage(im,f.x+px*f.w,f.y+py*f.h,f.w,f.h,x*TS+16-f.w,y*TS+16-f.h,f.w,f.h);}
+  /* fantasma da carta arrastada */
+  if(G.arr&&G.arr.dentro){const c=CARTAS[G.arr.k],p=ajustarPos(0,c,G.arr.x,G.arr.y);
+    if(p){ctx.globalAlpha=.6;if(c.feitico){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(p[0]*TS,p[1]*TS,c.raio*TS,0,Math.PI*2);ctx.stroke();ctx.fillStyle='rgba(255,255,255,.15)';ctx.fill();}
+      else{const f=folhaCriatura(c.spr);if(f)desenharFolha(f,0,p[0],p[1],false,0,c.ar?18:0);}ctx.globalAlpha=1;}}
+  /* barras de vida */
+  for(const e of G.ents){if(!e.vivo)continue;const cor=e.team?'#e04040':'#3f8bff';
+    if(e.torre){const w=e.tam*TS*.8;barra(e.x*TS,e.y*TS-e.tam*TS/2-12,w,e.hp/e.hpMax,cor);
+      ctx.font='bold 9px Verdana';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#000';ctx.strokeText(Math.ceil(e.hp),e.x*TS,e.y*TS-e.tam*TS/2-15);ctx.fillStyle='#fff';ctx.fillText(Math.ceil(e.hp),e.x*TS,e.y*TS-e.tam*TS/2-15);continue;}
+    if(e.hp<e.hpMax||e.nasc>G.t-1)barra(e.x*TS,e.y*TS-(e.ar?18:0)-(e.raio>.6?40:28),Math.max(14,e.raio*TS*1.4),e.hp/e.hpMax,cor);}
+  for(let i=G.txt.length-1;i>=0;i--){const t=G.txt[i],k=(G.t-t.b);if(k>=.9){G.txt.splice(i,1);continue;}
+    ctx.font='bold 11px Verdana';ctx.textAlign='center';ctx.globalAlpha=k>.6?(.9-k)/.3:1;ctx.lineWidth=3;ctx.strokeStyle='#000';ctx.strokeText(t.t,t.x*TS,t.y*TS-20-k*24);ctx.fillStyle=t.cor;ctx.fillText(t.t,t.x*TS,t.y*TS-20-k*24);ctx.globalAlpha=1;}
+  /* placar: relógio e coroas */
+  ctx.setTransform(DPR,0,0,DPR,0,0);const vw=cv.width/DPR;
+  const rest=Math.max(0,G.dur-G.t),mm=Math.floor(rest/60),ss=Math.floor(rest%60);
+  ctx.fillStyle='#000a';ctx.fillRect(vw-92,8,84,40);ctx.font='bold 10px Verdana';ctx.textAlign='center';ctx.fillStyle=G.extra?'#ff8a50':G.dobro?'#d68cff':'#ccc';
+  ctx.fillText(G.extra?'Prorrogação':G.dobro?'Mana x2':'Tempo',vw-50,22);ctx.font='bold 16px Verdana';ctx.fillStyle='#fff';ctx.fillText(`${mm}:${String(ss).padStart(2,'0')}`,vw-50,42);
+  ctx.fillStyle='#000a';ctx.fillRect(8,8,66,40);ctx.font='bold 14px Verdana';ctx.textAlign='left';ctx.fillStyle='#ff7070';ctx.fillText(`👑 ${G.coroas[1]}`,16,24);ctx.fillStyle='#6f9bff';ctx.fillText(`👑 ${G.coroas[0]}`,16,43);
+  if(G.msg&&G.t-G.msg.b<2.2){const k=G.t-G.msg.b;ctx.globalAlpha=k>1.6?(2.2-k)/.6:1;ctx.font='bold 24px Verdana';ctx.textAlign='center';ctx.lineWidth=5;ctx.strokeStyle='#000';
+    ctx.strokeText(G.msg.t,vw/2,cv.height/DPR*.47);ctx.fillStyle='#ffd65a';ctx.fillText(G.msg.t,vw/2,cv.height/DPR*.47);ctx.globalAlpha=1;}}
+
+/* ================================================================ mão de cartas (arrastar ou tocar) */
+function montarMao(){const box=$('#cartas');box.innerHTML='';const P=G.jog[0];
+  P.mao.forEach((k,i)=>{const c=CARTAS[k],d=document.createElement('div');d.className='carta'+(G.sel===i?' sel':'');d.dataset.i=i;
+    d.appendChild(retrato(k,64));d.insertAdjacentHTML('beforeend',`<span class="cu">${c.custo}</span><span class="nm">${c.n}</span>`);
+    d.addEventListener('pointerdown',e=>iniciarArraste(e,i,d));box.appendChild(d);});
+  const pr=$('#prox');pr.querySelector('.carta')?.remove();const k=P.fila[0],d=document.createElement('div');d.className='carta';d.appendChild(retrato(k,48));
+  d.insertAdjacentHTML('beforeend',`<span class="cu" style="transform:scale(.8)">${CARTAS[k].custo}</span>`);pr.appendChild(d);
+  atualizarMao();}
+function atualizarMao(){const P=G.jog[0];document.querySelectorAll('#cartas .carta').forEach(d=>{const c=CARTAS[P.mao[+d.dataset.i]];d.classList.toggle('sem',P.mana<c.custo);});
+  $('#manaF').style.width=(P.mana*10)+'%';$('#manaT').textContent=Math.floor(P.mana);}
+function iniciarArraste(e,i,el){if(!G||G.fim)return;e.preventDefault();el.setPointerCapture(e.pointerId);
+  const k=G.jog[0].mao[i];G.arr={i,k,x0:e.clientX,y0:e.clientY,x:0,y:0,dentro:false,moveu:false,el};
+  const mv=ev=>{const a=G&&G.arr;if(!a)return;if(Math.hypot(ev.clientX-a.x0,ev.clientY-a.y0)>12)a.moveu=true;
+    const r=cv.getBoundingClientRect();a.dentro=ev.clientY<r.bottom-4;[a.x,a.y]=telaParaCampo(ev.clientX,ev.clientY-(ev.pointerType==='touch'?40:0));a.el.classList.toggle('arrast',a.moveu);};
+  const up=ev=>{el.removeEventListener('pointermove',mv);el.removeEventListener('pointerup',up);el.removeEventListener('pointercancel',up);
+    const a=G&&G.arr;if(!a)return;G.arr=null;el.classList.remove('arrast');
+    if(!a.moveu){G.sel=G.sel===i?-1:i;montarMao();return;}
+    if(a.dentro){if(G.jog[0].mana<CARTAS[a.k].custo){aviso('Mana insuficiente');return;}G.sel=-1;jogarCarta(0,i,a.x,a.y);}};
+  el.addEventListener('pointermove',mv);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);}
+cv.addEventListener('pointerdown',e=>{if(!G||G.fim||G.sel<0)return;const [x,y]=telaParaCampo(e.clientX,e.clientY);const k=G.jog[0].mao[G.sel];
+  if(G.jog[0].mana<CARTAS[k].custo){aviso('Mana insuficiente');return;}const i=G.sel;G.sel=-1;if(!jogarCarta(0,i,x,y))montarMao();});
+addEventListener('keydown',e=>{if(!G||G.fim)return;const n='1234'.indexOf(e.key);if(n>=0){G.sel=G.sel===n?-1:n;montarMao();}if(e.key==='Escape'){G.sel=-1;montarMao();}});
+
+/* ================================================================ laço principal */
+let ult=performance.now(),ultHud=0;
+function laco(now){requestAnimationFrame(laco);const dt=Math.min(.05,(now-ult)/1000);ult=now;if(!G)return;
+  if(!G.fim){G.t+=dt;
+    for(const P of G.jog)P.mana=Math.min(10,P.mana+dt/(G.dobro||G.extra?1.4:2.8));
+    for(let i=G.later.length-1;i>=0;i--)if(G.later[i].t<=G.t){const l=G.later.splice(i,1)[0];l.fn();}
+    for(const e of G.ents){if(!e.vivo)continue;if(e.torre)atualizarTorre(e);else atualizarUnidade(e,dt);}
+    separar();if(G.ents.length>120)G.ents=G.ents.filter(e=>e.vivo||e.torre);
+    ia();relogio();}
+  else G.t+=dt*.3;   /* depois do fim os efeitos terminam devagar */
+  desenhar();if(now-ultHud>100){ultHud=now;atualizarMao();}}
+requestAnimationFrame(laco);
+
+/* ================================================================ baralho (lobby) */
+let BARALHO=(()=>{try{const b=JSON.parse(localStorage.getItem('royale_baralho'));if(Array.isArray(b)&&b.length===8&&b.every(k=>CARTAS[k]))return b;}catch(e){}return [...BARALHO_PADRAO];})();
+function mostrarBaralho(){const box=$('#baralho');box.innerHTML='';
+  for(const k of Object.keys(CARTAS)){const c=CARTAS[k],d=document.createElement('div');d.className='carta'+(BARALHO.includes(k)?'':' fora');
+    d.appendChild(retrato(k,48));d.insertAdjacentHTML('beforeend',`<span class="cu">${c.custo}</span><span class="nm">${c.n}</span><span class="ds">${c.d}</span>`);
+    d.onclick=()=>{if(BARALHO.includes(k))BARALHO=BARALHO.filter(x=>x!==k);else if(BARALHO.length<8)BARALHO.push(k);else return;
+      try{localStorage.setItem('royale_baralho',JSON.stringify(BARALHO));}catch(e){}mostrarBaralho();};
+    box.appendChild(d);}
+  $('#contagem').textContent=`(${BARALHO.length}/8)`;$('#btJogar').disabled=BARALHO.length!==8;
+  $('#media').textContent=BARALHO.length?`Custo médio: ${(BARALHO.reduce((s,k)=>s+CARTAS[k].custo,0)/BARALHO.length).toFixed(1)} de mana`:'';}
+$('#btJogar').onclick=()=>{redimensionar();iniciar(BARALHO,+$('#dific').value);};
+$('#btDenovo').onclick=()=>{redimensionar();iniciar(BARALHO,+$('#dific').value);};
+$('#btBaralho').onclick=()=>{$('#fim').style.display='none';$('#lobby').style.display='flex';mostrarBaralho();};
+document.getElementById('manaG').innerHTML='<i></i>'.repeat(10);
+/* pré-carrega o que a batalha usa */
+img('royale/arena.png');for(const k in CARTAS)CARTAS[k].feitico?img(ITM(CARTAS[k].item)):img(CRI[CARTAS[k].spr].src);
+for(const l of ['129','131'])if(OUTF[l])img(OUTF[l].src);for(let i=0;i<4;i++)img(`tibia-assets/sprites15/combate_${i}.png`);
+mostrarBaralho();redimensionar();
+</script>
+</body>
+</html>
