@@ -33,7 +33,7 @@ canvas.ret15{image-rendering:pixelated;width:100%;height:100%;display:block}
 .ofgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:4px;max-height:200px;overflow:auto;padding:4px;background:#0a0c12;border:1px solid var(--line);border-radius:3px}
 .ofit{background:var(--ui2);border:1px solid #000;box-shadow:inset 0 0 0 1px var(--line);border-radius:3px;cursor:pointer;padding:2px;width:100%;aspect-ratio:1}
 .ofit.on{box-shadow:inset 0 0 0 2px var(--gold)}
-.ofit{position:relative}.ofit.lock canvas{filter:grayscale(1) brightness(.5)}.ofit.lock::after{content:"🔒";position:absolute;right:1px;bottom:0;font-size:11px}.ofit.cmp{box-shadow:inset 0 0 0 1px #c9a23a}
+.ofit{position:relative}.ofit.lock canvas{filter:grayscale(1) brightness(.5)}.ofit.lock::after{content:"";position:absolute;right:1px;bottom:0;width:14px;height:14px;background:url(tibia-assets/sprites15/itens/2972.png) center/contain no-repeat;image-rendering:pixelated}.ofit.cmp{box-shadow:inset 0 0 0 1px #c9a23a}
 .ofgrid.mgrid{grid-template-columns:repeat(auto-fill,minmax(60px,1fr));max-height:260px}.ofgrid.ogrid{max-height:260px}
 .oreq{background:#0a0c12;border:1px solid var(--line);border-radius:3px;padding:6px 8px;margin:8px 0}.oreq.ok{border-color:#2f7a3a}.oreq b.l{color:#ff9a6a}.oreq b.g{color:#7fe07f}
 .cgrid{display:grid;grid-template-columns:repeat(19,1fr);gap:1px;background:#000;padding:1px;width:min(100%,380px)}
@@ -202,7 +202,7 @@ img.ui{width:24px;height:24px;image-rendering:pixelated;flex:none}
 .pvb{display:inline-block;background:#b3261e;color:#fff;font:700 10px/1 Verdana,sans-serif;padding:2px 5px;border-radius:3px;letter-spacing:.06em;vertical-align:middle;margin-left:4px;box-shadow:inset 0 0 0 1px #5a0f0b}
 .pvaviso{margin:6px 0;padding:6px 8px;border:1px solid #7a2a24;background:rgba(120,24,18,.25);border-radius:4px;font-size:12px;color:#f3c9c4}.pvlnk{color:#ffb4a8;text-decoration:underline;cursor:pointer}
 .cav{vertical-align:-2px;margin:0 2px;image-rendering:pixelated}
-.botb{vertical-align:-2px;margin:0 3px;image-rendering:pixelated}#tOnB{color:#8fd0ff}
+.botb{vertical-align:-2px;margin:0 3px;image-rendering:pixelated}img.emo{width:1.45em;height:1.45em;vertical-align:-.3em;margin:0 .08em;image-rendering:pixelated;object-fit:contain;display:inline-block}#mdock .mdb b img.emo{width:26px;height:26px;margin:0;vertical-align:middle}.mdb.mcity b img.emo{width:26px;height:26px}#tOnB{color:#8fd0ff}
 .lfgbox{display:grid;gap:8px;font-size:12px}.lfgbox label{display:flex;flex-direction:column;gap:2px;color:var(--mut)}.lfgbox select{background:#161b27;color:#fff;border:1px solid var(--line);border-radius:3px;padding:4px}
 .lfgst{padding:8px;border:1px solid var(--line);border-radius:4px;background:#12161f}.lfgst .bar{height:5px;background:#222a3a;border-radius:3px;overflow:hidden;margin:6px 0}.lfgst .bar i{display:block;height:100%;background:#4a8cf0}
 #pvBar{display:flex;gap:4px 10px;align-items:center;flex-wrap:wrap;justify-content:center;background:rgba(48,14,14,.93);border:1px solid #000;border-radius:4px;padding:3px 8px;font-size:11px;color:#f1d4d0;box-shadow:inset 0 0 0 1px #7a2a24}
@@ -371,7 +371,7 @@ input.wcb:disabled{opacity:.35;cursor:default}
 .wbtn.pri{background:linear-gradient(#2d4690,#1c2c5e);box-shadow:inset 0 0 0 1px #6f8fff;color:#fff;padding:10px 26px;font-family:'Cinzel',Georgia,serif;letter-spacing:.04em}
 .wbtn.gold{background:linear-gradient(#6e5420,#43320f);box-shadow:inset 0 0 0 1px #c9a24a;color:#ffe4a0}
 .wbtn img.ui{width:18px;height:18px}
-.wci{width:14px;height:14px;vertical-align:-2px;flex:none}
+.wci{width:14px;height:14px;vertical-align:-2px;flex:none;image-rendering:pixelated}
 /* prey */
 .wpill{display:flex;align-items:center;gap:6px;background:#0a0c12;border:1px solid #2c3348;border-radius:14px;padding:3px 12px 3px 8px;font-size:12px;color:#b8c0da}
 .wpill b{color:#7fe08a;font-family:Consolas,monospace}
@@ -407,7 +407,7 @@ input.wcb:disabled{opacity:.35;cursor:default}
 .pfoot2{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 18px;border-top:1px solid #222a3c;background:#0c0f16;flex:none;flex-wrap:wrap}
 .wcbuy{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:#b8c0da}
 .wcbuy .wbtn{padding:5px 10px}
-@media(max-width:860px){.pgrid{grid-template-columns:1fr}.pbody{grid-template-columns:minmax(0,1fr);overflow:auto}.pl{border-right:0;overflow:visible;min-width:0}.pr{min-width:0}.pulls{grid-template-columns:repeat(3,minmax(0,1fr))}.pbtn{padding:10px 2px}.pr{min-height:420px}.pph{flex-wrap:wrap}.pph-rec{width:100%;border-left:0;padding-left:0;border-top:1px solid #2c3348;padding-top:10px}.mbox.wide{height:calc(100vh - 24px)}.mbox.wide.prey{height:calc(100vh - 24px)}.hgrid{grid-template-columns:1fr}.ps-lock{min-height:160px}}
+@media(max-width:860px){.pgrid{grid-template-columns:1fr}.pbody{grid-template-columns:minmax(0,1fr);overflow:auto}.pl{border-right:0;overflow:visible;min-width:0}.pr{min-width:0}.pulls{grid-template-columns:repeat(3,minmax(0,1fr))}.pbtn{padding:10px 2px}.pr{min-height:420px}.pph{flex-wrap:wrap}.pph-rec{width:100%;border-left:0;padding-left:0;border-top:1px solid #2c3348;padding-top:10px}.mbox.wide{height:calc(100vh - 24px)}.mbox.wide.prey{height:calc(100vh - 24px)}.hgrid{grid-template-columns:1fr}.ps-lock{min-height:160px}.pfoot.pf3>span:first-child{width:100%}.pstart{width:100%;justify-content:stretch}.pstart .wbtn{flex:1 1 100%}.pstart label{flex:1 1 100%}}
 /* ---------- mercado, leilão e wiki ---------- */
 .mbox.wide.mkt{width:min(1280px,100%)}
 .mkpills{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -569,6 +569,8 @@ select#wkClasse,select#wkBioma{background:#0a0c12;border:1px solid #2c3348;borde
 .pesc{flex:none}.pesc.verde{filter:drop-shadow(0 0 3px #3ddc57)}.pesc.cinza{filter:drop-shadow(0 0 3px #9aa3b2)}
 .ptc{padding:6px 8px;background:#0a0c12;border:1px solid var(--line2);border-radius:3px;margin-bottom:6px;font-size:11px}.ptb{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
 .anap{display:grid;grid-template-columns:1fr auto auto;gap:6px;font-size:10px;padding:2px 0;border-top:1px solid var(--line)}.anap b{color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pstw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:2px}.pst{width:100%;min-width:330px;border-collapse:collapse;font-size:10px}.pst th,.pst td{padding:2px 4px;text-align:right;border-top:1px solid var(--line);white-space:nowrap}.pst th{color:var(--mut);font-weight:normal;cursor:pointer;user-select:none;border-top:0}.pst th.on{color:#ffd84a}.pst th:first-child,.pst td:first-child{text-align:left;max-width:92px;overflow:hidden;text-overflow:ellipsis}.pst td:first-child b{color:#fff}.pst td small{display:block;color:var(--mut);font-size:9px}.pst td.top{color:#ffd84a;font-weight:bold}.pst td.top::before{content:"\265B ";font-size:9px}.pst tr.tot td{color:#cfd6e6;font-weight:bold;border-top:1px solid var(--line2)}.pst .r{color:#ff6a6a}.pst .g{color:#7fe07f}.pstt{font-size:10px;color:var(--mut);margin-top:4px}
+.pfoot.pf3{flex-wrap:wrap}.pstart{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;align-items:center}.pstart label{display:flex;gap:4px;align-items:center;font-size:11px;color:var(--mut)}.lfgInl{width:100%;order:9}.lfgInl .lfgst{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12px}.lfgInl .lfgst .bar{flex:1 1 120px;margin:0}
 .onlrow{display:flex;align-items:center;gap:10px;padding:4px 0;border-bottom:1px solid var(--line)}.onlrow .ret15{width:40px;height:40px;flex:none}.onlrow .ph{width:40px;height:40px;flex:none;display:grid;place-items:center;background:#0a0c12;border-radius:3px}
 #nuvem{display:none;width:30px;height:30px;place-items:center;color:#6fcf5f;flex:none}
 body.online #nuvem{display:grid}
@@ -779,8 +781,8 @@ html.land #condCid{top:4px;left:calc((100vw - var(--mrw))/2)}
       <button data-open="bestiary"><img class="ui" src="tibia-assets/sprites15/ui/bestiario.png" alt=""><span>Bestiário e Charms</span></button>
       <button data-win="w-ana"><img class="ui" src="tibia-assets/sprites15/ui/analisador.png" alt=""><span>Analisador de caçada</span></button>
       <button data-win="w-loot"><img class="ui" src="tibia-assets/sprites15/ui/loot.png" alt=""><span>Loot da sessão</span></button>
-      <button data-win="w-chat"><img class="ui" src="tibia-assets/sprites15/ui/regras.png" alt=""><span>Chat</span></button>
-      <button data-win="w-party"><img class="ui" src="tibia-assets/sprites15/ui/personagem.png" alt=""><span>Party<small>grupo e exp compartilhada</small></span></button>
+      <button data-win="w-chat"><img class="ui" src="tibia-assets/sprites15/itens/3505.png" alt=""><span>Chat</span></button>
+      <button data-win="w-party"><img class="ui" src="tibia-assets/sprites15/itens/3409.png" alt=""><span>Party<small>grupo e exp compartilhada</small></span></button>
       <button data-open="rules"><img class="ui" src="tibia-assets/sprites15/ui/regras.png" alt=""><span>Regras automáticas<small>lure, volta, reabastecer</small></span></button>
     </div></div>
     <div class="mn"><button class="mt"><img class="ui" src="tibia-assets/sprites15/ui/personagem.png" alt=""><span class="mtx">Personagem</span><i>▾</i></button><div class="dd">
@@ -901,6 +903,32 @@ html.land #condCid{top:4px;left:calc((100vw - var(--mrw))/2)}
 <div id="ctx" class="hidden"></div>
 <div id="toast"></div>
 <div id="tipRem" class="hidden"></div>
+
+<script>
+/* Emojis -> sprites reais do cliente Tibia 15.10 (tibia-assets/sprites15/itens/<cid>.png e ui/). Nenhum emoji aparece como ícone: todo texto que o jogo escreve na tela
+   (botões, títulos de janela, log, toasts, dock mobile) passa por aqui e troca o emoji pelo sprite do item correspondente. Setas/estrelas/✕ são tipografia, não ícones. */
+(function(){
+const I=n=>'tibia-assets/sprites15/itens/'+n+'.png',U=n=>'tibia-assets/sprites15/ui/'+n+'.png';
+const M={'🎒':I(2854),'📊':I(5090),'🗺':I(5090),'⌨':I(3059),'💬':I(3505),'🏙':I(3502),'🏠':U('cidade'),'🔒':I(2972),
+'☠':I(3114),'💀':I(3114),'👾':I(3114),'🏆':I(9206),'🎉':I(6578),'🎯':I(5787),'⚔':I(3264),'🗡':I(3264),'🛡':I(3409),'🎨':U('outfit'),'🔨':I(3459),
+'🪄':I(3074),'🦯':I(3066),'✨':I(3046),'🏹':I(3350),'🪖':I(3351),'👑':I(3011),'👹':I(3387),'🧥':I(3361),'🥋':I(3357),'🐉':I(3386),'👖':I(3557),'🥾':I(3552),
+'🪓':I(3268),'🔱':I(3277),'✴':I(7368),'💍':I(3052),'📿':I(3054),'🧪':I(268),'❤':I(266),'💗':I(236),'💖':I(239),'💙':I(268),'💜':I(237),'🔷':I(238),'💛':I(7642),'💚':I(266),
+'⏳':I(10302),'🧭':I(10302),'💡':I(2921),'🌟':I(3014),'🌀':I(3279),'🌪':I(3279),'💫':I(3160),'☀':I(3182),'🔆':I(3182),'🟣':I(3202),'🌩':I(3202),'💥':I(3202),'⚡':I(816),
+'❄':I(3161),'🧊':I(3161),'🌨':I(3161),'💠':I(3161),'🔮':I(3160),'🔎':I(3076),'📖':U('bestiario'),'🤖':I(8775),'⚙':I(8775),'📦':I(3503),'💰':U('gold'),
+'🏪':U('loja'),'👤':U('personagem'),'🧑':U('outfit'),'⛵':I(5090),'🙏':I(3077),'🗑':I(2526),'🐴':I(12308),'⚠':I(12782),'🏃':I(3079)};
+const T={'🔄':'↻','⬆':'▲'};   /* setas de recarregar/subir: glifo tipográfico, não ícone */
+const re=new RegExp('('+Object.keys(M).concat(Object.keys(T)).join('|')+')️?','g'),skip=/^(SCRIPT|STYLE|TEXTAREA|INPUT|OPTION|SELECT|TITLE)$/;
+function trocaTexto(n){const s=n.nodeValue;if(!s||!re.test(s)){re.lastIndex=0;return;}re.lastIndex=0;const f=document.createDocumentFragment();let u=0,m;
+  while((m=re.exec(s))){if(m.index>u)f.appendChild(document.createTextNode(s.slice(u,m.index)));const k=m[1];
+    if(T[k])f.appendChild(document.createTextNode(T[k]));else{const im=document.createElement('img');im.className='emo';im.src=M[k];im.alt='';im.draggable=false;f.appendChild(im);}u=m.index+m[0].length;}
+  re.lastIndex=0;if(u<s.length)f.appendChild(document.createTextNode(s.slice(u)));n.parentNode.replaceChild(f,n);}
+function varre(r){if(r.nodeType===3){if(r.parentNode&&!skip.test(r.parentNode.nodeName))trocaTexto(r);return;}
+  if(r.nodeType!==1||skip.test(r.nodeName))return;const w=document.createTreeWalker(r,4,{acceptNode:x=>x.parentNode&&skip.test(x.parentNode.nodeName)?2:1}),l=[];let x;while((x=w.nextNode()))l.push(x);l.forEach(trocaTexto);}
+const mo=new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')varre(m.target);else m.addedNodes.forEach(varre);}});
+function ini(){varre(document.body);mo.observe(document.body,{childList:true,subtree:true,characterData:true});}
+if(document.body)ini();else document.addEventListener('DOMContentLoaded',ini);
+})();
+</script>
 
 <script src="tibia-assets/cacadas100.js"></script>
 <script src="tibia-assets/sprites.js"></script>
@@ -1054,7 +1082,7 @@ for(const e of CH.eq)ITEMS[e.id]=Object.assign({id:e.id,n:e.n,i:'✨',slot:e.slo
    dur = segundos de uso (só correm caçando), sk = bônus de skill, spd = velocidade (+30 ≈ +15% de passo, como a montaria), rg = regeneração extra na caçada [HP, mana] como fração da regen base do jogo, ms = escudo de mana (Energy Ring),
    aol = Amulet of Loss, keep = a venda rápida não vende, cap = oz de capacidade extra (mochila). O slot guarda em t as cargas/segundos que restam (0 = item novo; o saldo viaja na chave da mochila id#restante).
    Mesmo nome do loot dos monstros => o loot vira o item equipável (LOOT_ID). Sem efeito no jogo (Power/Stealth/Dwarven/Crystal Ring, Werewolf/Demonbone Amulet...) continuam só vendáveis. */
-const ACC=['amulet','ring'],ACCS=['amulet','ring','backpack'],EQ6=['weapon','helmet','armor','legs','boots','shield'];
+const ACC=['amulet','ring'],ACCS=['amulet','ring','backpack'],EQ6=['weapon','helmet','armor','legs','boots','shield'],ACCD=[...ACC,'shield'];   /* ACCD: onde valem bônus de skill e absorção (anéis, amuletos e o livro de magia no slot de escudo) */
 const E7=v=>({phys:v,fire:v,earth:v,energy:v,ice:v,holy:v,death:v});
 [['amulet_of_loss','Amulet of Loss','amulet',3057,{aol:1,keep:1},50000,0,4.2,45000],['stone_skin_amulet','Stone Skin Amulet','amulet',3081,{abs:{phys:80,death:80},ch:5},25000,0,7,500],
  ['protection_amulet','Protection Amulet','amulet',3084,{abs:{phys:6},ch:250},700,0,5.5,100],['garlic_necklace','Garlic Necklace','amulet',3083,{abs:{lifedrain:20},ch:150},100,0,3.8,50],
@@ -1079,6 +1107,14 @@ const E7=v=>({phys:v,fire:v,earth:v,energy:v,ice:v,holy:v,death:v});
  ['fur_bag','Fur Bag','backpack',7343,{cap:0},5,0,8,25],['jewelled_backpack','Jewelled Backpack','backpack',5801,{cap:20},0,0,17,300],['moon_backpack','Moon Backpack','backpack',9604,{cap:0},0,0,18,300],
  ['bag_you_desire','Bag You Desire','backpack',34109,{cap:100},0,0,15,130000]
 ].forEach(([id,n,slot,cid,st,price,lv,w,v,voc])=>{const l=CD.itens[id];ITEMS[id]=Object.assign({id,n,i:slot==='ring'?'💍':slot==='amulet'?'📿':'🎒',slot,price,lv,type:'eq',w,v,icone:(l&&l.icone)||`tibia-assets/sprites15/itens/${cid}.png`,voc},st);});
+/* LIVROS DE MAGIA (spellbooks): escudo dos mages (sorcerer/druid; escudos normais continuam valendo). Valores do items.xml do Canary: defesa, +Magic Level (magiclevelpoints, soma em skE('magic') junto com anéis), absorções (absorbpercent*; poison = earth) e level; peso em oz.
+   Mesmo nome do loot dos monstros => o loot vira o livro equipável (LOOT_ID). Só o Spellbook básico (150 gp, preço de NPC) está na loja; os outros caem de monstros e bosses (raro = só boss: não é vendido sozinho). Os de topo (Lion, Eldritch, Arcanomancer...) vêm do chefes.js (ferramentas/livros_eq.py). libro:1 mostra os efeitos nas dicas, na loja e na wiki. */
+[['spellbook','Spellbook',3059,14,0,null,0,150,18,41],['spellbook_of_enlightenment','Spellbook of Enlightenment',8072,18,1,null,30,0,19.5,4000],['spellbook_of_warding','Spellbook of Warding',8073,22,1,null,40,0,21,8000],
+ ['spellbook_of_mind_control','Spellbook of Mind Control',8074,16,2,null,50,0,24.5,13000],['spellbook_of_lost_souls','Spellbook of Lost Souls',8075,20,2,null,60,0,25.6,19000,1],['spellscroll_of_prophecies','Spellscroll of Prophecies',8076,12,3,null,70,0,26.5,10000,1],
+ ['spellbook_of_dark_mysteries','Spellbook of Dark Mysteries',8090,16,3,null,80,0,28.5,12000,1],['wooden_spellbook','Wooden Spellbook',25699,16,2,{earth:5},80,0,12,12000],['snake_gods_wristguard',"Snake God's Wristguard",11691,14,3,null,100,0,28,5000],
+ ['crude_umbral_spellbook','Crude Umbral Spellbook',20088,14,1,{ice:2,earth:2,fire:2,energy:2},75,0,40,4000,1],['umbral_spellbook','Umbral Spellbook',20089,16,2,{ice:3,earth:3,fire:3,energy:3},150,0,35,12000,1],
+ ['umbral_master_spellbook','Umbral Master Spellbook',20090,20,4,{ice:5,earth:5,fire:5,energy:5},250,0,30,40000,1]
+].forEach(([id,n,cid,def,ml,abs,lv,price,w,v,raro])=>{const l=CD.itens[id];ITEMS[id]=Object.assign({id,n,i:'📖',slot:'shield',price,lv,type:'eq',w,v,def,libro:1,voc:MAGES,icone:(l&&l.icone)||`tibia-assets/sprites15/itens/${cid}.png`},ml?{sk:{magic:ml}}:{},abs?{abs}:{},raro?{raro:1}:{});});
 /* ECONOMIA: multiplicador único das moedas (gold/platinum/crystal coin) que caem dos monstros. O Canary dá as contagens reais, mas o jogo abate bem menos monstros por hora que um jogador real de Tibia (~300/h contra ~1000/h): 1,5 aproxima o gold/h do jogo real sem mexer no loot de itens. */
 const OURO_X=1.5;
 const tituloCase=s=>s.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
@@ -1102,6 +1138,8 @@ for(const m of Object.values(MOBS))if(CD.mobs[m.id]&&!m.chefe&&!m.invocado&&['Hu
   const g=m.exp*OURO_PISO,pl=g>=200;m.loot.push([LOOT_ID[pl?'platinum_coin':'gold_coin']||(pl?'platinum_coin':'gold_coin'),1,Math.max(2,Math.round(pl?g/100:g))]);m.ouroPiso=1;}
 /* drops reais (Canary) de mochilas que o loot das caçadas não trazia */
 for(const [m,id,c] of [['dark_torturer','jewelled_backpack',.01192],['wisp','moon_backpack',.0022]])if(MOBS[m])MOBS[m].loot.push([id,c,1]);
+/* livros de magia (estimado): os monstros do Canary que soltam Enlightenment / Snake God's Wristguard (golden servant, draken...) não estão nas caçadas; mages e dragões equivalentes passam a soltá-los */
+for(const [m,id,c] of [['dark_magician','spellbook_of_enlightenment',.0035],['ice_witch','spellbook_of_enlightenment',.0035],['ogre_shaman','spellbook_of_enlightenment',.0025],['dragon','snake_gods_wristguard',.001],['dragon_lord','snake_gods_wristguard',.003]])if(MOBS[m])MOBS[m].loot.push([id,c,1]);
 /* ataques, defesas, resistências e invocações reais (Canary) para os monstros do combate 15.01 que não vêm das caçadas (familiares, invocáveis) */
 if(CB)for(const [k,c] of Object.entries(CB.monstros)){
   if(CD.mobs[k])continue;
@@ -1180,7 +1218,7 @@ function personagemForte(s){
   const v=s.voc,L=100;s.level=L;s.exp=expFor(L);s.addon=3;s.gold=100000;
   const sk={knight:{sword:85,axe:50,club:50,distance:30,shielding:80,magic:9},paladin:{sword:30,distance:90,shielding:70,magic:22},sorcerer:{sword:20,distance:20,shielding:30,magic:80},druid:{sword:20,distance:20,shielding:30,magic:80}}[v];
   for(const k in sk)s.skills[k]={lv:sk[k],t:0};
-  for(const slot of EQ6){const op=Object.values(ITEMS).filter(i=>i.type==='eq'&&i.slot===slot&&i.price>0&&i.lv<=L&&(slot!=='weapon'||i.wt===VOC[v].wt)).sort((a,b)=>b.price-a.price);if(op[0])s.eq[slot]={id:op[0].id,t:0};}
+  for(const slot of EQ6){const op=Object.values(ITEMS).filter(i=>i.type==='eq'&&i.slot===slot&&i.price>0&&i.lv<=L&&(slot!=='weapon'||i.wt===VOC[v].wt)&&(slot!=='shield'||!!i.libro===MAGES.includes(v))).sort((a,b)=>b.price-a.price);if(op[0])s.eq[slot]={id:op[0].id,t:0};}
   const pot={knight:{ghp_pot:300,mp_pot:200},paladin:{gsp_pot:300,smp_pot:200},sorcerer:{gmp_pot:200,hp_pot:60},druid:{gmp_pot:200,hp_pot:60}}[v];
   s.bag=Object.assign({},pot);s.rules.refill=Object.entries(pot).map(([id,q])=>({id,q}));
   const runas={sorcerer:{'sudden death rune':200,'great fireball rune':100,'ultimate healing rune':40},druid:{'sudden death rune':150,'avalanche rune':150,'paralyze rune':20,'ultimate healing rune':60},paladin:{'sudden death rune':100,'great fireball rune':60}}[v]||{};
@@ -1191,7 +1229,7 @@ function personagemForte(s){
 function newState(name,voc){
   const s={v:1,name,voc,level:1,exp:0,hp:150,mp:55,gold:200,deaths:0,
     skills:{magic:{lv:0,t:0},sword:{lv:10,t:0},axe:{lv:10,t:0},club:{lv:10,t:0},distance:{lv:10,t:0},shielding:{lv:10,t:0}},
-    eq:{weapon:{id:STARTER[voc],t:0},helmet:{id:'leather_helmet',t:0},armor:{id:'leather_armor',t:0},legs:{id:'leather_legs',t:0},boots:{id:'leather_boots',t:0},shield:{id:'wooden_shield',t:0},amulet:{id:null,t:0},ring:{id:null,t:0},backpack:{id:'backpack',t:0}},
+    eq:{weapon:{id:STARTER[voc],t:0},helmet:{id:'leather_helmet',t:0},armor:{id:'leather_armor',t:0},legs:{id:'leather_legs',t:0},boots:{id:'leather_boots',t:0},shield:{id:MAGES.includes(voc)?'spellbook':'wooden_shield',t:0},amulet:{id:null,t:0},ring:{id:null,t:0},backpack:{id:'backpack',t:0}},
     bag:{hp_pot:20,mp_pot:voc==='knight'?5:20},depot:{},
     sets:{'Default':defaultHot(voc),'Set 2':defaultHot(voc),'Set 3':new Array(16).fill(null)},set:'Default',target:'near',
     imb:{weapon:[null,null],helmet:[null],armor:[null],legs:[null],boots:[null],shield:[null]},
@@ -1211,7 +1249,7 @@ const maxCap=()=>400+V().cap*S.level+capBp();
 const eqi=k=>ITEMS[S.eq[k].id]||ITEMS[STARTER[S.voc]];
 const eqa=k=>{const e=S.eq[k];return e&&ITEMS[e.id]||null;};   /* acessório equipado (amulet / ring / backpack) ou null */
 const capBp=()=>(eqa('backpack')||{}).cap||0;
-function accSk(k){let v=0;for(const s of ACC){const it=eqa(s);if(it&&it.sk&&it.sk[k])v+=it.sk[k];}return v;}
+function accSk(k){let v=0;for(const s of ACCD){const it=eqa(s);if(it&&it.sk&&it.sk[k])v+=it.sk[k];}return v;}
 const skE=k=>S.skills[k].lv+accSk(k);   /* skill efetivo: nível + anéis/amuletos (Sword Ring +4...) */
 const accRg=i=>ACC.reduce((a,s)=>a+((eqa(s)||{}).rg||[0,0])[i],0);
 const accVel=()=>ACC.reduce((a,s)=>a+((eqa(s)||{}).spd||0),0)/200+1;   /* Time Ring: +30 de velocidade ≈ +15% de passo (a mesma conta da montaria) */
@@ -1334,7 +1372,9 @@ function buildWorld(loc){
     W.spawns=sp;
     for(const s of sp){if(Math.max(Math.abs(s.x-st[0]),Math.abs(s.y-st[1]))<4)W.respawns.push({sp:s,t:rnd(5000,20000)});else spawnMob(s,s.mob);}}
 }
-function pullDe(hk){const h=HUNTS[hk],m=(S.pull&&S.pull[hk])||'cauteloso';return h.pull[m]||h.pull.cauteloso;}
+/* modo de pull em vigor: na caçada da party (líder) vale o modo escolhido na fila/LFG (PT.pend.pull / PT.hunt.pull), não o da preferência pessoal S.pull */
+function pullMd(hk){const p=typeof PT!=='undefined'&&PT.pend,H=typeof PT!=='undefined'&&PT.hunt,o=p&&p.loc===hk&&p.papel==='lider'&&p.pull?p.pull:H&&H.loc===hk&&H.papel==='lider'&&H.pull?H.pull:null;return o&&PULL_MODOS.includes(o)?o:(S.pull&&S.pull[hk])||'cauteloso';}
+function pullDe(hk){const h=HUNTS[hk],m=pullMd(hk);return h.pull[m]||h.pull.cauteloso;}
 function pickMob(h){const e=Object.entries(h.mobs);let r=Math.random()*e.reduce((a,[,w])=>a+w,0);for(const [k,w] of e)if((r-=w)<=0)return k;return e[0][0];}
 let UID_MOB=0;
 function spawnMob(s,id){
@@ -1363,7 +1403,7 @@ function train(k,n){if(k==='melee')k=mainSk();const s=S.skills[k];if(!s)return;s
   if(up){log('sys',k==='magic'?`Você avançou para o nível mágico ${s.lv}.`:`Você avançou para ${SKN[k]} nível ${s.lv}.`,'w');}}
 function gainExp(n){S.exp+=n;S.sess.exp+=n;const b=S.level;while(S.exp>=expFor(S.level+1))S.level++;
   if(S.level>b){S.hp=maxHp();S.mp=maxMp();log('sys',`Você avançou do Level ${b} para o Level ${S.level}.`,'w');toast(`⬆ Level ${S.level}!`);if(W)fxt(W.p.x,W.p.y,'LEVEL UP','#ffd84a',1);}}
-function healP(n){const r=Math.min(Math.round(n),maxHp()-S.hp);if(r>0){ATK_T.eu=W.time;S.hp+=r;fxt(W.p.x,W.p.y,'+'+r,'#66ff66');}}
+function healP(n){const r=Math.min(Math.round(n),maxHp()-S.hp);if(r>0){ATK_T.eu=W.time;if(PT.hunt)ptSt(PR.pid,'h',r);S.hp+=r;fxt(W.p.x,W.p.y,'+'+r,'#66ff66');}}
 function manaP(n){const r=Math.min(Math.round(n),maxMp()-S.mp);if(r>0){S.mp+=r;fxt(W.p.x,W.p.y,'+'+r,'#7aa2ff');}}
 function healBase(){const L=S.level,ml=skE('magic');if(S.voc==='knight')return L*.4+skE(mainSk())*.6+10;if(S.voc==='paladin')return L*.3+ml*1.5+12;return (L*.2+ml*1.6+10)*(V().healMul||1);}
 function spellDmg(s){const L=S.level,ml=skE('magic');
@@ -1375,7 +1415,7 @@ function hitMob(m,dmg,col,fisico,proc){
   if(fisico&&m.d.arm){const A=m.d.arm;dmg-=A>3?rint(Math.floor(A/2),A-1):rint(0,A);}  /* armadura real do monstro */
   dmg=Math.max(0,Math.round(dmg*dmgMult(m)));let tipo=null,extra=0;
   if(proc&&dmg>0){const r=procAtaque15(proc===true?JOG:proc,m.x,m.y,dmg);dmg=Math.round(r.d);tipo=r.tipo;extra=r.extra;}   /* crítico, fatal e agonia do jogador */
-  m.hp-=dmg+extra;if(dmg>0){const a=m.dano||(m.dano={});a[ATKR]=(a[ATKR]||0)+dmg;ATK_T[ATKR]=W.time;}fxt(m.x,m.y,tipo?dmg+'!':String(dmg),tipo==='fatal'?'#c78bff':tipo?'#ffd84a':(col||'#ff4d4d'),!!tipo);if(extra)fxt(m.x+.3,m.y-.3,String(extra),'#b04cff');
+  m.hp-=dmg+extra;if(dmg>0){const a=m.dano||(m.dano={});a[ATKR]=(a[ATKR]||0)+dmg;ATK_T[ATKR]=W.time;m.lh=ATKR;if(PT.hunt)ptSt(ATKR==='eu'?PR.pid:ATKR,'d',dmg+extra);}fxt(m.x,m.y,tipo?dmg+'!':String(dmg),tipo==='fatal'?'#c78bff':tipo?'#ffd84a':(col||'#ff4d4d'),!!tipo);if(extra)fxt(m.x+.3,m.y-.3,String(extra),'#b04cff');
   if(dmg>0){const lv=imbVal('vamp'),mv=imbVal('void');if(lv)S.hp=Math.min(maxHp(),S.hp+dmg*lv);if(mv)S.mp=Math.min(maxMp(),S.mp+dmg*mv);}
   log('cmb',`${m.d.n} perdeu ${dmg} de vida.`,'m');
   if(m.hp<=0)killMob(m);
@@ -1384,7 +1424,7 @@ function hitMob(m,dmg,col,fisico,proc){
 function accAcaba(k){const it=eqa(k);S.eq[k]={id:null,t:0};log('sys',`${it.n} acabou.`,'o');toast(`${it.n} acabou`);dirty.all=true;}
 function accUsa(k,n){const e=S.eq[k];e.t-=n;const c=S.sess.ch||(S.sess.ch={});c[k]=(c[k]||0)+n;if(e.t<=0)accAcaba(k);}
 function accDano(d,el,semMs){if(!(d>0))return d;let f=1;const use=[];
-  for(const k of ACC){const it=eqa(k);if(!it||!it.abs)continue;const a=it.abs[el==='poison'?'earth':el];if(!a)continue;f*=1-a/100;if(a>0&&it.ch)use.push(k);}
+  for(const k of ACCD){const it=eqa(k);if(!it||!it.abs)continue;const a=it.abs[el==='poison'?'earth':el];if(!a)continue;f*=1-a/100;if(a>0&&it.ch)use.push(k);}
   d=Math.round(d*f);for(const k of use)accUsa(k,1);
   const ri=eqa('ring');if(!semMs&&ri&&ri.ms&&d>0&&S.mp>0){const a=Math.min(d,Math.floor(S.mp));S.mp-=a;d-=a;if(a)fxt(W.p.x,W.p.y,String(a),'#5aa0ff');}
   return d;}
@@ -1401,13 +1441,13 @@ function hurtPlayer(raw,magic,src,el){
   dmg=accDano(dmg,el||(magic?'magic':'phys'));
   const e=JOG.c.escudo;if(dmg>0&&e&&e.ate>W.time&&e.resto>0&&S.mp>0){const a=Math.min(dmg,e.resto,Math.floor(S.mp));S.mp-=a;e.resto-=a;dmg-=a;
     fxt(W.p.x,W.p.y,String(a),'#5aa0ff');ef15(me15('loseenergy'),W.p.x,W.p.y);if(e.resto<=0)JOG.c.escudo=null;if(!dmg)return 0;}
-  S.hp-=dmg;fxt(W.p.x,W.p.y,dmg?String(dmg):'0',dmg?'#ff3b30':'#aaa');
+  S.hp-=dmg;if(dmg>0&&PT.hunt)ptSt(PR.pid,'t',dmg);fxt(W.p.x,W.p.y,dmg?String(dmg):'0',dmg?'#ff3b30':'#aaa');
   if(dmg)log('cmb',`Você perdeu ${dmg} de vida por um ataque de ${src.d.n}.`,'r');
   return dmg;
 }
 /* configuração de loot por item: S.lootCfg[id]={pegar,vender}; sem configuração vale o padrão (pega tudo com valor; vende o que não é material de imbuement,
    poção, runa nem equipamento melhor que o atual) */
-const pontosEq=i=>(i.atk||0)+((i.min||0)+(i.max||0))/2+(i.arm||0)+(i.def||0);
+const pontosEq=i=>(i.atk||0)+((i.min||0)+(i.max||0))/2+(i.arm||0)+(i.def||0)+((i.sk&&i.sk.magic)||0)*8+(i.libro&&MAGES.includes(S.voc)?.5:0);   /* livro de magia: cada +1 de Magic Level vale 8 pontos; mage prefere o livro ao escudo de mesma defesa */
 function melhorQueAtual(it){return it.type==='eq'&&canEquip(it)&&pontosEq(it)>pontosEq(eqi(it.slot));}
 const accUtil=it=>canEquip(it)&&(it.slot==='backpack'?(it.cap||0)>capBp():!S.eq[it.slot].id);
 function lootPadrao(id){const it=ITEMS[id];
@@ -1627,7 +1667,7 @@ function receberLutador(L,v,el,at,fonte,puro){if(L.hp<=0)return 0;let d=v;const 
   if(W.arena&&!W.arena.fim&&L.time!==undefined)W.arena.dano[1-L.time]+=d;   /* placar: dano causado pelo outro lado */
   ef15(me15(HIT15[el]||'drawblood'),L.x,L.y,at);
   const e=L.c.escudo;if(e&&e.ate>T&&e.resto>0&&L.mp>0){const a=Math.min(d,e.resto,Math.floor(L.mp));L.mp-=a;e.resto-=a;d-=a;fxt(L.x,L.y,String(a),'#5aa0ff');ef15(me15('loseenergy'),L.x,L.y,at);if(e.resto<=0)L.c.escudo=null;if(!d)return 0;}
-  L.hp=Math.max(0,L.hp-d-extra);fxt(L.x,L.y,tipo?d+'!':String(d),tipo==='fatal'?'#c78bff':tipo?'#ffd84a':L.eJog||L.jogador?'#ff3b30':(ELC[el]||'#ff4d4d'),!!tipo);
+  L.hp=Math.max(0,L.hp-d-extra);if(L.cacada&&PT.hunt)ptSt(L.pid,'t',d+extra);fxt(L.x,L.y,tipo?d+'!':String(d),tipo==='fatal'?'#c78bff':tipo?'#ffd84a':L.eJog||L.jogador?'#ff3b30':(ELC[el]||'#ff4d4d'),!!tipo);
   if(extra){fxt(L.x+.3,L.y-.3,String(extra),'#b04cff');if(W.arena&&!W.arena.fim&&L.time!==undefined)W.arena.dano[1-L.time]+=extra;}return d+extra;}
 function condicaoLutador(L,t,d){const c=L.c;if(t==='dot'){c.dots=c.dots.filter(q=>q.id!==d.id);c.dots.push(d);}
   else if(t==='lento'){c.lento={f:d.f,ate:W.time+d.dur,desde:W.time};fxt(L.x,L.y-.3,'paralisado','#ff6a6a');}
@@ -1689,11 +1729,11 @@ function lancar15(L,m,s,dry){const T=W.time,g=GRUPO15(m),v=s.v||0,hp=L.hp/L.max*
       else for(const [x,y] of tiles){W.campos=W.campos.filter(c=>c.x!==x||c.y!==y);W.campos.push({x,y,el:m.campo||'fire',b:performance.now()+at,ate:T+30000,fonte:L});}
       ok=true;break;}
     case 'cura':{if(s.massa){if(dry||!W.pl||!iaTat15(L))return false;const al=[L,...iaAliados15(L)].filter(a=>cheb(L,a)<=4&&a.hp/a.max<.6);if(al.length<2)return false;   /* mass heal na party */
-        paga();const b=valor15(L,m);for(const a of al){const q=Math.min(a.max-a.hp,Math.round(b));a.hp+=q;if(q)fxt(a.x,a.y,'+'+q,'#7fe07f');}ef15(m.ef,L.x,L.y);ok=true;break;}
-      if(hp>=(v||70))return false;paga();const q=Math.min(L.max-L.hp,Math.round(valor15(L,m)));L.hp+=q;ef15(m.ef,L.x,L.y);if(q)fxt(L.x,L.y,'+'+q,'#7fe07f');
+        paga();const b=valor15(L,m);for(const a of al){const q=Math.min(a.max-a.hp,Math.round(b));a.hp+=q;if(q){ptHeal(L,q);fxt(a.x,a.y,'+'+q,'#7fe07f');}}ef15(m.ef,L.x,L.y);ok=true;break;}
+      if(hp>=(v||70))return false;paga();const q=Math.min(L.max-L.hp,Math.round(valor15(L,m)));L.hp+=q;ef15(m.ef,L.x,L.y);if(q){ptHeal(L,q);fxt(L.x,L.y,'+'+q,'#7fe07f');}
       if((m.dispel||[]).includes('paralyze'))L.c.lento=null;ok=true;break;}
     case 'cura_amigo':{if(dry||!W.pl||!iaTat15(L))return false;const a=iaCuraAlvo15(L,v);if(!a)return false;   /* exura sio: cura o aliado mais ferido (knight primeiro) */
-      paga();const q=Math.min(a.max-a.hp,Math.round(valor15(L,m)));a.hp+=q;ef15(m.ef,a.x,a.y);if(q)fxt(a.x,a.y,'+'+q,'#7fe07f');ok=true;break;}
+      paga();const q=Math.min(a.max-a.hp,Math.round(valor15(L,m)));a.hp+=q;ef15(m.ef,a.x,a.y);if(q){ptHeal(L,q);fxt(a.x,a.y,'+'+q,'#7fe07f');}ok=true;break;}
     case 'util':{if(m.id!=='exeta_res'||dry||!W.pl||!iaTat15(L))return false;const ap=L.eJog?W.p:L,ms=W.mobs.filter(x=>x.aggro&&x.d.hostil&&cheb(x,L)<=1&&x.alvo!==ap);   /* exeta res: puxa o alvo dos monstros colados */
       if(ms.length<2)return false;paga();for(const x of ms){x.alvo=ap;x.reav=T+6000;}ef15(m.ef,L.x,L.y);ok=true;break;}
     case 'avatar':{if(W.arena||PV.on||dry)return false;const b=L.c.buffs.avatar;if(b&&b.ate>T)return false;   /* Avatar: solta com ≥v monstros agressivos, chefe por perto ou HP baixo no meio da luta */
@@ -1738,7 +1778,7 @@ function usarPocao15(L,it,s){const T=W.time;if((L.cd.pot||0)>T||!(L.bag[it.id]>0
   const hp=L.hp/L.max*100,mp=L.mp/L.maxMp*100;if(!(it.hp?hp<s.v:mp<s.v))return false;
   L.bag[it.id]--;if(!L.bag[it.id])delete L.bag[it.id];
   if(L.eJog){if(!W.arena){S.sess.sup+=it.price;S.sess.used[it.id]=(S.sess.used[it.id]||0)+1;}if(it.hp)healP(it.hp);if(it.mp)manaP(it.mp);}
-  else{if(it.hp){const q=Math.min(L.max-L.hp,it.hp);L.hp+=q;fxt(L.x,L.y,'+'+q,'#7fe07f');}if(it.mp)L.mp=Math.min(L.maxMp,L.mp+it.mp);}
+  else{if(it.hp){const q=Math.min(L.max-L.hp,it.hp);L.hp+=q;ptHeal(L,q);fxt(L.x,L.y,'+'+q,'#7fe07f');}if(it.mp)L.mp=Math.min(L.maxMp,L.mp+it.mp);}
   ef15(me15('magic_blue'),L.x,L.y);L.cd.pot=T+1000;return true;}
 /* dano esperado de uma magia sobre uma lista de alvos (cada um limitado à própria vida: sem contar o desperdício) */
 function danoEsp15(L,m,alvos,need){const base=mediaDano15(L,m)*mods(L).feito,dotT=m.dot?m.dot.reduce((a,[n,iv,d])=>a+n*d,0)*.7:0;let tot=0,mortes=0;
@@ -1888,7 +1928,8 @@ function skillsBot(voc,L){   /* mesma tabela do personagem inicial (level 100), 
   const ref={knight:{sword:85,axe:85,club:85,distance:30,shielding:80,magic:9},paladin:{sword:30,axe:30,club:30,distance:90,shielding:70,magic:22},sorcerer:{sword:20,axe:20,club:20,distance:20,shielding:30,magic:80},druid:{sword:20,axe:20,club:20,distance:20,shielding:30,magic:80}}[voc];
   const f=Math.pow(L/100,.75),o={};for(const k in ref)o[k]=Math.max(1,Math.round(ref[k]*f+rint(-3,3)));return o;}
 function equipBot(voc,L){const eq={},wtb=voc==='knight'?pick(MELEE):VOC[voc].wt;for(const slot of ['weapon','helmet','armor','legs','boots','shield']){   /* knight bot: espada, machado ou clava ao acaso */
-    const op=Object.values(ITEMS).filter(i=>i.type==='eq'&&i.slot===slot&&i.price>0&&i.lv<=L&&(slot!=='weapon'||i.wt===wtb)).sort((a,b)=>b.price-a.price);
+    const op=slot==='shield'&&MAGES.includes(voc)?Object.values(ITEMS).filter(i=>i.libro&&!i.raro&&i.voc.includes(voc)&&i.lv<=L).sort((a,b)=>((b.sk&&b.sk.magic)||0)-((a.sk&&a.sk.magic)||0)||b.def-a.def):   /* mage bot: o melhor livro de magia do level (mais Magic Level, depois defesa) em vez de escudo */
+      Object.values(ITEMS).filter(i=>i.type==='eq'&&i.slot===slot&&i.price>0&&!i.libro&&i.lv<=L&&(slot!=='weapon'||i.wt===wtb)).sort((a,b)=>b.price-a.price);
     eq[slot]=op[0]||(slot==='weapon'?ITEMS[STARTER[voc]]:null);}return eq;}
 const skArma=(voc,sk,arma)=>sk[skW(voc,arma&&arma.wt)]??(MELEE.includes(skW(voc,arma&&arma.wt))?sk.melee:undefined)??1;   /* skill do lutador pelo tipo da arma; ficha antiga com 'melee' vale para os três */
 function gerarOponente(nv,pts,vocFixa){const voc=vocFixa||pick(Object.keys(VOC)),nivel=Math.max(20,Math.round(nv*rnd(.85,1.15))),looks=Object.keys(OUTF15),sexo=Math.random()<.5?'m':'f';
@@ -1899,7 +1940,7 @@ function gerarOponente(nv,pts,vocFixa){const voc=vocFixa||pick(Object.keys(VOC))
 function lutadorBot(op,base){const v=VOC[op.voc],L=op.nivel,eq=(base&&base.eq)||equipBot(op.voc,L),sk=op.sk,arma=eq.weapon;
   const arm=['helmet','armor','legs','boots'].reduce((a,k)=>a+((eq[k]&&eq[k].arm)||0)+((base&&base.t&&base.t[k])||0),0),df=((eq.shield&&eq.shield.def)||0)+((base&&base.t&&base.t.shield)||0);
   const max=145+5*Math.min(L,8)+v.hp*Math.max(0,L-8),maxMp=50+5*Math.min(L,8)+v.mp*Math.max(0,L-8);
-  const B={ehLutador:true,bot:!base,jogador:!!base,nome:op.nome,voc:op.voc,nivel:L,ml:sk.magic,skill:op.voc==='knight'?skArma('knight',sk,arma):sk.distance,atkArma:((arma&&arma.atk)||0)+((base&&base.t&&base.t.weapon)||0)*2,arma,wt:v.wt,alcance:v.range,dmgV:v.dmg||1,
+  const B={ehLutador:true,bot:!base,jogador:!!base,nome:op.nome,voc:op.voc,nivel:L,ml:sk.magic+(base?0:(eq.shield&&eq.shield.sk&&eq.shield.sk.magic)||0)/* bot: +ML do livro de magia (ficha/jogador já trazem o ML efetivo) */,skill:op.voc==='knight'?skArma('knight',sk,arma):sk.distance,atkArma:((arma&&arma.atk)||0)+((base&&base.t&&base.t.weapon)||0)*2,arma,wt:v.wt,alcance:v.range,dmgV:v.dmg||1,
     arm,def:df,shielding:sk.shielding,hp:max,max,mp:maxMp,maxMp,x:0,y:0,fx:0,fy:0,mt:1,dir:3,stepMs:300,c:{buffs:{},dots:[]},cd:{},bag:{},op,
     folha:(base&&base.folha)||null,get alvo(){const A=W.arena;if(!A)return this.cacada?ptAlvoLut(this):null;if(this._alvoTmp)return this._alvoTmp;if(this.voc==='knight'&&A.modo==='equipe'){const g=grudeKnight(this);if(g&&cheb(this,g)<=1){const f0=A.foco[this.time];return A.execOn&&A.execOn[this.time]&&f0&&f0.hp>0&&cheb(this,f0)<=1?f0:g;}}const f=A.foco[this.time];return f&&f.hp>0?f:maisPerto(this,A.times[1-this.time].filter(L=>L.hp>0));},
     receber(v2,el,at,f,puro){return receberLutador(this,v2,el,at,f,puro);},condicao(t,d){condicaoLutador(this,t,d);},resist(){return 1},vivo(){return this.hp>0}};
@@ -1910,7 +1951,7 @@ function lutadorBot(op,base){const v=VOC[op.voc],L=op.nivel,eq=(base&&base.eq)||
 function outJogTime(){const A=arenaEstado();return S.outfit?{look:S.outfit.look,cores:CORES_TIME[0].slice(),addons:S.outfit.addons}:vestir({outfit:{look:+Object.keys(OUTF15).find(k=>OUTF15[k].sexo==='m')}},A.meuUniforme,CORES_TIME[0]).outfit;}
 function lutadorJogador(){const eq={},t={};for(const k of ['weapon','helmet','armor','legs','boots','shield']){eq[k]=ITEMS[S.eq[k].id]||null;t[k]=S.eq[k].t||0;}
   const R=SP15.roupas[S.voc],f=R&&(R[S.addon??3]||R[0]);
-  return lutadorBot({nome:S.name,voc:S.voc,nivel:S.level,outfit:S.outfit||undefined,sk:{sword:S.skills.sword.lv,axe:S.skills.axe.lv,club:S.skills.club.lv,distance:S.skills.distance.lv,shielding:S.skills.shielding.lv,magic:S.skills.magic.lv}},
+  return lutadorBot({nome:S.name,voc:S.voc,nivel:S.level,outfit:S.outfit||undefined,sk:{sword:S.skills.sword.lv,axe:S.skills.axe.lv,club:S.skills.club.lv,distance:S.skills.distance.lv,shielding:S.skills.shielding.lv,magic:S.skills.magic.lv+((eq.shield&&eq.shield.sk&&eq.shield.sk.magic)||0)}},   /* o livro de magia conta no ML da arena (anéis e amuletos não) */
     {eq,t,procs:JOG.procs,slots:(S.sets['Arena']||S.sets[S.set]||[]).map(x=>x&&{a:x.a,v:x.v,p:x.p}),folha:S.outfit?null:f});}   /* set 'Arena' (conjunto sugerido) tem prioridade */
 /* ---- ataque básico de lutador (arma corpo a corpo, distância, wand/rod) ---- */
 function basico15(L,t){const T=W.time;if((L.cd.basico||0)>T||!t.vivo())return;const d=cheb(L,t),md=mods(L);if(d>L.alcance||md.pacifico)return;L.cd.basico=T+2000;virar15(L,t);
@@ -2308,7 +2349,7 @@ function iniciarRecorde(){const s=S.sess;W.rec={t0:s.t,exp0:s.exp,luc0:s.gold+s.
 function medirRecorde(){const r=W.rec,s=S.sess,dt=s.t-r.t0;if(dt<0){W.rec=null;return;}if(dt<5*MIN)return;r.fim=true;
   const exp=(s.exp-r.exp0)/dt*H,luc=((s.gold+s.loot-s.sup)-r.luc0)/dt*H,rc=S.recordes[S.loc]||(S.recordes[S.loc]={exp:0,lucro:-1e12,pull:'cauteloso',lv:S.level,t:0});
   let novo=false;if(exp>rc.exp){rc.exp=Math.round(exp);novo=true;}if(luc>rc.lucro){rc.lucro=Math.round(luc);novo=true;}
-  if(novo){rc.pull=(S.pull&&S.pull[S.loc])||'cauteloso';rc.lv=S.level;rc.t=Date.now();log('sys',`🏆 Recorde em ${HUNTS[S.loc].n}: ${fmt(rc.exp)} exp/h · ${fmt(rc.lucro)} gp/h (primeiros 5 min).`,'y');toast('🏆 Novo recorde!');}}
+  if(novo){rc.pull=pullMd(S.loc);rc.lv=S.level;rc.t=Date.now();log('sys',`🏆 Recorde em ${HUNTS[S.loc].n}: ${fmt(rc.exp)} exp/h · ${fmt(rc.lucro)} gp/h (primeiros 5 min).`,'y');toast('🏆 Novo recorde!');}}
 function autoChecks(){
   if(W.loading)return;
   if(S.stamina<=0){S.stamina=0;returnCity('stamina esgotada',false);return;}
@@ -2321,6 +2362,7 @@ function autoChecks(){
   if(why)returnCity(why,true);
 }
 function die(){
+  if(PT.hunt)ptSt(PR.pid,'m',1);
   const pk=pvMorteCtx(),verm=pvSk()===2;   /* PvP: quem me bateu por último (12 s) e se tenho caveira vermelha */
   S.deaths++;const loss=S.bless?.03:.1;S.exp=Math.floor(S.exp*(1-loss));while(S.level>1&&S.exp<expFor(S.level))S.level--;
   const aol=S.eq.amulet.id==='amulet_of_loss';if(aol)S.eq.amulet={id:null,t:0};   /* Amulet of Loss: protege os itens (não a exp) e some ao morrer, com ou sem blessing */
@@ -2643,7 +2685,7 @@ function accTxt(it,t){const a=[],ab=it.abs?Object.entries(it.abs):[];
   if(it.dur)a.push(t?`Resta ${durTxt(t)} de caçada`:`Dura ${durTxt(it.dur)} de caçada`);return a;}
 const accBadge=(it,t)=>!(it.dur||it.ch)||!t?'':it.dur?(t>=60?Math.ceil(t/60)+'m':t+'s'):String(t);
 function itemTip(it,t0){const acc=ACCS.includes(it.slot),t=acc?0:t0,parts=[];if(it.atk)parts.push(`Ataque ${it.atk+2*(t||0)}`);if(it.min)parts.push(`Dano ${it.min}-${it.max} · ${it.mana} mana/tiro`);if(it.arm)parts.push(`Armadura ${it.arm+(t||0)}`);if(it.def)parts.push(`Defesa ${it.def+(t||0)}`);
-  if(it.type==='runa'){const r=RUNAS15[it.id];parts.push(`Runa · magic level ${it.ml}${r&&r.cargas>1?` · ${r.cargas} cargas`:''}`);}if(it.hp)parts.push(`Cura ${it.hp} HP`);if(it.mp)parts.push(`Recupera ${it.mp} mana`);if(it.lv)parts.push(`Level ${it.lv}`);if(it.type==='loot'&&MATS.has(it.id))parts.push('Material de imbuement');if(acc)parts.push(...accTxt(it,t0));parts.push(`Peso ${it.w} oz${it.v?` · Vende por ${fmt(it.v)} gp`:''}`);return parts.join('\n');}
+  if(it.type==='runa'){const r=RUNAS15[it.id];parts.push(`Runa · magic level ${it.ml}${r&&r.cargas>1?` · ${r.cargas} cargas`:''}`);}if(it.hp)parts.push(`Cura ${it.hp} HP`);if(it.mp)parts.push(`Recupera ${it.mp} mana`);if(it.lv)parts.push(`Level ${it.lv}`);if(it.type==='loot'&&MATS.has(it.id))parts.push('Material de imbuement');if(acc||it.libro)parts.push(...accTxt(it,t0));if(it.libro&&it.voc)parts.push('Só '+it.voc.map(v=>VOC[v].n).join(' e '));parts.push(`Peso ${it.w} oz${it.v?` · Vende por ${fmt(it.v)} gp`:''}`);return parts.join('\n');}
 function slotHTML(key,c,attrs=''){const {id,t}=parseKey(key),it=ITEMS[id];if(!it)return '';return `<div class="slot${it.raro?' raro':''}" ${attrs} title="${esc(it.n+(t&&!ACCS.includes(it.slot)?' +'+t:'')+'\n'+itemTip(it,t))}">${ii(it)}${t?`<span class="t">${ACCS.includes(it.slot)?accBadge(it,t):'+'+t}</span>`:''}${c>1?`<span class="n">${c>999?fmt(c):c}</span>`:''}</div>`;}
 function renderInv(){
   const sig=JSON.stringify([S.bag,S.eq,S.imb,S.gold,S.level]);if(sigs.inv===sig)return;sigs.inv=sig;
@@ -2731,7 +2773,7 @@ function fatorEl15(hk){const h=HUNTS[hk],f={};
   return f;}
 /* monta 16 slots: curas, poções, haste, Magic Shield... da hotbar padrão + os melhores ataques da vocação/level/ML
    (na caçada pesa o elemento que os monstros mais sofrem e as magias/runas de área para lure; na arena, burst: SD, GFB/avalanche, paralyze, "mas", golpes máximos) */
-function conjuntoSugerido(modo,hk){const voc=S.voc,nv=S.level,ml=S.skills.magic.lv,caca=modo==='caca',fe=caca?fatorEl15(hk):{},F=el=>fe[el]!==undefined?fe[el]:1,mpMax=maxMp(),c=[];
+function conjuntoSugerido(modo,hk){const voc=S.voc,nv=S.level,ml=skE('magic'),caca=modo==='caca',fe=caca?fatorEl15(hk):{},F=el=>fe[el]!==undefined?fe[el]:1,mpMax=maxMp(),c=[];
   for(const m of [...Object.values(MAGIAS15),...Object.values(RUNAS15)]){
     if(m.runa?(ml<m.ml||nv<m.lv):(!m.voc.includes(voc)||nv<m.lv||m.aprender))continue;
     if(!['alvo','dot','onda','self','area'].includes(m.t)||m.grupo==='healing'||(!m.runa&&m.mana>mpMax*.5))continue;
@@ -2866,7 +2908,7 @@ function hotCatalogo(){const voc=S.voc;if(HOTCAT[voc])return HOTCAT[voc];const o
     out.push({id,n:it.n,pal:'',lv:m.lv,ml:m.ml,tab:'runa',t:m.t,el:m.el||m.dot_el||'',ico:ii(it)});}
   for(const k of POTS){const it=ITEMS[k];if(it.voc&&!it.voc.includes(voc))continue;out.push({id:k,n:it.n,pal:'',lv:it.lv||0,tab:'pot',t:it.hp?'hp':'mp',pot:it,ico:ii(it)});}
   out.sort((a,b)=>a.lv-b.lv||(a.ml||0)-(b.ml||0)||a.n.localeCompare(b.n));return HOTCAT[voc]=out;}
-const hotTrava=e=>e.tab==='runa'?(S.level<e.lv?'Lv '+e.lv:S.skills.magic.lv<e.ml?'ML '+e.ml:''):S.level<e.lv?'Lv '+e.lv:'';
+const hotTrava=e=>e.tab==='runa'?(S.level<e.lv?'Lv '+e.lv:skE('magic')<e.ml?'ML '+e.ml:''):S.level<e.lv?'Lv '+e.lv:'';
 const hotDesc=e=>{const it=e.pot;return [e.n+(e.pal?` — “${e.pal}”`:''),(HOT_TIPO[e.t]||'')+(e.el&&EL_PT[e.el]?' · '+EL_PT[e.el]:''),it?(it.hp?`Cura ${it.hp} HP`:'')+(it.hp&&it.mp?' · ':'')+(it.mp?`Recupera ${it.mp} mana`:''):'',
   `Level ${e.lv}${e.ml?' · Magic Level '+e.ml:''}${e.mana?' · '+e.mana+' mana':''}${e.cd?' · recarga '+(e.cd/1000)+'s':''}`].filter(Boolean).join('\n');};
 function hotAbasHTML(){const q=HU.q.trim().toLowerCase(),cat=hotCatalogo(),f=e=>!q||(e.n+' '+e.pal).toLowerCase().includes(q);
@@ -2945,7 +2987,7 @@ const MODALS={
     const tabs=[['weapon','Armas'],['armor','Equipamentos'],['acc','Acessórios'],['pot','Poções'],['runa','Runas'],['other','Outros'],['treino','Treino']];const ord=['helmet','armor','legs','boots','shield'];
     let list=[];
     if(tab==='weapon')list=Object.values(ITEMS).filter(i=>i.type==='eq'&&i.slot==='weapon'&&(S.voc==='knight'?!SHOPWT||i.wt===SHOPWT:i.wt===V().wt)&&okWt(S.voc,i.wt)&&i.price>0).sort((a,b)=>S.voc==='knight'?MELEE.indexOf(a.wt)-MELEE.indexOf(b.wt)||a.price-b.price:0);
-    if(tab==='armor')list=Object.values(ITEMS).filter(i=>i.type==='eq'&&ord.includes(i.slot)&&i.price>0).sort((a,b)=>ord.indexOf(a.slot)-ord.indexOf(b.slot)||a.price-b.price);
+    if(tab==='armor')list=Object.values(ITEMS).filter(i=>i.type==='eq'&&ord.includes(i.slot)&&i.price>0&&(!i.libro||i.voc.includes(S.voc))).sort((a,b)=>ord.indexOf(a.slot)-ord.indexOf(b.slot)||a.price-b.price);
     if(tab==='acc')list=Object.values(ITEMS).filter(i=>i.type==='eq'&&ACCS.includes(i.slot)&&i.price>0).sort((a,b)=>ACCS.indexOf(a.slot)-ACCS.indexOf(b.slot)||a.price-b.price);
     if(tab==='pot')list=POTS.map(k=>ITEMS[k]);
     if(tab==='runa')list=Object.keys(RUNAS15).map(k=>ITEMS[k]).filter(i=>i&&RUNAS15[i.id].t!=='util').sort((a,b)=>a.lv-b.lv);
@@ -2953,13 +2995,13 @@ const MODALS={
     const rows=list.map(it=>{const lock=S.level<(it.lv||0)||(it.voc&&!it.voc.includes(S.voc));
       if(it.type==='eq'&&ACCS.includes(it.slot)){const cur=it.slot==='backpack'&&S.eq.backpack.id===it.id;
         return `<div class="row"><div class="ic">${ii(it)}</div><div class="grow"><b>${it.n}</b> <span class="mut sm">${esc(accTxt(it).join(' · ')||'Visual')}</span><div class="sm ${lock?'red':'mut'}">${it.lv?'Level '+it.lv+' · ':''}${fmt(it.price)} gp${it.slot==='backpack'?'':' · você tem '+(S.bag[it.id]||0)}</div></div>${cur?'<span class="mut sm">Equipado</span>':rowBtn(it.slot==='backpack'||!S.eq[it.slot].id?'Comprar e equipar':'Comprar','buy',it.id+':1',lock||S.gold<it.price)}</div>`;}
-      if(it.type==='eq'){const cur=S.eq[it.slot].id===it.id,ce=eqi(it.slot);const stat=it.atk?`Atk ${it.atk}`:it.min?`${it.min}-${it.max} dano`:it.arm!=null?`Arm ${it.arm}`:`Def ${it.def}`;const cs=ce.atk?ce.atk:ce.min?ce.max:ce.arm!=null?ce.arm:ce.def,ns=it.atk||it.max||(it.arm!=null?it.arm:it.def);
+      if(it.type==='eq'){const cur=S.eq[it.slot].id===it.id,ce=eqi(it.slot);const stat=(it.atk?`Atk ${it.atk}`:it.min?`${it.min}-${it.max} dano`:it.arm!=null?`Arm ${it.arm}`:`Def ${it.def}`)+(it.libro?' · '+accTxt(it).join(' · '):'');const cs=ce.atk?ce.atk:ce.min?ce.max:ce.arm!=null?ce.arm:ce.def,ns=it.atk||it.max||(it.arm!=null?it.arm:it.def);
         return `<div class="row"><div class="ic">${ii(it)}</div><div class="grow"><b>${it.n}</b> <span class="mut sm">${stat}</span> ${ns>cs?'<span class="green sm">▲</span>':ns<cs?'<span class="red sm">▼</span>':''}<div class="sm ${lock?'red':'mut'}">Level ${it.lv} · ${fmt(it.price)} gp</div></div>${cur?'<span class="mut sm">Equipado</span>':rowBtn('Comprar e equipar','buy',it.id+':1',lock||S.gold<it.price)}</div>`;}
       return `<div class="row"><div class="ic">${ii(it)}</div><div class="grow"><b>${it.n}</b> <span class="mut sm">${itemTip(it).split('\n')[0]}</span><div class="sm ${lock?'red':'mut'}">${it.lv?'Level '+it.lv+' · ':''}${fmt(it.price)} gp · você tem ${S.bag[it.id]||0}</div></div>
         <div style="display:flex;gap:4px">${[1,10,100].map(q=>rowBtn('+'+q,'buy',it.id+':'+q,lock||S.gold<it.price*q)).join('')}</div></div>`;}).join('');
     return {title:'🏪 Loja',body:`<div class="tabs">${tabs.map(([k,n])=>`<button class="${k===tab?'on':''}" data-act="shopTab" data-arg="${k}">${n}</button>`).join('')}</div>${tab==='weapon'&&S.voc==='knight'?`<div class="tabs">${[['','Todas'],...MELEE.map(k=>[k,SKN[k]])].map(([k,n])=>`<button class="${k===SHOPWT?'on':''}" data-act="shopWt" data-arg="${k}">${n}${k?` <small>${S.skills[k].lv}</small>`:''}</button>`).join('')}</div>`:''}<div class="mut sm" style="margin-bottom:6px">Seu gold: <b class="gold">${fmt(S.gold)}</b> · Capacidade livre: ${capFree().toFixed(0)} oz</div>${tab==='treino'?trLojaHTML():rows}`};
   },
-  char:()=>{const sk=Object.keys(SKN).map(k=>{const s=S.skills[k],p=s.t/need(k,s.lv)*100;return `<div class="row"><div class="grow">${SKN[k]}${k===mainSk()&&k!=='magic'?' <span class="green sm" title="Skill da arma equipada: é o que treina e dá dano">● em uso</span>':''}<div class="prog"><div style="width:${p}%"></div></div></div><b style="font-size:16px">${s.lv}</b></div>`;}).join('');
+  char:()=>{const sk=Object.keys(SKN).map(k=>{const s=S.skills[k],p=s.t/need(k,s.lv)*100;return `<div class="row"><div class="grow">${SKN[k]}${k===mainSk()&&k!=='magic'?' <span class="green sm" title="Skill da arma equipada: é o que treina e dá dano">● em uso</span>':''}<div class="prog"><div style="width:${p}%"></div></div></div><b style="font-size:16px">${s.lv}${accSk(k)?` <span class="${accSk(k)>0?'green':'red'} sm" title="Bônus de equipamento (anéis, amuletos, livro de magia): efetivo ${skE(k)}">${accSk(k)>0?'+':'−'}${Math.abs(accSk(k))}</span>`:''}</b></div>`;}).join('');
     return {title:'👤 Personagem',body:`<div style="display:flex;gap:14px;align-items:flex-start"><div><div style="width:64px;height:64px">${S.outfit?ret15(S.outfit):ico(V().outfit,'🧑','m64')}</div><div style="margin-top:6px"><button class="btn" data-open="outfit">🎨 Outfit</button></div></div><div class="kv" style="flex:1"><span>Nome</span><b>${esc(S.name)}</b><span>Vocação</span><b>${V().n}</b><span>Level</span><b>${S.level}</b><span>Experiência</span><b>${fmt(S.exp)}</b>
       <span>HP / Mana</span><b>${maxHp()} / ${maxMp()}</b><span>Capacidade</span><b>${maxCap()} oz</b><span>Ataque${V().wt==='wand'||V().wt==='rod'?' (wand/rod)':''}</span><b>${eqi('weapon').atk?atk():eqi('weapon').min+'-'+eqi('weapon').max}</b>
       ${S.voc==='knight'?`<span>Arma / skill</span><b>${eqi('weapon').n} · ${SKN[mainSk()]} ${S.skills[mainSk()].lv}</b>`:''}<span>Armadura / Defesa</span><b>${armor()} / ${def()}</b><span>Taxa de exp</span><b>${stage(S.level)}x</b><span>Blessings</span><b class="${S.bless?'green':'red'}">${S.bless?'Ativas':'Nenhuma'}</b><span>Mortes</span><b>${S.deaths}</b><span>PvP</span><b>${pvResumo()}</b>
@@ -3139,9 +3181,9 @@ function trHud(){const el0=$('#trPanel'),el=$('#trBody');if(!el0||!el)return;con
 function forgeCost(e){const it=ITEMS[e.id];return Math.round(Math.max(500,(it.price||it.v*4)*.3)*(e.t+1));}
 /* ======================= TELAS DE CAÇADA E PREY (janelas largas) ======================= */
 const ICO_STAR='<svg viewBox="0 0 24 24"><path d="M12 2.6l2.9 6.1 6.7.9-4.9 4.6 1.2 6.7L12 17.7 6.1 20.9l1.2-6.7L2.4 9.6l6.7-.9z"/></svg>';
-const ICO_WC='<svg class="wci" viewBox="0 0 16 16"><path d="M8 .8l6 2.2v5.2c0 3.4-2.5 5.8-6 7-3.5-1.2-6-3.6-6-7V3z" fill="#264fb8" stroke="#8fb4ff"/><path d="M8 4l2.2 4L8 12 5.8 8z" fill="#cfe4ff"/></svg>';
-const ICO_TC='<svg class="wci" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.6" fill="#c9a23a" stroke="#fff0b0"/><path d="M5 5.2h6M8 5.2v6" stroke="#5a3d08" stroke-width="1.8" fill="none"/></svg>';
-const ICO_LOCK='<svg class="wci" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1" fill="#8a93ad"/><path d="M5 7V5a3 3 0 016 0v2" stroke="#8a93ad" stroke-width="1.6" fill="none"/></svg>';
+const ICO_WC='<img class="wci" src="tibia-assets/sprites15/ui/prey.png" alt="">';
+const ICO_TC='<img class="wci" src="tibia-assets/sprites15/itens/22118.png" alt="">';
+const ICO_LOCK='<img class="wci" src="tibia-assets/sprites15/itens/2972.png" alt="">';
 const uiI=n=>`<img class="ui" src="tibia-assets/sprites15/ui/${n}.png" alt="">`;
 const HF={tab:'caca',q:'',lv:false,ord:'valor',sug:false,scroll:0};   /* estado da lista de caçadas (aba, busca, filtro) e da tela de preparo */
 const semAcento=s=>String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
@@ -3226,7 +3268,6 @@ function prepModal(hk){if(!HUNTS[hk])hk=S.lastHunt&&HUNTS[S.lastHunt]?S.lastHunt
   const qt=w=>PULL_MODOS.map(md=>{const p=h.pull[md];return `<i class="${pm===md?'on':''}">${Math.max(1,Math.round(p.n*p.k*w/sw))}</i>`;}).join('');
   const chips=ms.map(([id,w])=>{const m=MOBS[id];return `<div class="mchip">${mobAnim(id,64)}<b>${esc(m.n)}</b><small>HP ${fmt(m.hp)} · ${fmt(m.exp)} exp</small><span class="q" title="Quantidade aproximada: Cauteloso / Ousado / Agressivo">${qt(w)}</span></div>`;}).join('');
   const rec=rc?`<div class="rv"><b>${fmt(rc.exp)}</b> exp/h</div>${rc.lucro>-1e11?`<div class="rv"><b class="gold">${fmt(rc.lucro)}</b> gp/h</div>`:''}<small>pull ${h.pull[rc.pull]?h.pull[rc.pull].nome:rc.pull}, level ${rc.lv}</small>`:'<i>Complete uma caçada de 5 minutos para marcar um recorde.</i>';
-  const btn=(cur?'Recomeçar caçada':S.loc==='city'?'Iniciar caçada':'Trocar para esta caçada')+(h.pvp?' (PvP)':'');
   return {wide:true,html:`${cabWide('cacadas','Prepare sua caçada','',true)}${tabsCaca()}
     <div class="pph"><div class="pph-mob">${mobAnim(h.principal,96)}</div><div class="pph-tx"><div class="pph-t"><h2>${esc(h.n)}</h2><button class="star${fav?' on':''}" data-act="fav" data-arg="${hk}" title="${fav?'Tirar dos favoritos':'Favoritar'}">${ICO_STAR}</button><small>${numHunt(h)}</small>${h.pvp?'<span class="pvb">PvP</span>':''}</div>
       <p>${esc(h.desc)}</p>${h.pvp?`<div class="pvaviso">⚠ <b>Zona PvP:</b> outros jogadores online nesta caçada podem atacar você (e você a eles, só de propósito). Você ganha <b>+${Math.round(PVP_BONUS*100)}% de exp e de chance de loot</b> pelo risco. Cidade e as demais caçadas continuam protegidas. <span class="pvlnk" data-act="pvWiki">Ver regras</span></div>`:''}<div class="pph-m">Level recomendado <b class="${baixo?'red':'green'}">${h.lv}</b><span>${esc(h.bioma)}${h.sub?' · subsolo':''}</span>${baixo?`<span class="red">seu level é ${S.level}</span>`:''}</div></div>
@@ -3236,7 +3277,17 @@ function prepModal(hk){if(!HUNTS[hk])hk=S.lastHunt&&HUNTS[S.lastHunt]?S.lastHunt
       <button class="sugtog" data-act="sugTog">Conjunto sugerido de magias<i>${HF.sug?'▴':'▾'}</i></button>${HF.sug?sugestaoHTML('caca',hk,true):''}</div>
       <div class="pr"><div class="lhead"><h4>Loot possível</h4><div class="pills"><button class="${HF.ord==='valor'?'on':''}" data-act="lootOrd" data-arg="valor">Valor NPC</button><button class="${HF.ord==='peso'?'on':''}" data-act="lootOrd" data-arg="peso">Peso</button></div></div>
         <div class="lcols"><span>PEGAR</span><span>VENDER</span></div><div class="lscroll" data-keep="loot">${lootLinhas(hk)}</div><div class="lnote">A configuração vale para todas as caçadas. Vender converte o item em gold na hora, sem ocupar peso.</div></div></div>
-    <div class="pfoot"><span>${esc(h.n)} · ${pn}</span><span>${ptBtnHunt(hk)}${!h.pvp&&!PT.id&&S.loc==='city'?`<button class="wbtn" data-act="lfgAbrir" data-arg="${hk}" title="Procurar party para esta caçada">🔎 Procurar party</button> `:''}<button class="wbtn pri" data-act="hunt" data-arg="${hk}">${btn}</button></span></div>`};}
+    <div class="pfoot pf3"><span>${esc(h.n)} · ${pn}</span>${prepStart(hk)}<div class="lfgInl" id="lfgInl">${lfgInlHtml()}</div></div>`};}
+/* os três jeitos de iniciar (todos usam o modo de pull escolhido acima): solo, party (líder) e procurar party (fila LFG com esta caçada + este modo) */
+function prepStart(hk){const h=HUNTS[hk],cid=S.loc==='city'&&!(h.boss&&chefeResta(hk)>0),busy=!!LFG.fase,pm=S.pull[hk]||'cauteloso',pn=h.boss?'':h.pull[pm].nome,dis=(b,t)=>b?` disabled title="${t}"`:'';
+  const solo=h.boss?'':`<button class="wbtn pri" data-act="hunt" data-arg="${hk}"${dis(busy,'Cancele a busca de party para caçar solo')} title="Caçar sozinho — pull ${pn}">${S.loc===hk?'Recomeçar caçada solo':cid?'Iniciar caçada solo':'Trocar para solo'}${h.pvp?' (PvP)':''}</button>`;
+  const pt=!PT.id?`<button class="wbtn"${dis(1,'Entre numa party para caçar em grupo')}>Iniciar caçada em party</button>`
+    :!ptSou()?`<button class="wbtn"${dis(1,'Só o líder inicia a caçada da party')}>Aguardando o líder</button>`
+    :PT.fila?`<button class="wbtn"${dis(1,'A fila da party já está aberta')}>Fila da party aberta</button>`
+    :PT.mb.length<2?`<button class="wbtn"${dis(1,'Convide ao menos 1 jogador')}>Iniciar caçada em party</button>`
+    :`<button class="wbtn" data-act="ptHunt" data-arg="${hk}"${dis(!cid||busy,'Volte à cidade para iniciar')} title="Abre a fila da party — pull ${pn||'do boss'}">Iniciar caçada em party</button>`;
+  const lfg=h.pvp||PT.id?'':`<button class="wbtn" data-act="lfgPrep" data-arg="${hk}"${dis(!cid||busy,busy?'Você já está na fila':'Volte à cidade para procurar party')} title="Entra na fila para ${esc(h.n)}${pn?' no modo '+pn:''}">Procurar party para esta caçada</button>${h.boss?'':`<label title="Aceita grupos de qualquer modo de pull"><input type="checkbox" data-lfg="qm" ${LFG.qm?'checked':''}${busy?' disabled':''}> qualquer modo</label>`}`;
+  return `<span class="pstart">${solo}${pt}${lfg}</span>`;}
 
 /* ---- Prey: 3 slots (1 livre, 2 liberado com gold, 3 liberado com Tibia Coins), bônus de 1 a 10 estrelas, wildcards ---- */
 const PREY_LISTA=20*H, WC_MAX=1000, SLOT3_TC=900, PREY_TIPOS={dmg:'dano',def:'defesa',exp:'exp',loot:'loot'};
@@ -3644,7 +3695,7 @@ function wkItemFicha(id){const it=ITEMS[id],dr=itemDrop()[id]||[],r=itemRar(id),
   if(it.slot)at.push(['Slot',SLOT_NOME[it.slot]]);if(it.wt)at.push(['Tipo de arma',{sword:'Espada',axe:'Machado',club:'Clava',distance:'Distância',wand:'Wand',rod:'Rod'}[it.wt]||it.wt]);
   if(it.atk)at.push(['Ataque',it.atk]);if(it.min!=null&&it.max)at.push(['Dano mágico',`${it.min} – ${it.max}`]);if(it.mana&&it.type==='eq')at.push(['Mana por ataque',it.mana]);
   if(it.def&&it.type==='eq')at.push(['Defesa',it.def]);if(it.arm&&it.type==='eq')at.push(['Armadura',it.arm]);
-  if(ACCS.includes(it.slot))accTxt(it).forEach(x=>at.push(['Efeito',x]));if(it.hp)at.push(['Cura vida','+'+it.hp]);if(it.mp)at.push(['Cura mana','+'+it.mp]);if(it.type==='runa'){at.push(['Nível mágico',it.ml||0]);const R=RUNAS15[id];if(R&&R.el)at.push(['Elemento',EL_NOME[R.el]||R.el]);}
+  if(ACCS.includes(it.slot)||it.libro)accTxt(it).forEach(x=>at.push(['Efeito',x]));if(it.hp)at.push(['Cura vida','+'+it.hp]);if(it.mp)at.push(['Cura mana','+'+it.mp]);if(it.type==='runa'){at.push(['Nível mágico',it.ml||0]);const R=RUNAS15[id];if(R&&R.el)at.push(['Elemento',EL_NOME[R.el]||R.el]);}
   if(it.lv)at.push(['Level mínimo',it.lv]);if(it.voc)at.push(['Vocações',it.voc.map(v=>VOC[v].n).join(', ')]);
   const drop=dr.slice(0,40).map(d=>{const mm=MOBS[d.m],r2=rar(d.c);return `<div class="wlr"><span class="lic">${mobAnim(d.m,28)}</span><a class="wkl" data-act="wkMob" data-arg="${d.m}">${esc(mm.n)}</a><span class="rar r${r2}">${RAR[r2][1]}</span><span class="pc">${pctTxt(d.c)}</span><span class="mx">${n0(mm.exp)} exp</span></div>`;}).join('');
   return `<div class="wkf"><div class="wkf-h"><div class="wkf-m it">${ii(it,'m64')}</div><div class="wkf-t"><h2>${esc(it.n)}</h2><div class="wkf-s">${TIPO_NOME[it.type]||''}${r>=0?` · raridade <span class="rar r${r}">${RAR[r][1]}</span>`:''}${it.naoDropa?' · não dropa':''}</div>
@@ -4184,7 +4235,7 @@ function carregarSave(d){try{if(!d||!VOC[d.voc])return null;const b=newState(d.n
   o.eq=Object.assign({amulet:{id:null,t:0},ring:{id:null,t:0},backpack:{id:'backpack',t:0}},o.eq);   /* saves antigos não têm amuleto, anel nem mochila */
   for(const k of Object.keys(o.eq)){const q=o.eq[k],it=q&&ITEMS[q.id];if(ACC.includes(k)){if(!it||it.slot!==k||!canEquip0(it,o)){if(it&&it.slot===k&&q.id){o.bag[q.id]=(o.bag[q.id]||0)+1;}o.eq[k]={id:null,t:0};}else q.t=(it.dur||it.ch)?clamp(Math.floor(+q.t)||it.dur||it.ch,1,it.dur||it.ch):0;}
     else if(k==='backpack'){if(!it||it.slot!==k)o.eq[k]={id:'backpack',t:0};else q.t=0;}
-    else if(!it)o.eq[k]={id:k==='weapon'?STARTER[o.voc]:newState('x',o.voc).eq[k].id,t:0};}
+    else if(!it||(it.voc&&!canEquip0(it,o))){if(it&&q.id)o.bag[bagKey(q.id,q.t)]=(o.bag[bagKey(q.id,q.t)]||0)+1;o.eq[k]={id:k==='weapon'?STARTER[o.voc]:newState('x',o.voc).eq[k].id,t:0};}}   /* item que a vocação não pode usar (ex.: livro de magia no knight) volta para a mochila */
   for(const k of Object.keys(o.bag))if(!ITEMS[parseKey(k).id])delete o.bag[k];
   for(const k of Object.keys(o.depot||{}))if(!ITEMS[parseKey(k).id])delete o.depot[k];
   if(Array.isArray(o.chao)){o.depot=o.depot||{};for(const f of o.chao)if(f&&typeof f.k==='string'&&ITEMS[parseKey(f.k).id]&&f.n>0)o.depot[f.k]=(o.depot[f.k]||0)+Math.min(9999,f.n|0);if(o.chao.length)log('sys','Itens que estavam no chão da cidade voltaram para o seu depot.','o');}o.chao=[];   /* recarregou a página: o que estava no chão volta ao depot (nada se perde) */
@@ -4341,10 +4392,10 @@ setInterval(prTick,100);
    e PZ lock de 60 s para qualquer ataque (não sai da zona: viagem/volta à cidade bloqueadas). Revidar não dá caveira. Matar sem justificativa = frag; 3 frags em 24 h ou 5 em 7 dias -> caveira vermelha por 3 dias reais
    (renova a cada frag): na morte perde TODO o loot da mochila mesmo com blessing/Amulet of Loss, e qualquer um a ataca sem ganhar caveira. Vítima de PvP perde exp/loot como em qualquer morte;
    o loot perdido simplesmente some (sem repasse ao assassino: evita duplicar itens sem servidor). O assassino conta o frag quando a vítima avisa a morte ('morte'). */
-const CAV_PX=['.XXXXX.','XXXXXXX','XOOXOOX','XOOXOOX','XXXXXXX','.XXXXX.','.X.X.X.'],CAV_COR=['','#f4f4f4','#ff3030','#ffd84a'],CAV_NOME=['','Caveira branca','Caveira vermelha','Caveira amarela'];   /* sem sprite de caveira no cliente extraído: desenhada em pixels */
-function drawCav(x,y,t,s=1.3){const c=CAV_COR[t];if(!c)return;ctx.save();for(let j=0;j<7;j++)for(let i=0;i<7;i++){const q=CAV_PX[j][i];if(q==='.')continue;ctx.fillStyle=q==='O'?'#2a0a0a':c;ctx.fillRect(Math.round(x+i*s),Math.round(y+j*s),Math.ceil(s),Math.ceil(s));}ctx.restore();}
-function cavHTML(t,px=14){if(!t)return '';let r='';CAV_PX.forEach((l,j)=>{for(let i=0;i<7;i++){const q=l[i];if(q!=='.')r+=`<rect x="${i}" y="${j}" width="1" height="1" fill="${q==='O'?'#2a0a0a':CAV_COR[t]}"/>`;}});
-  return `<svg class="cav" viewBox="0 0 7 7" width="${px}" height="${px}" shape-rendering="crispEdges"><title>${CAV_NOME[t]}</title>${r}</svg>`;}
+const CAV_PX=['..BBBBB..','.BXXXXXB.','BXXXXXXXB','BXOOXOOXB','BXOOXOOXB','BXXXOXXXB','.BXXXXXB.','..BXBXB..','..BBBBB..'],CAV_COR=['','#f4f4f4','#ff3030','#ffd84a'],CAV_NOME=['','Caveira branca','Caveira vermelha','Caveira amarela'];   /* as marcas de caveira do cliente são UI (não estão no .spr): redesenhadas em pixels 9x9 com contorno preto, no formato das do Tibia */
+function drawCav(x,y,t,s=1.3){const c=CAV_COR[t];if(!c)return;ctx.save();for(let j=0;j<9;j++)for(let i=0;i<9;i++){const q=CAV_PX[j][i];if(q==='.')continue;ctx.fillStyle=q==='O'?'#2a0a0a':q==='B'?'#000':c;ctx.fillRect(Math.round(x+i*s),Math.round(y+j*s),Math.ceil(s),Math.ceil(s));}ctx.restore();}
+function cavHTML(t,px=14){if(!t)return '';let r='';CAV_PX.forEach((l,j)=>{for(let i=0;i<9;i++){const q=l[i];if(q!=='.')r+=`<rect x="${i}" y="${j}" width="1" height="1" fill="${q==='O'?'#2a0a0a':q==='B'?'#000':CAV_COR[t]}"/>`;}});
+  return `<svg class="cav" viewBox="0 0 9 9" width="${px}" height="${px}" shape-rendering="crispEdges"><title>${CAV_NOME[t]}</title>${r}</svg>`;}
 function pvLimpa(d){const n=Date.now(),o={br:0,vm:0,lock:0,fr:[],kills:0,mortes:0,rev:true,auto:null,fuga:0};if(!d||typeof d!=='object')return o;
   const t=(v,mx)=>{v=+v;return Number.isFinite(v)&&v>n?Math.min(Math.round(v),n+mx):0;};
   o.br=t(d.br,PVP_BRANCA);o.vm=t(d.vm,PVP_VERM);o.lock=t(d.lock,PVP_LOCK);o.fr=Array.isArray(d.fr)?d.fr.map(Number).filter(v=>Number.isFinite(v)&&v>n-7*24*H&&v<=n).slice(-50):[];
@@ -4693,10 +4744,10 @@ function cidLancar(m){const T=W.time,g=GRUPO15(m),p=W.p,L=JOG,pagar=()=>{S.mp-=m
 function cidFalar(v){const t=prTxt(v,120),m=t&&cidOk()?cidMagiaPor(t):null;if(m)cidLancar(m);else prFalar(v);}
 function cidCond(ok){let el=$('#condCid');if(!el){el=document.createElement('div');el.id='condCid';document.body.appendChild(el);}
   const T=ok?W.time:0,c=ok?JOG.c:{},fmt2=ms=>{const s=Math.ceil(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');},out=[];
-  if(ok&&c.rapido&&c.rapido.ate>T)out.push(`<span title="Haste: +${Math.round((c.rapido.f-1)*100)}% de velocidade">⚡ Haste ${fmt2(c.rapido.ate-T)}</span>`);
+  if(ok&&c.rapido&&c.rapido.ate>T)out.push(`<span title="Haste: +${Math.round((c.rapido.f-1)*100)}% de velocidade">🏃 Haste ${fmt2(c.rapido.ate-T)}</span>`);
   if(ok&&CID.luz>T)out.push(`<span title="Luz">💡 Luz ${fmt2(CID.luz-T)}</span>`);
   if(!ok&&emCaca()){const Th=W.time,ch=JOG.c;   /* nas caçadas: haste, avatar e campo de dano */
-    if(ch.rapido&&ch.rapido.ate>Th)out.push(`<span title="Haste: +${Math.round((ch.rapido.f-1)*100)}% de velocidade">⚡ Haste ${fmt2(ch.rapido.ate-Th)}</span>`);
+    if(ch.rapido&&ch.rapido.ate>Th)out.push(`<span title="Haste: +${Math.round((ch.rapido.f-1)*100)}% de velocidade">🏃 Haste ${fmt2(ch.rapido.ate-Th)}</span>`);
     const av=ch.buffs.avatar;if(av&&av.ate>Th)out.push(`<span title="Avatar: 100% de crítico (+${Math.round((.5+AVT15.critX)*100)}% de dano) e −${AVT15.red}% de dano recebido">🌟 Avatar ${fmt2(av.ate-Th)}</span>`);
     if(ch.emp&&ch.emp.ate>Th)out.push(`<span title="Divine Empowerment: +${Math.round((ch.emp.f-1)*100)}% de dano em cima do campo">✨ Campo ${fmt2(ch.emp.ate-Th)}</span>`);}
   el.classList.toggle('caca',!ok);const h=out.join('');if(h!==CID.sigCond){CID.sigCond=h;el.innerHTML=h;el.classList.toggle('hidden',!h);}}
@@ -4780,9 +4831,9 @@ function drawCid(now){if(!W.city||S.loc!=='city'||!W.cam)return;
    (o líder cria um lutador com a IA da arena) e só desenham o que o líder envia (4 Hz, num único broadcast com os eventos) e aplicam as recompensas.
    Canal da party: party:<pid do fundador>, mesmo padrão da presença (Supabase Realtime, ou BroadcastChannel com ?rede=local; ?rede=rt&perfil=N = Realtime real sem login, para testar).
    Convites ficam no canal da cidade (convite/resposta). Modo solo: PT.hunt e W.pl ficam vazios e nada muda. */
-const PARTY_HZ=4,PT_MAX=4,PT_CONVITE=60000,PT_SUMIR=15000,PT_INATIVO=120000,PT_BONUS=[0,.2,.3,.6,1],PT_VER='p6',PT_FILA_T=120000;
+const PARTY_HZ=4,PT_MAX=4,PT_CONVITE=60000,PT_SUMIR=15000,PT_INATIVO=120000,PT_BONUS=[0,.2,.3,.6,1],PT_VER='p7',PT_FILA_T=120000;
 const PT_EVS=['rost','sinal','entrar','sair','go','fim','ficha','estado','premio','kick','recusa','fila','pronto'];
-Object.assign(PT,{id:null,me:null,lider:null,mb:[],expOn:true,tr:null,conv:[],sent:{},pend:null,fichas:new Map(),conf:false,tEnt:0,nEnt:0,tSin:0,tEst:0,tPre:0,tAn:0,tMe:0,sig:'',flag:'off',huntInfo:null,fila:null,filaM:null,aceito:null,epAuto:null,seg:null,fim:{},pPend:null,st:'ok',verAv:{},fake:false,n:{env:0,rec:0,te:{},tr:{},res:{}}});
+Object.assign(PT,{id:null,me:null,lider:null,mb:[],expOn:true,tr:null,conv:[],sent:{},pend:null,fichas:new Map(),conf:false,tEnt:0,nEnt:0,tSin:0,tEst:0,tPre:0,tAn:0,tSt:0,tMe:0,sig:'',flag:'off',huntInfo:null,fila:null,filaM:null,aceito:null,epAuto:null,seg:null,fim:{},pPend:null,st:'ok',verAv:{},fake:false,n:{env:0,rec:0,te:{},tr:{},res:{}}});
 const ptSou=()=>!!PT.id&&PT.lider===PR.pid;
 const ptM=pid=>PT.mb.find(x=>x.pid===pid);
 function ptEv(e){const a=PT.ev;if(a&&a.length<200)a.push(e);}
@@ -4853,20 +4904,20 @@ function ptPassar(pid){if(!ptSou()||pid===PR.pid||!ptM(pid)||PT.hunt||PT.fila){i
   log('sys',`${x.nome} agora é o líder da party.`,'y');}
 function ptExpTog(){if(!ptSou())return;PT.expOn=!PT.expOn;ptRost();log('sys',PT.expOn?'Exp compartilhada ligada.':'Exp compartilhada desligada.','y');}
 function ptRost(forca){if(!forca&&!ptSou())return;const HU=PT.hunt;
-  ptEnv('rost',{v:PT_VER,lider:PT.lider,exp:PT.expOn?1:0,h:HU&&HU.papel==='lider'?{ep:HU.ep,loc:HU.loc,fid:HU.fid||null}:null,q:PT.fila?{fid:PT.fila.fid,loc:PT.fila.loc,pr:Object.keys(PT.fila.pr),ep:PT.fila.ep||null}:null,
+  ptEnv('rost',{v:PT_VER,lider:PT.lider,exp:PT.expOn?1:0,h:HU&&HU.papel==='lider'?{ep:HU.ep,loc:HU.loc,fid:HU.fid||null,pull:HU.pull||null}:null,q:PT.fila?{fid:PT.fila.fid,loc:PT.fila.loc,pull:PT.fila.pull||null,pr:Object.keys(PT.fila.pr),ep:PT.fila.ep||null}:null,
     m:PT.mb.map(x=>({pid:x.pid,bot:x.bot?1:0,nome:x.nome,voc:x.voc,level:x.level,outfit:x.outfit,hp:x.hp,hpMax:x.hpMax,mp:x.mp,mpMax:x.mpMax,loc:x.loc,xp:x.xp,lc:x.lc,st:x.st}))});}
 /* ---- mensagens do canal da party ---- */
 /* seguir o líder até a caçada. Chamado pelo 'go', pela rost (campo h) e pelo próprio pacote de estado, então basta UMA mensagem chegar.
    Falhou (viagem ignorada, mapa que não carregou, mensagem perdida)? Tenta de novo a cada 8 s, até 6 vezes por caçada. Caçada já encerrada (PT.fim) não é seguida. */
 function ptVer(de,m){if(m.v===PT_VER||PT.verAv[de])return;PT.verAv[de]=1;
   log('sys',`${prTxt((ptM(de)||{}).nome,20)||'Um jogador'} está com outra versão do jogo (${prTxt(m.v,8)||'antiga'}). Recarregue a página (Ctrl+F5) para a party funcionar.`,'o');}
-function ptSeguirLider(ep,loc,forte,fid){
+function ptSeguirLider(ep,loc,forte,fid,pull){
   if(!PT.id||ptSou()||PT.hunt||!S||!HUNTS[loc]||typeof ep!=='string'||PT.fim[ep])return;
   if(!forte&&fid&&PT.aceito&&PT.aceito.fid===fid&&PT.aceito.ate>Date.now())forte=true;   /* aceitou a fila desta caçada: segue mesmo estando em outra hunt */
   if(S.loc==='arena'||(W&&W.loading)||(!forte&&S.loc!=='city'))return;
   const now=performance.now(),sg=PT.seg&&PT.seg.ep===ep?PT.seg:null;if(sg&&(now-sg.t<8000||sg.n>=6))return;
   const nova=!sg;PT.seg={ep,t:now,n:sg?sg.n+1:1};PT.epAuto=ep;
-  PT.pend={ep,loc,papel:'membro',ate:Date.now()+180000};closeModal();
+  PT.pend={ep,loc,papel:'membro',pull:ptPl(pull),ate:Date.now()+180000};closeModal();
   if(nova){log('sys',`O líder iniciou a caçada da party: ${HUNTS[loc].n}.`,'y');
     if(S.level<HUNTS[loc].lv){log('sys',`Aviso: seu level (${S.level}) está abaixo do recomendado (${HUNTS[loc].lv}).`,'o');toast('Level abaixo do recomendado');}}
   else log('sys','Tentando entrar na caçada da party de novo…','o');
@@ -4886,9 +4937,9 @@ function ptRec(t,m){try{if(PT.drop&&PT.drop.has(t))return;PT.n.rec++;PT.n.tr[t]=
       if(PT.lider===eu&&!eraLider){log('sys','Você agora é o líder da party.','y');toast('Você agora é o líder da party');PT.tSin=0;PT.sent={};PT.seg=null;}   /* assume os deveres do líder: rost periódica, convites, caçada */
       else if(PT.lider!==eu)log('sys',`${prTxt((ptM(PT.lider)||{}).nome,20)||'O jogador'} agora é o líder da party.`,'y');}
     ptVer(de,m);
-    PT.huntInfo=m.h&&typeof m.h==='object'&&HUNTS[m.h.loc]&&typeof m.h.ep==='string'?{ep:m.h.ep.slice(0,16),loc:m.h.loc,fid:typeof m.h.fid==='string'?m.h.fid.slice(0,16):null}:null;
+    PT.huntInfo=m.h&&typeof m.h==='object'&&HUNTS[m.h.loc]&&typeof m.h.ep==='string'?{ep:m.h.ep.slice(0,16),loc:m.h.loc,fid:typeof m.h.fid==='string'?m.h.fid.slice(0,16):null,pull:ptPl(m.h.pull)}:null;
     const hi=PT.huntInfo;
-    if(hi&&!ptSou())ptSeguirLider(hi.ep,hi.loc,false,hi.fid);
+    if(hi&&!ptSou())ptSeguirLider(hi.ep,hi.loc,false,hi.fid,hi.pull);
     if(!ptSou())ptFilaRec(ptQ(m.q),true);
     if(nl.length<2)ptDesfazer('A party foi desfeita.');}
   else if(t==='sinal'){if(!mm)return;ptSan(m,mm);mm.visto=now;ptVer(de,m);}
@@ -4902,12 +4953,12 @@ function ptRec(t,m){try{if(PT.drop&&PT.drop.has(t))return;PT.n.rec++;PT.n.tr[t]=
   else if(t==='sair'){if(mm)ptTirar(de,'saiu da party');}
   else if(t==='kick'){if(de===PT.lider&&m.para===eu)ptDesfazer('Você foi expulso da party.');}
   else if(t==='recusa'){if(de===PT.lider&&m.para===eu)ptDesfazer('A party está cheia.');}
-  else if(t==='go'){if(de!==PT.lider||!S)return;if(Array.isArray(m.ps)&&!m.ps.includes(eu))return;ptSeguirLider(typeof m.ep==='string'?m.ep.slice(0,16):'',m.loc,true);}
+  else if(t==='go'){if(de!==PT.lider||!S)return;if(Array.isArray(m.ps)&&!m.ps.includes(eu))return;ptSeguirLider(typeof m.ep==='string'?m.ep.slice(0,16):'',m.loc,true,undefined,m.pull);}
   else if(t==='fim'){if(de!==PT.lider||typeof m.ep!=='string')return;PT.fim[m.ep.slice(0,16)]=1;const HU=PT.hunt;if(!HU||HU.papel!=='membro'||m.ep!==HU.ep)return;ptSairHunt('A caçada da party terminou.');}
   else if(t==='ficha'){if(!ptSou()||!mm)return;const f=ptValFicha(m.f);if(!f||typeof m.ep!=='string')return;mm.visto=now;
     const ep=m.ep.slice(0,16);PT.fichas.set(de,{ep,f});const HU=PT.hunt;if(HU&&HU.papel==='lider'&&ep===HU.ep)ptCriarLut(de,f);}
   else if(t==='estado'){if(mm&&de===PT.lider)mm.visto=now;
-    if(de===PT.lider&&!PT.hunt&&typeof m.ep==='string')ptSeguirLider(m.ep.slice(0,16),m.loc,false,typeof m.fid==='string'?m.fid.slice(0,16):'');   /* o estado chega 4x por segundo: também serve de convite */
+    if(de===PT.lider&&!PT.hunt&&typeof m.ep==='string')ptSeguirLider(m.ep.slice(0,16),m.loc,false,typeof m.fid==='string'?m.fid.slice(0,16):'',m.pull);   /* o estado chega 4x por segundo: também serve de convite */
     ptEstadoRec(m);}
   else if(t==='premio')ptPremioRec(m);
 }catch(e){}}
@@ -4927,7 +4978,7 @@ function ptExp(){const HU=PT.hunt,mb=PT.mb,me=PR.pid,vs=[...new Set(mb.map(x=>x.
 const ptBonusTxt=r=>`${r.nv} vocaç${r.nv===1?'ão':'ões'}: +${Math.round(r.bonus*100)}% de exp`;
 /* ---- ficha do lutador ---- */
 /* absorção por elemento dos acessórios (%, já combinada) para o líder simular os golpes no membro; cargas e Energy Ring só valem na máquina do dono */
-function ptAb(){const ab={};for(const el of ELS_AB){let f=1;for(const k of ACC){const it=eqa(k);if(it&&it.abs&&it.abs[el])f*=1-it.abs[el]/100;}if(f!==1)ab[el]=Math.round((1-f)*100);}return ab;}
+function ptAb(){const ab={};for(const el of ELS_AB){let f=1;for(const k of ACCD){const it=eqa(k);if(it&&it.abs&&it.abs[el])f*=1-it.abs[el]/100;}if(f!==1)ab[el]=Math.round((1-f)*100);}return ab;}
 const ELS_AB=['phys','fire','earth','energy','ice','holy','death','lifedrain','manadrain','drown'];
 function ptFicha(){const eq={},t={};for(const k of EQ6){eq[k]=S.eq[k].id;t[k]=S.eq[k].t||0;}
   const slots=(S.sets[S.set]||[]).map(x=>x&&{a:x.a,v:x.v,p:x.p}),bag={};for(const s of slots){if(!s)continue;const it=ITEMS[s.a];if(it&&(it.type==='pot'||it.type==='runa'))bag[s.a]=S.bag[s.a]|0;}
@@ -4936,7 +4987,7 @@ function ptFicha(){const eq={},t={};for(const k of EQ6){eq[k]=S.eq[k].id;t[k]=S.
 function ptValFicha(f){try{if(!f||typeof f!=='object'||!VOC[f.voc])return null;const voc=f.voc,nivel=prNum(f.nivel,1,9999,0);if(!nivel)return null;
   const sk={};for(const k of ['sword','axe','club','distance','shielding','magic'])sk[k]=prNum(f.sk&&(f.sk[k]!==undefined?f.sk[k]:MELEE.includes(k)?f.sk.melee:undefined),1,3000,1);   /* ficha antiga (p5) só tem melee: vale para os três */
   const eq={},t={};for(const k of ['weapon','helmet','armor','legs','boots','shield']){const it=ITEMS[f.eq&&f.eq[k]];
-    eq[k]=it&&it.type==='eq'&&it.slot===k&&(k!=='weapon'||okWt(voc,it.wt))?it:(k==='weapon'?ITEMS[STARTER[voc]]:null);t[k]=prNum(f.t&&f.t[k],0,20,0);}
+    eq[k]=it&&it.type==='eq'&&it.slot===k&&(k!=='weapon'||okWt(voc,it.wt))&&(!it.voc||it.voc.includes(voc))?it:(k==='weapon'?ITEMS[STARTER[voc]]:null);t[k]=prNum(f.t&&f.t[k],0,20,0);}
   const p=f.procs||{},cl=(v,mx)=>{v=+v;return Number.isFinite(v)?clamp(v,0,mx):0;};
   const procs={crit:cl(p.crit,.5),critX:.5,fatal:cl(p.fatal,.15),ruse:cl(p.ruse,.15),agonia:cl(p.agonia,.3)};
   const slots=new Array(16).fill(null),sl=Array.isArray(f.slots)?f.slots.slice(0,16):[];
@@ -4952,12 +5003,13 @@ function ptBtnHunt(hk){if(!PT.id||S.loc!=='city')return '';
   if(PT.fila)return '<span class="mut sm">Fila da party aberta. </span>';
   if(PT.mb.length<2)return '<span class="mut sm">Convide ao menos 1 jogador para a caçada da party. </span>';
   return `<button class="wbtn" data-act="ptHunt" data-arg="${hk}">Iniciar caçada da party</button> `;}
-function ptIniciarCacada(hk){if(!ptSou()||!HUNTS[hk]||S.loc==='arena'||PT.mb.length<2||PT.hunt||PT.fila||(W&&W.loading))return;
+const ptPl=x=>PULL_MODOS.includes(x)?x:null;
+function ptIniciarCacada(hk,pull){if(!ptSou()||!HUNTS[hk]||S.loc==='arena'||PT.mb.length<2||PT.hunt||PT.fila||(W&&W.loading))return;
   if(HUNTS[hk].boss&&chefeResta(hk)>0){toast('Boss em cooldown');return;}
-  const F=PT.fila={fid:Math.random().toString(36).slice(2,10),loc:hk,t0:Date.now(),pr:{[PR.pid]:1}};   /* fila (ready check): todos continuam o que faziam até estarem prontos; só então entram juntos */
+  const F=PT.fila={fid:Math.random().toString(36).slice(2,10),loc:hk,t0:Date.now(),pr:{[PR.pid]:1},pull:HUNTS[hk].boss?null:(ptPl(pull)||(S.pull&&ptPl(S.pull[hk]))||'cauteloso')};   /* pull = modo escolhido na tela de preparo/LFG, vale para o líder simular e é mostrado aos membros; fila (ready check): todos continuam o que faziam até estarem prontos; só então entram juntos */
   for(const x of PT.mb)if(x.bot)F.pr[x.pid]=1;   /* bots estão sempre prontos */
   for(const x of PT.mb)if(x.pid!==PR.pid&&x.level<HUNTS[hk].lv)log('sys',`${x.nome} (Lv ${x.level}) está abaixo do level recomendado (${HUNTS[hk].lv}).`,'o');
-  ptEnv('fila',{fid:F.fid,loc:hk});ptRost();closeModal();log('sys',`Fila da caçada da party aberta: ${HUNTS[hk].n}. Aguardando todos ficarem prontos…`,'y');ptFilaCheck();}
+  ptEnv('fila',{fid:F.fid,loc:hk,pull:F.pull});ptRost();closeModal();log('sys',`Fila da caçada da party aberta: ${HUNTS[hk].n}${F.pull?` (pull ${HUNTS[hk].pull[F.pull].nome})`:''}. Aguardando todos ficarem prontos…`,'y');ptFilaCheck();}
 function ptFilaCancelar(motivo){const F=PT.fila;if(!F)return;PT.fila=null;if(motivo)log('sys',motivo,'o');ptEnv('fila',{fid:null});ptRost();}
 function ptFilaCheck(){const F=PT.fila;if(!F||!ptSou())return;
   for(const k of Object.keys(F.pr))if(!ptM(k))delete F.pr[k];
@@ -4966,18 +5018,18 @@ function ptFilaCheck(){const F=PT.fila;if(!F||!ptSou())return;
   if(Date.now()-F.t0>PT_FILA_T){ptFilaCancelar(`Fila da party cancelada (tempo esgotado): ${falta.map(x=>x.nome).join(', ')||'ninguém'} não ficou pronto.`);return;}
   if(falta.length||PT.mb.length<2||F.ep||S.loc==='arena'||(W&&W.loading)||PT.hunt)return;
   const ep=F.ep=Math.random().toString(36).slice(2,10),hk=F.loc;   /* todos prontos: o líder viaja (mesmo já estando na hunt: o travel refaz o mundo) e manda o 'go' */
-  PT.pend={ep,loc:hk,papel:'lider',n:PT.mb.length,fid:F.fid,esp:PT.mb.filter(x=>x.pid!==PR.pid&&!x.bot).map(x=>x.pid),ate:Date.now()+60000};
-  ptEnv('go',{ep,loc:hk,fid:F.fid});ptRost();closeModal();log('sys','Todos prontos! Iniciando a caçada da party...','y');travel(hk,null);}
-const ptQ=q=>q&&typeof q==='object'&&typeof q.fid==='string'&&HUNTS[q.loc]?{fid:q.fid.slice(0,16),loc:q.loc,pr:Array.isArray(q.pr)?q.pr.filter(x=>typeof x==='string').map(x=>x.slice(0,64)).slice(0,PT_MAX):[],ep:typeof q.ep==='string'?q.ep.slice(0,16):null}:null;
+  PT.pend={ep,loc:hk,papel:'lider',pull:F.pull,n:PT.mb.length,fid:F.fid,esp:PT.mb.filter(x=>x.pid!==PR.pid&&!x.bot).map(x=>x.pid),ate:Date.now()+60000};
+  ptEnv('go',{ep,loc:hk,fid:F.fid,pull:F.pull});ptRost();closeModal();log('sys','Todos prontos! Iniciando a caçada da party...','y');travel(hk,null);}
+const ptQ=q=>q&&typeof q==='object'&&typeof q.fid==='string'&&HUNTS[q.loc]?{fid:q.fid.slice(0,16),loc:q.loc,pr:Array.isArray(q.pr)?q.pr.filter(x=>typeof x==='string').map(x=>x.slice(0,64)).slice(0,PT_MAX):[],ep:typeof q.ep==='string'?q.ep.slice(0,16):null,pull:ptPl(q.pull)}:null;
 /* membro: recebe a fila (evento 'fila' ou campo q da rost). q nulo na rost = sem fila (silencioso: a fila pode ter virado caçada) */
 function ptFilaRec(q,daRost){const F=PT.filaM;
   if(!q){if(daRost)PT.filaM=null;return;}
-  if(!F||F.fid!==q.fid){PT.filaM={fid:q.fid,loc:q.loc,ok:undefined,avisou:false};
-    log('sys',`O líder abriu a fila da caçada da party: ${HUNTS[q.loc].n}.`,'y');toast(`Caçada da party: ${HUNTS[q.loc].n}`);
+  if(!F||F.fid!==q.fid){PT.filaM={fid:q.fid,loc:q.loc,pull:q.pull,ok:undefined,avisou:false};
+    log('sys',`O líder abriu a fila da caçada da party: ${HUNTS[q.loc].n}${q.pull?` (pull ${HUNTS[q.loc].pull[q.pull].nome})`:''}.`,'y');toast(`Caçada da party: ${HUNTS[q.loc].n}`);
     if(S.level<HUNTS[q.loc].lv){log('sys',`Aviso: seu level (${S.level}) está abaixo do recomendado (${HUNTS[q.loc].lv}).`,'o');}
     ptMostrar();ptFilaAuto();return;}
   if(F.ok===1&&!q.pr.includes(PR.pid))ptEnv('pronto',{fid:F.fid,ok:1});   /* o líder ainda não me contou como pronto: reenvia */
-  if(F.ok===1&&q.ep)ptSeguirLider(q.ep,q.loc,false,q.fid);}
+  if(F.ok===1&&q.ep)ptSeguirLider(q.ep,q.loc,false,q.fid,q.pull);}
 function ptFilaAuto(){const F=PT.filaM;if(!F||F.ok!==undefined||!S)return;
   if(S.rules.ptAuto===false)return;
   const mot=S.loc==='arena'?'você está na arena':(W&&W.loading)?null:HUNTS[F.loc].boss&&chefeResta(F.loc)>0?'boss em cooldown':S.stamina<30*MIN?'stamina abaixo de 30 min':'';
@@ -4989,12 +5041,12 @@ function ptFilaResp(ok){const F=PT.filaM;if(!F||!PT.id||ptSou())return;if(ok&&S.
   F.ok=ok?1:0;if(ok)PT.aceito={fid:F.fid,ate:Date.now()+180000};else PT.aceito=null;
   ptEnv('pronto',{fid:F.fid,ok:F.ok});log('sys',ok?'Você está pronto para a caçada da party.':'Você recusou a caçada da party.',ok?'y':'o');}
 function ptIrCaca(){const hi=PT.huntInfo;if(!hi||!PT.id||ptSou()||PT.hunt||S.loc==='arena'||(W&&W.loading))return;
-  PT.pend={ep:hi.ep,loc:hi.loc,papel:'membro',ate:Date.now()+60000};closeModal();travel(hi.loc,null);}
+  PT.pend={ep:hi.ep,loc:hi.loc,papel:'membro',pull:hi.pull,ate:Date.now()+60000};closeModal();travel(hi.loc,null);}
 function ptEntrouHunt(){const p=PT.pend;PT.pend=null;if(!p||p.loc!==S.loc||p.ate<Date.now()||!PT.id)return;
   if(p.papel==='membro'&&PT.fim[p.ep]){log('sys','A caçada da party já tinha terminado.','o');setTimeout(()=>travel('city',null),0);return;}   /* o líder voltou enquanto o mapa carregava */
   W.rec=null;for(const k in ATK_T)delete ATK_T[k];
   if(p.papel==='lider')PT.fila=null;else{PT.filaM=null;PT.aceito=null;}
-  const s=S.sess,HU=PT.hunt={papel:p.papel,ep:p.ep,loc:p.loc,fid:p.fid||null,esp:p.esp||null,tEntr:performance.now(),tGo:performance.now(),b:{xp:s.exp,lc:s.gold+s.loot-s.sup,st:s.t},an:{},ia:[],xs:null,visto:performance.now()+30000,t0:W.time,nFic:0,tFic:0};
+  const s=S.sess,HU=PT.hunt={papel:p.papel,ep:p.ep,loc:p.loc,fid:p.fid||null,esp:p.esp||null,tEntr:performance.now(),tGo:performance.now(),pull:PULL_MODOS.includes(p.pull)?p.pull:null,b:{xp:s.exp,lc:s.gold+s.loot-s.sup,st:s.t,sup:s.sup},an:{},ia:[],xs:null,visto:performance.now()+30000,t0:W.time,nFic:0,tFic:0};
   if(p.papel==='lider'){Object.assign(HU,{lut:new Map(),valor:{},pq:[],reg:W.time+1000,tEnt:{}});W.pl=new Set();PT.ev=[];ptPull(p.n||PT.mb.length);
     for(const [pid,fh] of PT.fichas)if(fh.ep===HU.ep&&ptM(pid))ptCriarLut(pid,fh.f);
     for(const x of PT.mb)if(x.bot){ptCriarLut(x.pid,ptFichaFalsa(x));const L=HU.lut.get(x.pid);if(L){L.bp=true;L.pbot=true;x.loc=HU.loc;}}}   /* bots da party: simulados pelo líder; L.bp = não recebem exp nem loot (ptKill) */
@@ -5019,7 +5071,7 @@ function ptCriarLut(pid,f){const HU=PT.hunt;if(!HU||HU.papel!=='lider'||!f)retur
   const q=ptLivreProx(W.p);L.x=L.fx=q[0];L.y=L.fy=q[1];L.dir=2;L.mt=1;L.t0=0;L.dur=0;HU.lut.set(pid,L);HU.tEnt[pid]=performance.now();W.pl.add(L.y*W.w+L.x);
   ef15(me15('teleport'),L.x,L.y);log('sys',`${f.nome} entrou na caçada.`,'y');}
 function ptTeleLut(L){const q=ptLivreProx(W.p);W.pl.delete(L.y*W.w+L.x);ef15(me15('teleport'),L.x,L.y);L.x=L.fx=q[0];L.y=L.fy=q[1];L.mt=1;L.t0=0;L.dur=0;W.pl.add(L.y*W.w+L.x);ef15(me15('teleport'),L.x,L.y);}
-function ptMorreu(L){L.morto=true;L.tMorte=W.time;if(W.pl)W.pl.delete(L.y*W.w+L.x);ef15(me15('mortarea'),L.x,L.y);fxt(L.x,L.y-.6,'MORTO','#ff3b30',true);log('cmb',`☠️ ${L.nome} morreu.`,'r');W.aliados=(W.aliados||[]).filter(a=>a.dono!==L);}
+function ptMorreu(L){L.morto=true;L.tMorte=W.time;ptSt(L.pid,'m',1);if(W.pl)W.pl.delete(L.y*W.w+L.x);ef15(me15('mortarea'),L.x,L.y);fxt(L.x,L.y-.6,'MORTO','#ff3b30',true);log('cmb',`☠️ ${L.nome} morreu.`,'r');W.aliados=(W.aliados||[]).filter(a=>a.dono!==L);}
 /* ---- simulação dos lutadores remotos no líder (um tick de 100 ms) ---- */
 function ptMover(L,pre){if(L.mt<1)return;const lz=L.c.lento;if(lz&&lz.ate>W.time&&lz.f<=.35)return;
   const t=L.tgM&&L.tgM.hp>0?L.tgM:null;let nx=null;
@@ -5043,7 +5095,8 @@ function ptLider(dt){const HU=PT.hunt;if(!HU||HU.papel!=='lider'||S.loc!==HU.loc
     finally{ATKR='eu';}}
   for(const L of HU.lut.values()){const x=ptM(L.pid);if(x){x.hp=Math.max(0,Math.round(L.hp));x.hpMax=L.max;x.mp=Math.round(L.mp);x.mpMax=L.maxMp;}}}
 /* ---- abate na party: exp compartilhada, loot dividido ---- */
-function ptKill(m){const HU=PT.hunt,me=PR.pid,ex=ptExp(),tem=[me,...ptLutVivos().filter(L=>!L.bp).map(L=>L.pid)];   /* L.bp (bots): contam na vocação/bônus (ptExp) mas NÃO entram em tem: sem exp, sem loot, e a parte deles não é tirada dos humanos */
+function ptKill(m){const HU=PT.hunt,me=PR.pid,ex=ptExp();if(m.lh)ptSt(m.lh==='eu'?me:m.lh,'k',1);
+  const tem=[me,...ptLutVivos().filter(L=>!L.bp).map(L=>L.pid)];   /* L.bp (bots): contam na vocação/bônus (ptExp) mas NÃO entram em tem: sem exp, sem loot, e a parte deles não é tirada dos humanos */
   const dano={};for(const k in (m.dano||{})){const pid=k==='eu'?me:k;if(tem.includes(pid))dano[pid]=(dano[pid]||0)+m.dano[k];}
   const bh=PT_BONUS[Math.min(4,new Set(PT.mb.filter(x=>tem.includes(x.pid)).map(x=>x.voc)).size)]||0;   /* bônus de vocações só conta os humanos: bots não viram multiplicador de exp */
   const eb={};if(ex.ativa){const v=m.d.exp*(1+bh)/tem.length;for(const pid of tem)eb[pid]=v;}
@@ -5083,13 +5136,27 @@ function ptAplicar(r){if(!Array.isArray(r))return;const mid=r[0],mp=r[1],mob=MOB
   if(got.length)log('loot',`Você recebeu ${got.join(', ')} (${mob.n}).`,'g');}
 /* prêmios e gastos em lote (a cada 2 s) */
 function ptFlush(forca){const HU=PT.hunt;if(!HU||HU.papel!=='lider')return;const now=performance.now();if(!forca&&now-PT.tPre<2000)return;PT.tPre=now;
-  const u={};for(const L of HU.lut.values()){const d={};for(const id in L.bag0){const q=L.bag0[id]-(L.bag[id]||0);if(q>0)d[id]=q;}L.bag0=Object.assign({},L.bag);if(Object.keys(d).length)u[L.pid]=d;}
+  const u={};for(const L of HU.lut.values()){const d={};let gs=0;for(const id in L.bag0){const q=L.bag0[id]-(L.bag[id]||0);if(q>0){d[id]=q;gs+=((ITEMS[id]&&ITEMS[id].price)||0)*q;}}L.bag0=Object.assign({},L.bag);if(Object.keys(d).length){u[L.pid]=d;ptSt(L.pid,'g',gs);}}   /* gasto de suprimentos de quem luta remotamente = bag0 − bag × preço */
   if(!HU.pq.length&&!Object.keys(u).length)return;ptEnv('premio',{ep:HU.ep,r:HU.pq.splice(0,60),u});}
 function ptPremioRec(m){const HU=PT.hunt;if(!HU||HU.papel!=='membro'||m.ep!==HU.ep||m.pid!==PT.lider)return;HU.visto=performance.now();
   for(const r of (Array.isArray(m.r)?m.r.slice(0,60):[]))ptAplicar(r);
   const u=m.u&&typeof m.u==='object'?m.u[PR.pid]:null;
   if(u&&typeof u==='object')for(const id in u){const it=ITEMS[id];if(!it||(it.type!=='pot'&&it.type!=='runa'))continue;const q=Math.min(prNum(u[id],0,5000,0),S.bag[id]||0);if(!q)continue;
     S.bag[id]-=q;if(!S.bag[id])delete S.bag[id];S.sess.sup+=(it.price||0)*q;S.sess.used[id]=(S.sess.used[id]||0)+q;}}
+/* ---- estatísticas da party: o líder acumula por pid (d dano, t sofrido, h cura, g gasto em suprimentos, k abates, m mortes) e manda ~1x/s no 'estado' (campo st) ---- */
+const ptHeal=(L,q)=>{if(q>0&&PT.hunt)ptSt(L.eJog?PR.pid:L.pid,'h',q);};
+function ptSt(pid,k,v){const HU=PT.hunt;if(!HU||HU.papel!=='lider'||!(v>0)||typeof pid!=='string')return;const T=HU.st||(HU.st={});let e=T[pid];if(!e){if(!ptM(pid))return;e=T[pid]={d:0,t:0,h:0,g:0,k:0,m:0,w:[]};}
+  e[k]+=v;if(k==='d'){const s=(W.time/1000)|0,w=e.w,l=w[w.length-1];if(l&&l[0]===s)l[1]+=v;else w.push([s,v]);}}
+function ptStCalc(){const HU=PT.hunt;if(!HU||HU.papel!=='lider'||!W)return null;const T=HU.st||(HU.st={}),s=(W.time/1000)|0,el=Math.max(5,Math.min(60,(W.time-HU.t0)/1000)),an=ptAnCalc(),o={};
+  for(const x of PT.mb.slice(0,PT_MAX)){const e=T[x.pid]||{d:0,t:0,h:0,g:0,k:0,m:0,w:[]};while(e.w.length&&e.w[0][0]<=s-60)e.w.shift();
+    const dps=e.w.reduce((a,b)=>a+b[1],0)/el,g=x.pid===PR.pid?Math.max(0,S.sess.sup-(HU.b.sup||0)):e.g,a=an[x.pid]||[0,0];
+    o[x.pid]=[Math.round(e.d),Math.round(dps),Math.round(e.t),Math.round(e.h),Math.round(g),e.k,e.m,a[0],a[1]];}
+  return o;}
+const ptStVal=m=>{if(!m||typeof m!=='object')return null;const st={};let n=0;for(const k in m){if(++n>PT_MAX)break;const a=m[k];if(Array.isArray(a)&&a.length===9)st[String(k).slice(0,64)]=[prNum(a[0],0,1e12,0),prNum(a[1],0,1e9,0),prNum(a[2],0,1e12,0),prNum(a[3],0,1e12,0),prNum(a[4],0,1e12,0),prNum(a[5],0,1e7,0),prNum(a[6],0,1e5,0),prNum(a[7],0,1e9,0),prNum(a[8],-1e12,1e12,0)];}return st;};
+/* resumo no fim da caçada: "Melhor dano: X (34%) · Mais cura: Y · Mais gasto: Z" */
+function ptStResumo(HU){try{const st=HU.stv;if(!st||PT.mb.length<2)return;const nm=pid=>prTxt((ptM(pid)||{}).nome,20)||'?',top=i=>{let b=null,bv=0;for(const pid in st)if(st[pid][i]>bv){bv=st[pid][i];b=pid;}return b?[nm(b),bv]:null;},tot=Object.values(st).reduce((a,v)=>a+v[0],0);
+    const d=top(0),h=top(3),g=top(4),t=top(2),p=[];if(d&&tot>0)p.push(`Melhor dano: ${d[0]} (${Math.round(d[1]/tot*100)}%)`);if(h)p.push(`Mais cura: ${h[0]}`);if(g)p.push(`Mais gasto: ${g[0]}`);if(t)p.push(`Mais dano sofrido: ${t[0]}`);
+    if(p.length)log('sys','📊 Resumo da party · '+p.join(' · '),'y');}catch(e){}}
 /* ---- pacote de estado do líder (4 Hz) ---- */
 function ptAnCalc(){const HU=PT.hunt,o={};if(!HU)return o;const s=S.sess,t=Math.max(1,s.t-HU.b.st),taxa=(x,l,st)=>st>30000?[Math.round(x/st*3600e3),Math.round(l/st*3600e3)]:[0,0];
   o[PR.pid]=taxa(s.exp-HU.b.xp,s.gold+s.loot-s.sup-HU.b.lc,t);for(const x of PT.mb)if(x.pid!==PR.pid)o[x.pid]=taxa(x.xp,x.lc,x.st);return o;}
@@ -5101,6 +5168,8 @@ function ptEnviarEstado(){const HU=PT.hunt;if(!HU||HU.papel!=='lider'||!W||W.loa
   for(const L of HU.lut.values())j.push([L.pid,L.x,L.y,[2,1,0,3][L.dir],Math.round(L.hp),L.max,Math.round(L.mp),L.maxMp,L.hp>0?1:0]);
   const pk={ep:HU.ep,fid:HU.fid||null,loc:HU.loc,m:mobs,a:al,j,e:PT.ev.splice(0),c:W.campos.slice(0,40).map(c=>[c.x,c.y,c.el||'fire',Math.max(0,Math.round(c.ate-W.time))]),xs:[ex.ativa?1:0,ex.motivo],ia:ptInativos()};
   const now=performance.now();if(now-PT.tAn>=5000){PT.tAn=now;pk.an=HU.an=ptAnCalc();}
+  if(now-PT.tSt>=1000){PT.tSt=now;pk.st=HU.stv=ptStCalc();}
+  if(HU.pull)pk.pull=HU.pull;
   ptEnv('estado',pk);}
 /* ---- lado do membro: aplica o estado recebido e roda o "relógio" da caçada ---- */
 function ptEstadoRec(m){const HU=PT.hunt;if(!HU||HU.papel!=='membro'||m.ep!==HU.ep||m.pid!==PT.lider||!W||W.loading||S.loc!==HU.loc)return;
@@ -5134,14 +5203,17 @@ function ptEstadoRec(m){const HU=PT.hunt;if(!HU||HU.papel!=='membro'||m.ep!==HU.
   W.campos=cp;
   if(Array.isArray(m.xs))HU.xs=[m.xs[0]?1:0,prTxt(m.xs[1],90)];
   HU.ia=Array.isArray(m.ia)?m.ia.filter(x=>typeof x==='string').slice(0,PT_MAX):[];
-  if(m.an&&typeof m.an==='object'){const an={};for(const k in m.an){const a=m.an[k];if(Array.isArray(a)&&a.length===2)an[String(k).slice(0,64)]=[prNum(a[0],0,1e9,0),prNum(a[1],-1e9,1e9,0)];}HU.an=an;}}
+  if(m.an&&typeof m.an==='object'){const an={};for(const k in m.an){const a=m.an[k];if(Array.isArray(a)&&a.length===2)an[String(k).slice(0,64)]=[prNum(a[0],0,1e9,0),prNum(a[1],-1e9,1e9,0)];}HU.an=an;}
+  if(m.st){const st=ptStVal(m.st);if(st)HU.stv=st;}
+  if(PULL_MODOS.includes(m.pull))HU.pull=m.pull;}
 function ptMembro(dt){const HU=PT.hunt,s=S.sess;s.t+=dt;S.stamina-=dt;
   for(const arr of Object.values(S.imb))for(const im of arr)if(im&&im.ms>0)im.ms-=dt;accTick(dt);
   preyTick(dt);wcTempo(dt);W.p.mt=1;W.chk+=dt;
   if(W.chk>=1000){W.chk=0;if(S.stamina<=0){S.stamina=0;returnCity('stamina esgotada',false);}}}
 /* ---- encerrar ---- */
 function ptSairHunt(motivo,semViagem){const HU=PT.hunt;if(!HU)return;PT.fim[HU.ep]=1;
-  if(HU.papel==='lider'){ptFlush(true);ptEnv('fim',{ep:HU.ep});if(W){W.aliados=(W.aliados||[]).filter(a=>!(a.dono&&a.dono.cacada));}}
+  if(HU.papel==='lider'){ptFlush(true);if(HU.st){const v=ptStCalc();if(v)HU.stv=v;}ptStResumo(HU);}else ptStResumo(HU);
+  if(HU.papel==='lider'){ptEnv('fim',{ep:HU.ep});if(W){W.aliados=(W.aliados||[]).filter(a=>!(a.dono&&a.dono.cacada));}}
   PT.hunt=null;PT.ev=null;if(W){W.pl=null;W.partyR=null;}
   if(motivo)log('sys',motivo,'b');
   if(!semViagem&&HU.papel==='membro'&&S&&S.loc!=='city'&&S.loc!=='arena')travel('city',null);
@@ -5151,11 +5223,11 @@ function ptSairPagina(){try{if(PT.id&&PT.tr){if(PT.hunt&&PT.hunt.papel==='lider'
 /* ---- interface: escudos, janela Party, analisador ---- */
 function ptEscudoDe(pid){if(!PT.id||PT.mb.length<1)return null;const x=ptM(pid);if(!x)return null;
   return {tipo:pid===PT.lider?1:2,glow:PT.flag==='verde'?'#3ddc57':PT.flag==='cinza'?'#9aa3b2':null};}
+const ESC_PX=['BBBBBBBBB','BLLXXXXDB','BLXXXXXDB','BXXXXXXDB','BXXXXXXDB','.BXXXXDB.','.BXXXDDB.','..BXDDB..','...BBB...'],ESC_COR=[null,{B:'#3a2a05',L:'#fff0a0',X:'#f2c031',D:'#b07a10'},{B:'#08183a',L:'#a8ccff',X:'#3f7fe0',D:'#1d3f94'}];   /* marcas de party do cliente (UI, não estão no .spr): amarela = líder, azul = membro */
 function drawEscudo(x,y,tipo,glow){ctx.save();if(glow){ctx.shadowColor=glow;ctx.shadowBlur=6;}
-  const c=tipo===1?['#f2c14e','#8a6a24','#fff1b0']:['#4a8cf0','#1f4a9a','#cfe0ff'];
-  ctx.beginPath();ctx.moveTo(x,y+1);ctx.lineTo(x+4.5,y);ctx.lineTo(x+9,y+1);ctx.lineTo(x+9,y+6);ctx.quadraticCurveTo(x+9,y+9.5,x+4.5,y+11.5);ctx.quadraticCurveTo(x,y+9.5,x,y+6);ctx.closePath();
-  ctx.fillStyle=c[0];ctx.fill();ctx.shadowBlur=0;ctx.lineWidth=1.2;ctx.strokeStyle=c[1];ctx.stroke();ctx.fillStyle=c[2];ctx.globalAlpha=.6;ctx.fillRect(x+2,y+2.5,2,4);ctx.restore();}
-const ptEscSVG=(t,f)=>`<svg class="pesc ${f}" viewBox="0 0 10 12" width="10" height="12"><path d="M.8 1.4L5 .4l4.2 1v5.1Q9.2 10 5 11.6 .8 10 .8 6.5z" fill="${t===1?'#f2c14e':'#4a8cf0'}" stroke="${t===1?'#8a6a24':'#1f4a9a'}" stroke-width="1"/><path d="M2.4 2.4h1.4v4H2.4z" fill="#fff" opacity=".5"/></svg>`;
+  const c=ESC_COR[tipo===1?1:2];
+  ESC_PX.forEach((l,j)=>{for(let k=0;k<9;k++){const q=l[k];if(q!=='.'){ctx.fillStyle=c[q];ctx.fillRect(Math.round(x+k*1.2),Math.round(y+j*1.2),2,2);}}});ctx.restore();}
+const ptEscSVG=(t,f)=>{const c=ESC_COR[t===1?1:2];let r='';ESC_PX.forEach((l,j)=>{for(let k=0;k<9;k++){const q=l[k];if(q!=='.')r+=`<rect x="${k}" y="${j}" width="1" height="1" fill="${c[q]}"/>`;}});return `<svg class="pesc ${f}" viewBox="0 0 9 9" width="11" height="11" shape-rendering="crispEdges">${r}</svg>`;};
 const ptVocBadge=v=>`<span class="pv" style="background:${VOC[v].col.b}" title="${VOC[v].n}">${VOC[v].n[0]}</span>`;
 function ptRender(){const b=$('#partyBody');if(!b||!S)return;const ex=PT.id?ptExp():null,HU=PT.hunt;
   const sig=JSON.stringify([PT.id,PT.lider,PT.expOn,PT.st,PT.mb.map(x=>[x.pid,x.nome,x.level,x.hp,x.hpMax,x.mp,x.mpMax,x.loc,x.bot]),PT.conv.map(c=>c.de),ex&&[ex.flag,ex.motivo,ex.nv],PT.huntInfo,HU&&HU.ep,S.loc,S.rules.ptAuto,S.rules.ia,PT.fila&&[PT.fila.fid,Object.keys(PT.fila.pr),Math.floor((Date.now()-PT.fila.t0)/1000)],PT.filaM&&[PT.filaM.fid,PT.filaM.ok],pvSk(),PT.mb.map(x=>pvSkPid(x.pid))]);
@@ -5163,8 +5235,8 @@ function ptRender(){const b=$('#partyBody');if(!b||!S)return;const ex=PT.id?ptEx
   if(!PT.id)h+=(PT.conv.length?'':'<p class="mut sm">Você não está em uma party. Na cidade, clique em um jogador (ou bot) para convidá-lo.</p>')+`<div class="ptb"><button class="btn go" data-act="lfgAbrir" title="Entra numa fila para achar jogadores compatíveis; se faltar gente, bots completam o grupo">🔎 Procurar party</button></div>`;
   else{const sou=ptSou(),ord=PT.mb.slice().sort((a,c)=>(a.pid===PT.lider?-1:c.pid===PT.lider?1:0));
     const F=PT.fila,FM=PT.filaM;
-    if(F)h+=`<div class="ptc"><b>Fila da caçada: ${esc(HUNTS[F.loc].n)}</b> <small>${Math.floor((Date.now()-F.t0)/1000)}s / ${PT_FILA_T/1000}s</small>${PT.mb.map(x=>`<div class="sm">${F.pr[x.pid]?'✓ pronto':'⏳ aguardando'} — ${esc(x.nome)}</div>`).join('')}<div class="ptb"><button class="btn red" data-act="ptFilaCancel">Cancelar fila</button></div></div>`;
-    else if(FM&&HUNTS[FM.loc])h+=`<div class="ptc"><b>Caçada da party:</b> ${esc(HUNTS[FM.loc].n)} — ${FM.ok===1?'você está pronto, aguardando os outros…':FM.ok===0?'você recusou.':'Pronto?'}${FM.ok===undefined?'<div class="ptb"><button class="btn go" data-act="ptPronto">Pronto</button><button class="btn" data-act="ptNaoPronto">Recusar</button></div>':''}</div>`;
+    if(F)h+=`<div class="ptc"><b>Fila da caçada: ${esc(HUNTS[F.loc].n)}${F.pull?` · ${esc(HUNTS[F.loc].pull[F.pull].nome)}`:''}</b> <small>${Math.floor((Date.now()-F.t0)/1000)}s / ${PT_FILA_T/1000}s</small>${PT.mb.map(x=>`<div class="sm">${F.pr[x.pid]?'✓ pronto':'⏳ aguardando'} — ${esc(x.nome)}</div>`).join('')}<div class="ptb"><button class="btn red" data-act="ptFilaCancel">Cancelar fila</button></div></div>`;
+    else if(FM&&HUNTS[FM.loc])h+=`<div class="ptc"><b>Caçada da party:</b> ${esc(HUNTS[FM.loc].n)}${FM.pull?` · pull ${esc(HUNTS[FM.loc].pull[FM.pull].nome)}`:''} —${FM.ok===1?'você está pronto, aguardando os outros…':FM.ok===0?'você recusou.':'Pronto?'}${FM.ok===undefined?'<div class="ptb"><button class="btn go" data-act="ptPronto">Pronto</button><button class="btn" data-act="ptNaoPronto">Recusar</button></div>':''}</div>`;
     const ptPp=HU&&S.rules.ia!==false?iaPapeis(PT.mb.filter(x=>VOC[x.voc])):{};   /* papel por vocação (o líder simula; todos veem) */
     h+=ord.map(x=>{const lid=x.pid===PT.lider,eu=x.pid===PR.pid,pc=(v,m)=>Math.round(clamp(v/Math.max(1,m),0,1)*100);
       return `<div class="ptm"><div>${x.outfit?ret15(x.outfit):`<div class="ph">${esc((x.nome||'?')[0])}</div>`}</div><div class="pti"><div class="ptn">${ptEscSVG(lid?1:2,ex&&ex.flag||'off')}<b>${esc(x.nome)}</b>${cavHTML(eu?pvSk():pvSkPid(x.pid),12)}${x.bot?botHTML(12)+'<small>(bot)</small>':''}${eu?'<small>(você)</small>':''}</div>
@@ -5175,11 +5247,16 @@ function ptRender(){const b=$('#partyBody');if(!b||!S)return;const ex=PT.id?ptEx
     h+=`<div class="ptx ${ex.flag}"><div>${ex.vocs.map(ptVocBadge).join('')}<b>${esc(ptBonusTxt(ex))}</b></div><div class="mut sm">Exp compartilhada: ${!PT.expOn?'<b>desligada</b>':ex.ativa?'<b style="color:#7fe07f">ativa</b>':ex.espera?'<b>aguardando</b>':'<b style="color:#ccc">inativa</b>'} — ${esc(ex.motivo)}</div></div>`;
     h+=`<label style="display:flex;gap:6px;align-items:center;margin:6px 0" class="sm"><input type="checkbox" data-act="ptAutoTog" ${S.rules.ptAuto!==false?'checked':''}> Aceitar caçadas da party automaticamente</label>`;
     h+='<div class="ptb" style="margin-top:8px">'+(sou?`<button class="btn" data-act="ptExpTog">${PT.expOn?'Desligar':'Ligar'} exp compartilhada</button>`:'')+
-      (!sou&&PT.huntInfo&&!HU&&S.loc==='city'?`<button class="btn go" data-act="ptIrCaca">Ir para a caçada (${esc(HUNTS[PT.huntInfo.loc].n)})</button>`:'')+`<button class="btn red" data-act="ptSair">Sair da party</button></div>`;}
+      (!sou&&PT.huntInfo&&!HU&&S.loc==='city'?`<button class="btn go" data-act="ptIrCaca">Ir para a caçada (${esc(HUNTS[PT.huntInfo.loc].n)}${PT.huntInfo.pull?` · ${esc(HUNTS[PT.huntInfo.loc].pull[PT.huntInfo.pull].nome)}`:''})</button>`:'')+`<button class="btn red" data-act="ptSair">Sair da party</button></div>`;}
   b.innerHTML=h;pintarRetratos();}
+const PT_STC=[['d','Dano',0],['dps','DPS',1],['h','Cura',3],['x','Exp/h',7],['l','Lucro/h',8],['g','Gasto',4]];   /* [chave de ordenação, título, índice no vetor st do estado] */
 function ptAna(){const el=$('#anaParty');if(!el)return;const HU=PT.hunt;let h='';
-  if(HU&&PT.mb.length>1){const an=HU.papel==='lider'?HU.an:HU.an,hd=`<div class="anap" style="border-top:0;color:var(--mut)"><span>PARTY</span><span>EXP/H</span><span>LUCRO/H</span></div>`;
-    h=hd+PT.mb.map(x=>{const a=(an&&an[x.pid])||[0,0];return `<div class="anap"><b>${esc(x.nome)}</b><span>${a[0]?fmt(a[0]):'---'}</span><span class="${a[1]<0?'r':'g'}">${a[0]||a[1]?fmt(a[1]):'---'}</span></div>`;}).join('');}
+  if(HU&&PT.mb.length>1){const st=HU.stv||{},z=[0,0,0,0,0,0,0,0,0],rows=PT.mb.map(x=>({x,v:st[x.pid]||z})),ci=PT_STC.find(c=>c[0]===PT.stSort);
+    if(ci)rows.sort((a,b)=>b.v[ci[2]]-a.v[ci[2]]);
+    const top=PT_STC.map(c=>Math.max(0,...rows.map(r=>r.v[c[2]]))),sum=PT_STC.map(c=>rows.reduce((a,r)=>a+r.v[c[2]],0)),dt=sum[0]||1,val=(i,v)=>fmt(v)+(i===0&&v>0?`<small>${Math.round(v/dt*100)}%</small>`:'');
+    h=`<div class="pstt">Estatísticas da party${HU.pull&&HUNTS[HU.loc]&&HUNTS[HU.loc].pull[HU.pull]?` · pull ${esc(HUNTS[HU.loc].pull[HU.pull].nome)}`:''} · DPS = últimos 60 s</div><div class="pstw"><table class="pst"><thead><tr><th></th>${PT_STC.map(c=>`<th data-act="ptStSort" data-arg="${c[0]}" class="${PT.stSort===c[0]?'on':''}" title="Ordenar por ${c[1]}">${c[1]}${PT.stSort===c[0]?'▾':''}</th>`).join('')}</tr></thead><tbody>`+
+      rows.map(r=>`<tr title="Sofreu ${fmt(r.v[2])} de dano · ${r.v[5]} abates · ${r.v[6]} mortes"><td><b>${esc(r.x.nome)}</b>${r.x.bot?' '+botHTML(10):''}<small>${r.v[5]} abate${r.v[5]===1?'':'s'} · sofreu ${fmt(r.v[2])}${r.v[6]?` · ☠${r.v[6]}`:''}</small></td>${PT_STC.map((c,i)=>{const v=r.v[c[2]];return `<td class="${v>0&&v===top[i]&&rows.length>1?'top':''}${i===4&&v<0?' r':''}">${i===3||i===4?(r.v[7]||r.v[8]?fmt(v):'—'):val(i,v)}</td>`;}).join('')}</tr>`).join('')+
+      `<tr class="tot"><td>Party</td>${PT_STC.map((c,i)=>`<td>${fmt(sum[i])}</td>`).join('')}</tr></tbody></table></div>`;}
   if(PT.sigA!==h){PT.sigA=h;el.innerHTML=h;}}
 function ptUI(){try{const ex=PT.id?ptExp():null;PT.flag=ex?ex.flag:'off';ptRender();ptAna();}catch(e){}}
 /* menu ao clicar num jogador da cidade */
@@ -5189,7 +5266,7 @@ function ptClique(e){if(!S||!W||!W.city||!W.cam)return;const r=prRemotoEm(e);if(
   const c=$('#ctx');c.innerHTML=`<div class="ttl">${esc(r.nome)}</div><div class="info">${esc(VOC[r.voc].n)} · Level ${esc(r.level)}</div><button data-act="ptConvidar" data-arg="${esc(r.pid)}" ${dis?'disabled':''}>Convidar para party${why?' — '+why:''}</button>`;
   c.classList.remove('hidden');const b=c.getBoundingClientRect();c.style.left=clamp(e.clientX,4,innerWidth-b.width-4)+'px';c.style.top=clamp(e.clientY,4,innerHeight-b.height-4)+'px';e.stopPropagation();}
 cv.addEventListener('click',ptClique);
-const PTACT={ptConvidar:a=>{hideCtx();ptConvidar(a);},ptAceitar:a=>ptAceitar(+a),ptRecusar:a=>ptRecusar(+a),ptSair:()=>ptSair(),ptKick:a=>ptKick(a),ptLider:a=>ptPassar(a),ptExpTog:()=>ptExpTog(),
+const PTACT={ptStSort:a=>{PT.stSort=PT.stSort===a?null:a;PT.sigA='';ptAna();},ptConvidar:a=>{hideCtx();ptConvidar(a);},ptAceitar:a=>ptAceitar(+a),ptRecusar:a=>ptRecusar(+a),ptSair:()=>ptSair(),ptKick:a=>ptKick(a),ptLider:a=>ptPassar(a),ptExpTog:()=>ptExpTog(),
   ptHunt:a=>ptIniciarCacada(a),ptFilaCancel:()=>ptFilaCancelar('Fila da party cancelada.'),ptPronto:()=>ptFilaResp(1),ptNaoPronto:()=>ptFilaResp(0),ptAutoTog:()=>{S.rules.ptAuto=S.rules.ptAuto===false;PT.sig='';if(S.rules.ptAuto)ptFilaAuto();},ptIrCaca:()=>ptIrCaca()};
 /* ---- relógio da party (100 ms) ---- */
 function ptTick(){try{if(!S)return;const now=performance.now(),ag=Date.now();
@@ -5215,7 +5292,7 @@ function ptTick(){try{if(!S)return;const now=performance.now(),ag=Date.now();
         else if(HU.papel==='lider'){
           ptFlush();
           if(HU.esp&&HU.esp.length){const t=now-HU.tEntr;HU.esp=HU.esp.filter(pid=>{const x=ptM(pid);if(!x||HU.lut.has(pid))return false;if(t>60000){log('sys',`${x.nome} não entrou na caçada.`,'o');return false;}return true;});
-            if(HU.esp.length&&now-HU.tGo>=5000){HU.tGo=now;ptEnv('go',{ep:HU.ep,loc:HU.loc,fid:HU.fid,ps:HU.esp.slice()});}}   /* confirma a entrada: reenvia o 'go' a quem ainda não virou lutador */
+            if(HU.esp.length&&now-HU.tGo>=5000){HU.tGo=now;ptEnv('go',{ep:HU.ep,loc:HU.loc,fid:HU.fid,pull:HU.pull||null,ps:HU.esp.slice()});}}   /* confirma a entrada: reenvia o 'go' a quem ainda não virou lutador */
           for(const [pid,L] of [...HU.lut]){const x=ptM(pid);
             if(!x||(!x.bot&&x.loc!==HU.loc&&now-(HU.tEnt[pid]||0)>8000)||(L.hp<=0&&L.morto&&W.time-L.tMorte>30000)){HU.lut.delete(pid);if(W.pl)W.pl.delete(L.y*W.w+L.x);W.aliados=(W.aliados||[]).filter(a=>a.dono!==L);if(x&&x.bot)ptTirar(pid,'caiu na caçada e saiu');}}}   /* bot morto há 30 s sai da party */
         else{
@@ -5245,10 +5322,10 @@ addEventListener('pagehide',ptSairPagina);addEventListener('beforeunload',ptSair
 const BOT={cid:new Map(),hunt:[],W:null,poi:null,poiW:null,ausente:{},pool:[],tSync:0,tLento:0,init:false,pvOk:false,pvResp:[],pvN:0,bfs:null,tHunt:0,huntProx:0,hl:null,tPv:0};
 const BOT_POOL=48,BOT_MAX=40,BOT_URL=k=>{const m=location.search.match(new RegExp('[?&]'+k+'=(\\d+)'));return m?+m[1]:null;};
 const botOn=()=>!!(S&&S.rules&&S.rules.bots!==false);
-const BOT_PX=['...A...','.XXXXX.','XOXXXOX','XXXXXXX','.XOOOX.','.XXXXX.','.X...X.'],BOT_COR={X:'#8fd0ff',O:'#10304a',A:'#ffd84a'};
-function drawBotIco(x,y,s=1.5){ctx.save();for(let j=0;j<7;j++)for(let i=0;i<7;i++){const q=BOT_PX[j][i];if(q==='.')continue;ctx.fillStyle=BOT_COR[q];ctx.fillRect(Math.round(x+i*s),Math.round(y+j*s),Math.ceil(s),Math.ceil(s));}ctx.restore();}
-function botHTML(px=13){let r='';BOT_PX.forEach((l,j)=>{for(let i=0;i<7;i++){const q=l[i];if(q!=='.')r+=`<rect x="${i}" y="${j}" width="1" height="1" fill="${BOT_COR[q]}"/>`;}});
-  return `<svg class="botb" viewBox="0 0 7 7" width="${px}" height="${px}" shape-rendering="crispEdges"><title>Bot (personagem simulado, não é um jogador real)</title>${r}</svg>`;}
+const BOT_ICO='tibia-assets/sprites15/itens/8775.png';   /* Gear Wheel do cliente Tibia (sprite real) como selo de bot */
+function drawBotIco(x,y,s=1.5){const im=folhaImg(BOT_ICO);if(im)ctx.drawImage(im,Math.round(x),Math.round(y-1),Math.round(s*8),Math.round(s*8));}
+function botHTML(px=13){
+  return `<img class="botb" src="${BOT_ICO}" width="${px+2}" height="${px+2}" alt="bot" title="Bot (personagem simulado, não é um jogador real)">`;}
 function botContar(){if(!S||!botOn())return 0;if(S.loc==='city')return BOT.cid.size;if(PV.ativo&&S.loc===PV.loc)return botPvVivos();return BOT.hunt.length;}
 /* ---- gerador determinístico ---- */
 function botHash(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}h^=h>>>16;h=Math.imul(h,0x85ebca6b)>>>0;h^=h>>>13;h=Math.imul(h,0xc2b2ae35)>>>0;h^=h>>>16;return h>>>0;}
@@ -5458,14 +5535,14 @@ function botPvTick(now){if(!PV.ativo||!pvNaZona())return;if(!BOT.pvOk)botPvEntra
    Canal de presença GLOBAL 'lfg' (mesmo transporte: BroadcastChannel com ?rede=local, Supabase Realtime 'lfg:global'): cada jogador na fila publica {nome,voc,level,hunt,papel,tam,t0}. Todos calculam os mesmos grupos
    (por ordem de entrada na fila, nível compatível pela regra de 2/3 e mesma caçada, ou "qualquer"); o 1º da fila de cada grupo vira líder e convida os outros pelo próprio canal (aceite automático de quem está na fila).
    O líder fecha o grupo quando está cheio, 8 s depois da última entrada (com 2+ jogadores) ou após 25 s de espera; os papéis que faltam (bloqueio, cura, dano, lure) são preenchidos por bots do mesmo nível. */
-const LFG={fase:null,hunt:'any',papel:'auto',tam:4,tr:null,ads:new Map(),eu:null,t0:0,G:null,hk:null,tForm:0,conv:[],indep:false,sig:'',msg:''};
+const LFG={fase:null,hunt:'any',modo:'any',pull:null,papel:'auto',tam:4,tr:null,ads:new Map(),eu:null,t0:0,G:null,hk:null,tForm:0,conv:[],indep:false,sig:'',msg:''};
 const LFG_ESPERA=25000,LFG_GRACE=8000,LFG_FORM_T=12000,LFG_MAX=180000,LFG_ROLES=['bloqueio','cura','dano','lure'],LFG_VOC={bloqueio:'knight',cura:'druid',dano:'sorcerer',lure:'paladin'};
 const lfgPapel=(voc,p)=>LFG_ROLES.includes(p)?p:(IA_ROL[voc]||'dano');
 const lfgHunts=()=>botHuntLista();
 function lfgHuntAny(lvMin){const L=lfgHunts();let b=L[0];for(const k of L)if(HUNTS[k].lv<=lvMin)b=k;return b;}
 function lfgSan(pid,m){if(!m||typeof m!=='object'||typeof pid!=='string'||!VOC[m.voc])return null;
-  const hunt=m.hunt==='any'?'any':(HUNTS[m.hunt]&&!HUNTS[m.hunt].boss&&!HUNTS[m.hunt].pvp?m.hunt:null);if(!hunt)return null;
-  return {pid:pid.slice(0,64),nome:prTxt(m.nome,20)||'Jogador',voc:m.voc,level:prNum(m.level,1,9999,1),hunt,papel:lfgPapel(m.voc,m.papel),tam:prNum(m.tam,2,4,4),t0:prNum(m.t0,0,4e12,Date.now()),st:m.st==='q'?'q':'p'};}
+  const hunt=m.hunt==='any'?'any':(HUNTS[m.hunt]&&!HUNTS[m.hunt].pvp?m.hunt:null);if(!hunt)return null;
+  return {pid:pid.slice(0,64),nome:prTxt(m.nome,20)||'Jogador',voc:m.voc,level:prNum(m.level,1,9999,1),hunt,modo:hunt!=='any'&&!HUNTS[hunt].boss&&PULL_MODOS.includes(m.modo)?m.modo:'any',papel:lfgPapel(m.voc,m.papel),tam:prNum(m.tam,2,4,4),t0:prNum(m.t0,0,4e12,Date.now()),st:m.st==='q'?'q':'p'};}
 const LFG_H={sync:mapa=>{LFG.ads.clear();for(const [pid,m] of mapa){const a=lfgSan(pid,m);if(a&&a.pid!==PR.pid)LFG.ads.set(a.pid,a);}},
   entrou:(pid,m)=>{const a=lfgSan(pid,m);if(a&&a.pid!==PR.pid)LFG.ads.set(a.pid,a);else LFG.ads.delete(pid);},saiu:pid=>LFG.ads.delete(pid),rec:(t,m)=>lfgRec(m)};
 function lfgRec(m){try{if(!m||typeof m!=='object'||m.k!=='conv'||m.para!==PR.pid||LFG.fase!=='q'||PT.id||typeof m.pid!=='string')return;
@@ -5474,16 +5551,22 @@ function lfgRec(m){try{if(!m||typeof m!=='object'||m.k!=='conv'||m.para!==PR.pid
   const i=PT.conv.findIndex(c=>c.de===m.pid.slice(0,64));if(i<0)return;ptAceitar(i);
   LFG.fase=null;LFG.msg=`Você entrou na party de ${a.nome}. A caçada começa quando o líder abrir a fila.`;lfgSairCanal();log('sys','🔎 '+LFG.msg,'y');toast('Party encontrada!');}catch(e){}}
 function lfgSairCanal(){const t=LFG.tr;LFG.tr=null;LFG.ads.clear();if(t)try{t.sair();}catch(e){}}
-function lfgFim(msg){LFG.fase=null;LFG.msg=msg||'';lfgSairCanal();if(msg)log('sys','🔎 '+msg,'o');if(modal==='lfg')openModal('lfg',null,true);}
+function lfgFim(msg){LFG.fase=null;LFG.msg=msg||'';lfgSairCanal();if(msg)log('sys','🔎 '+msg,'o');lfgRefresh();}
 function lfgIniciar(){if(!S||S.loc!=='city'||(W&&W.loading)){toast('Volte à cidade para procurar party');return;}
   if(PT.id){toast('Saia da party atual para procurar outra');return;}if(LFG.fase)return;
   if(!prModoRede()&&!botOn()){toast('Sem rede e com bots desligados não há com quem formar grupo (Configurações > Mostrar bots)');return;}
-  ptPid();LFG.fase='q';LFG.t0=Date.now();LFG.indep=false;LFG.ads.clear();LFG.G=null;LFG.msg='';LFG.hk=null;
-  LFG.eu={pid:PR.pid,nome:prTxt(S.name,20),voc:S.voc,level:S.level,hunt:LFG.hunt,papel:lfgPapel(S.voc,LFG.papel),tam:LFG.tam,t0:LFG.t0,st:'q'};
+  ptPid();LFG.fase='q';LFG.t0=Date.now();LFG.indep=false;LFG.ads.clear();LFG.G=null;LFG.msg='';LFG.hk=null;LFG.pull=null;
+  if(LFG.hunt==='any'||(HUNTS[LFG.hunt]&&HUNTS[LFG.hunt].boss)||!PULL_MODOS.includes(LFG.modo))LFG.modo='any';   /* modo só vale numa caçada escolhida (e não em boss) */
+  LFG.eu={pid:PR.pid,nome:prTxt(S.name,20),voc:S.voc,level:S.level,hunt:LFG.hunt,modo:LFG.modo,papel:lfgPapel(S.voc,LFG.papel),tam:LFG.tam,t0:LFG.t0,st:'q'};
   const modo=prModoRede();if(modo){try{LFG.tr=modo==='local'?prTrLocal('lfg'):prTrRealtime((REDE_RT?'rt_':'')+'global','lfg:');LFG.tr.entrar(LFG_H,()=>LFG.eu);}catch(e){LFG.tr=null;}}
-  log('sys',`🔎 Procurando party: ${LFG.hunt==='any'?'qualquer caçada no seu level':HUNTS[LFG.hunt].n}. Se não achar jogadores em ${LFG_ESPERA/1000} s, bots completam o grupo.`,'y');if(modal==='lfg')openModal('lfg',null,true);}
+  log('sys',`🔎 Procurando party: ${LFG.hunt==='any'?'qualquer caçada no seu level':HUNTS[LFG.hunt].n+(LFG.modo==='any'?'':' ('+HUNTS[LFG.hunt].pull[LFG.modo].nome+')')}. Se não achar jogadores em ${LFG_ESPERA/1000} s, bots completam o grupo.`,'y');lfgRefresh();}
+const lfgRefresh=()=>{if(modal==='lfg')openModal('lfg',null,true);else if(modal==='prep'&&typeof modalArg==='string')openModal('prep',modalArg,true);};
+/* a partir da tela de preparo: procura party para ESTA caçada e ESTE modo de pull (ou qualquer modo, se marcado) */
+function lfgPrep(hk){if(!HUNTS[hk]||HUNTS[hk].pvp||LFG.fase)return;LFG.hunt=hk;LFG.modo=HUNTS[hk].boss||LFG.qm?'any':((S.pull&&S.pull[hk])||'cauteloso');if(HUNTS[hk].boss)LFG.tam=4;lfgIniciar();}
 function lfgCompat(g,c){const all=g.concat(c),lv=all.map(a=>a.level),mn=Math.min(...lv),mx=Math.max(...lv);if(mn*3<mx*2)return false;
-  const hs=new Set(all.map(a=>a.hunt).filter(h=>h!=='any'));if(hs.size>1)return false;const hk=hs.size?[...hs][0]:null;return !hk||mn>=Math.floor(HUNTS[hk].lv*.75);}
+  const hs=new Set(all.map(a=>a.hunt).filter(h=>h!=='any'));if(hs.size>1)return false;const hk=hs.size?[...hs][0]:null;
+  if(new Set(all.map(a=>a.modo).filter(x=>x&&x!=='any')).size>1)return false;   /* mesma caçada, mas modos de pull diferentes (e nenhum "qualquer modo" entre eles): não casa */
+  return !hk||mn>=Math.floor(HUNTS[hk].lv*.75);}
 function lfgHuntDe(g){const hs=[...new Set(g.map(a=>a.hunt).filter(h=>h!=='any'))];return hs.length?hs[0]:lfgHuntAny(Math.min(...g.map(a=>a.level)));}
 function lfgGrupo(){if(LFG.indep)return {g:[LFG.eu],seed:LFG.eu};
   const now=Date.now(),L=[LFG.eu,...[...LFG.ads.values()].filter(a=>a.st==='q'&&now-a.t0<LFG_MAX+60000)].sort((a,b)=>a.t0-b.t0||(a.pid<b.pid?-1:a.pid>b.pid?1:0)),used=new Set();
@@ -5491,7 +5574,8 @@ function lfgGrupo(){if(LFG.indep)return {g:[LFG.eu],seed:LFG.eu};
     for(const c of L){if(used.has(c.pid)||g.length>=s.tam)continue;if(lfgCompat(g,c)){g.push(c);used.add(c.pid);}}
     if(g.some(a=>a.pid===PR.pid))return {g,seed:s};}
   return {g:[LFG.eu],seed:LFG.eu};}
-function lfgFormar(g){const others=g.filter(a=>a.pid!==PR.pid);LFG.hk=lfgHuntDe(g);
+function lfgModoDe(g){const m=g.map(a=>a.modo).find(x=>x&&x!=='any');return m||null;}
+function lfgFormar(g){const others=g.filter(a=>a.pid!==PR.pid);LFG.hk=lfgHuntDe(g);LFG.pull=HUNTS[LFG.hk].boss?null:lfgModoDe(g);
   if(!ptCriar()){lfgFim('Não foi possível criar a party.');return;}
   LFG.fase='form';LFG.tForm=Date.now();LFG.conv=others.map(a=>a.pid);
   for(const a of others){PT.sent[a.pid]=Date.now();if(LFG.tr)LFG.tr.enviar('lfg',{k:'conv',para:a.pid,nome:prTxt(S.name,20),voc:S.voc,level:S.level,pt:PT.id});}
@@ -5507,8 +5591,8 @@ function lfgPreencher(){const hs=PT.mb.filter(x=>!x.bot);if(!hs.length)return 0;
 function lfgFormTick(now){if(!PT.id||!ptSou()){lfgFim('Party desfeita.');return;}
   const falta=LFG.conv.filter(p=>!ptM(p));if(falta.length&&now-LFG.tForm<LFG_FORM_T)return;
   const nb=lfgPreencher();if(PT.mb.length<2){ptDesfazer();lfgFim(botOn()?'Não foi possível formar o grupo.':'Ninguém para formar o grupo e os bots estão desligados (Configurações > Mostrar bots).');return;}
-  const hk=LFG.hk;ptIniciarCacada(hk);const ok=!!PT.fila;LFG.fase=null;
-  LFG.msg=ok?`Grupo formado (${PT.mb.length - nb} jogador${PT.mb.length-nb>1?'es':''}${nb?` + ${nb} bot${nb>1?'s':''}`:''}) para ${HUNTS[hk].n}. Fila da party aberta: todos precisam ficar prontos.`:`Grupo formado, mas não foi possível abrir a fila de ${HUNTS[hk].n}.`;
+  const hk=LFG.hk;ptIniciarCacada(hk,LFG.pull);const ok=!!PT.fila;LFG.fase=null;
+  LFG.msg=ok?`Grupo formado (${PT.mb.length - nb} jogador${PT.mb.length-nb>1?'es':''}${nb?` + ${nb} bot${nb>1?'s':''}`:''}) para ${HUNTS[hk].n}${PT.fila.pull?` (${HUNTS[hk].pull[PT.fila.pull].nome})`:''}. Fila da party aberta: todos precisam ficar prontos.`:`Grupo formado, mas não foi possível abrir a fila de ${HUNTS[hk].n}.`;
   lfgSairCanal();log('sys','🔎 '+LFG.msg,'y');toast('Party formada!');if(modal==='lfg')openModal('lfg',null,true);}
 function lfgTick(){try{if(!LFG.fase)return;const now=Date.now();
   if((LFG.fase==='q'||LFG.fase==='form')&&(!S||S.loc!=='city')){lfgFim('Busca cancelada: você saiu da cidade.');return;}
@@ -5521,22 +5605,28 @@ function lfgTick(){try{if(!LFG.fase)return;const now=Date.now();
     else if(now-LFG.t0>LFG_ESPERA+10000)LFG.indep=true;}   /* o líder do meu grupo nunca me chamou: sigo sozinho (com bots) */
   else if(LFG.fase==='form')lfgFormTick(now);
   if(modal==='lfg'){const sig=LFG.fase+'|'+Math.floor((now-LFG.t0)/1000)+'|'+LFG.ads.size+'|'+(LFG.G?LFG.G.g.length:0);if(sig!==LFG.sig){LFG.sig=sig;openModal('lfg',null,true);}}
+  const li=$('#lfgInl');if(li)li.innerHTML=lfgInlHtml();
 }catch(e){}}
+/* status da fila dentro da tela de preparo da caçada (atualizado a cada 500 ms sem refazer a tela) */
+function lfgInlHtml(){if(!LFG.fase)return '';const el=Math.floor((Date.now()-LFG.t0)/1000),rest=Math.max(0,Math.ceil(LFG_ESPERA/1000)-el),n=LFG.G?LFG.G.g.length:1,H=HUNTS[LFG.hunt],md=LFG.modo;
+  return `<div class="lfgst"><b>${LFG.fase==='form'?'Formando o grupo…':'🔎 Procurando party…'}</b><span>${H?esc(H.n):'qualquer caçada no meu level'}${H&&!H.boss?' · '+(md!=='any'&&H.pull[md]?'pull '+esc(H.pull[md].nome):'qualquer modo'):''}</span><span>${el}s · ${n}/${LFG.tam} no grupo</span><span class="bar"><i style="width:${Math.min(100,Math.round(el/(LFG_ESPERA/1000)*100))}%"></i></span><span class="sm mut">${LFG.fase==='form'?'Convites enviados…':rest>0?`bots completam em ${rest} s`:'completando o grupo…'}</span><button class="wbtn" data-act="lfgCancelar">Cancelar</button></div>`;}
 setInterval(lfgTick,500);
-document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.lfg&&!LFG.fase){LFG[t.dataset.lfg]=t.dataset.lfg==='tam'?clamp(+t.value||4,2,4):t.value;}});
-Object.assign(MODALS,{lfg:hk=>{if(hk&&HUNTS[hk]&&!LFG.fase&&!HUNTS[hk].boss&&!HUNTS[hk].pvp)LFG.hunt=hk;
+document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.lfg&&!LFG.fase){LFG[t.dataset.lfg]=t.dataset.lfg==='tam'?clamp(+t.value||4,2,4):t.dataset.lfg==='qm'?!!t.checked:t.value;if(t.dataset.lfg==='hunt'&&modal==='lfg')openModal('lfg',null,true);}});
+Object.assign(MODALS,{lfg:hk=>{if(hk&&HUNTS[hk]&&!LFG.fase&&!HUNTS[hk].boss&&!HUNTS[hk].pvp)LFG.hunt=hk;if(!LFG.fase&&HUNTS[LFG.hunt]&&HUNTS[LFG.hunt].boss)LFG.hunt='any';
+  const modoT=k=>k==='any'?'qualquer modo':HUNTS[LFG.hunt]&&HUNTS[LFG.hunt].pull[k]?HUNTS[LFG.hunt].pull[k].nome:k;
   const nome=k=>k==='any'?'qualquer caçada no meu level':HUNTS[k].n,papT=p=>IA_ROL_TXT[p],sel=(a,b)=>a===b?'selected':'';
   let body;
   if(LFG.fase==='q'||LFG.fase==='form'){const el=Math.floor((Date.now()-LFG.t0)/1000),rest=Math.max(0,Math.ceil(LFG_ESPERA/1000)-el),G=LFG.G,lista=[LFG.eu,...[...LFG.ads.values()].filter(a=>a.st==='q')];
-    body=`<div class="lfgst"><b>${LFG.fase==='form'?'Formando o grupo…':'🔎 Procurando party…'}</b><div class="sm mut">${esc(nome(LFG.hunt))} · papel: ${papT(lfgPapel(S.voc,LFG.papel))} · grupo de ${LFG.tam}</div>
+    body=`<div class="lfgst"><b>${LFG.fase==='form'?'Formando o grupo…':'🔎 Procurando party…'}</b><div class="sm mut">${esc(nome(LFG.hunt))}${LFG.hunt!=='any'&&!HUNTS[LFG.hunt].boss?' · '+esc(modoT(LFG.modo)):''} · papel: ${papT(lfgPapel(S.voc,LFG.papel))} · grupo de ${LFG.tam}</div>
       <div class="bar"><i style="width:${Math.min(100,Math.round(el/(LFG_ESPERA/1000)*100))}%"></i></div>
       <div class="sm">${LFG.fase==='form'?'Convites enviados; os bots completam o que faltar.':rest>0?`Em ${rest} s os bots ${botHTML(12)} completam os papéis que faltarem.`:'Completando o grupo…'}</div></div>
-      <h4 style="margin:10px 0 2px">Jogadores na fila (${lista.length})</h4>`+lista.map(a=>`<div class="sm">${esc(a.nome)}${a.pid===PR.pid?' (você)':''} · ${esc(VOC[a.voc].n)} Lv ${a.level} · ${esc(nome(a.hunt))}${G&&G.g.some(x=>x.pid===a.pid)&&a.pid!==PR.pid?' <b style="color:#7fe07f">✓ compatível</b>':''}</div>`).join('')+
+      <h4 style="margin:10px 0 2px">Jogadores na fila (${lista.length})</h4>`+lista.map(a=>`<div class="sm">${esc(a.nome)}${a.pid===PR.pid?' (você)':''} · ${esc(VOC[a.voc].n)} Lv ${a.level} · ${esc(nome(a.hunt))}${a.hunt!=='any'&&!HUNTS[a.hunt].boss?' · '+esc(a.modo==='any'?'qualquer modo':HUNTS[a.hunt].pull[a.modo].nome):''}${G&&G.g.some(x=>x.pid===a.pid)&&a.pid!==PR.pid?' <b style="color:#7fe07f">✓ compatível</b>':''}</div>`).join('')+
       `<div style="margin-top:10px;text-align:right"><button class="btn red" data-act="lfgCancelar">Cancelar busca</button></div>`;}
   else{
     body=`<div class="lfgbox"><p class="mut sm">Entre numa fila para achar jogadores com level compatível (regra de exp compartilhada de 2/3) na mesma caçada. Se não aparecer ninguém, ${botHTML(12)} <b>bots</b> completam os papéis que faltam (bloqueio, cura, dano, lure) — eles contam para o bônus de vocações, mas não recebem exp nem loot.</p>
       ${LFG.msg?`<div class="lfgst"><b>Resultado:</b> ${esc(LFG.msg)}</div>`:''}
       <label>Caçada<select data-lfg="hunt"><option value="any" ${sel(LFG.hunt,'any')}>Qualquer caçada no meu level</option>${lfgHunts().map(k=>`<option value="${k}" ${sel(LFG.hunt,k)}>Lv ${HUNTS[k].lv}+ · ${esc(HUNTS[k].n)}</option>`).join('')}</select></label>
+      <label>Modo de pull<select data-lfg="modo" ${LFG.hunt==='any'?'disabled':''}><option value="any" ${sel(LFG.modo,'any')}>Qualquer modo</option>${LFG.hunt!=='any'?PULL_MODOS.map(k=>`<option value="${k}" ${sel(LFG.modo,k)}>${esc(modoT(k))}</option>`).join(''):''}</select></label>
       <label>Papel<select data-lfg="papel"><option value="auto" ${sel(LFG.papel,'auto')}>Automático (${papT(IA_ROL[S.voc]||'dano')})</option>${LFG_ROLES.map(r=>`<option value="${r}" ${sel(LFG.papel,r)}>${papT(r)}</option>`).join('')}</select></label>
       <label>Tamanho do grupo<select data-lfg="tam">${[2,3,4].map(n=>`<option value="${n}" ${LFG.tam===n?'selected':''}>${n} membros</option>`).join('')}</select></label>
       ${!botOn()?'<p class="red sm">Bots desligados (Configurações > Mostrar bots): só formará grupo com jogadores reais.</p>':''}
@@ -5554,7 +5644,7 @@ function botTick(){try{
   else if(!W.city&&S.loc!=='arena'&&S.loc!=='treino'){botHuntTick(now);botPvTick(now);}
 }catch(e){}}
 setInterval(botTick,100);
-const BOTACT={botPerfil:a=>{hideCtx();openModal('botPerfil',a);},botConvidar:a=>botConvidar(a),lfgAbrir:a=>openModal('lfg',a||null),lfgIniciar:()=>lfgIniciar(),
+const BOTACT={botPerfil:a=>{hideCtx();openModal('botPerfil',a);},botConvidar:a=>botConvidar(a),lfgAbrir:a=>openModal('lfg',a||null),lfgPrep:a=>lfgPrep(a),lfgIniciar:()=>lfgIniciar(),
   lfgCancelar:()=>{if(LFG.fase==='form'&&PT.id&&ptSou())ptDesfazer();lfgFim('Busca cancelada.');}};
 
 /* ======================= BOSSES EM GRUPO =======================
@@ -5612,7 +5702,7 @@ function bossPrepModal(hk){const h=HUNTS[hk],m=MOBS[h.boss],cd=chefeResta(hk),el
     <div class="pbody"><div class="pl"><h4>Minions</h4><div class="mchips">${chips}</div>
       <div class="mut sm" style="margin-top:8px">Tempo máximo da luta: ${Math.round(CHEFE_TEMPO/MIN)} min. O boss não renasce; quando morre, a party volta à cidade com o loot. Se o líder morrer ou sair, a caçada termina.</div></div>
       <div class="pr"><div class="lhead"><h4>Loot do boss (uma rolagem por participante)</h4></div><div class="lcols"><span>PEGAR</span><span>VENDER</span></div><div class="lscroll" data-keep="loot">${lootLinhas(hk)}</div></div></div>
-    <div class="pfoot"><span>${esc(h.n)}</span><span>${chefeBtn(hk)}</span></div>`};}
+    <div class="pfoot pf3"><span>${esc(h.n)}</span>${prepStart(hk)}<div class="lfgInl" id="lfgInl">${lfgInlHtml()}</div></div>`};}
 
 async function boot(){
   document.body.appendChild(holder);buildSprites();resize();
