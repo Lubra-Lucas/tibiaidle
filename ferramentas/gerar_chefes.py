@@ -6,8 +6,8 @@ Fontes (nada aqui é inventado à mão além da tabela CONFIG abaixo):
     src/utils/utils_definitions.hpp): vida, exp, ataques, defesas, resistências, loot e estatísticas reais dos itens;
   - Belerin87/TibiaSprites (GIFs da TibiaWiki dos bosses e criaturas): viram folhas de criatura no formato 15.01 do jogo
     (1 quadro parado + 8 de andar x 4 direções; o GIF só tem a frente: N/L reaproveitam o quadro e O é o espelho);
-  - ícones dos itens de topo: não existe fonte pública dos sprites 15.01 desses itens, então são DERIVADOS de sprites que o
-    jogo já tem (mesma peça, cor trocada por conjunto) em tibia-assets/sprites15/itens/gerado_<id>.png.
+  - ícones dos itens de topo: sprites reais do cliente, extraídos com ferramentas/extrair_cliente.py para
+    tibia-assets/sprites15/itens/<cid>.png (o gerador só aponta o caminho; rode o extrator antes).
 Uso: gerar_chefes.py CANARY_DIR TIBIASPRITES_DIR [--out tibia-assets]   (precisa de Pillow)"""
 import sys, os, re, json, argparse, colorsys
 from PIL import Image, ImageSequence
@@ -135,8 +135,8 @@ def gemas_gigantes():
     for nome, base in GEMAS:
         d = XML_NAME[nome]; k = nome.replace(' ', '_'); im = Image.open(f'{ITENS_DIR}{base}.png').convert('RGBA'); bb = im.getbbox(); g = im.crop(bb)
         f = 28 / max(g.size); g = g.resize((max(1, round(g.width * f)), max(1, round(g.height * f))), Image.NEAREST)
-        c = Image.new('RGBA', (32, 32), (0, 0, 0, 0)); c.paste(g, ((32 - g.width) // 2, 31 - g.height), g); c.save(f'{ITENS_DIR}gerado_{k}.png')
-        NOVOS_ITENS[k] = {'n': d['name'].title(), 'w': num(d['attr'].get('weight')) / 100, 'v': SELL[d['id']], 'type': 'loot', 'cid': d['id'], 'icone': f'tibia-assets/sprites15/itens/gerado_{k}.png', 'derivado': True}
+        c = Image.new('RGBA', (32, 32), (0, 0, 0, 0)); c.paste(g, ((32 - g.width) // 2, 31 - g.height), g); # (o PNG real vem de ferramentas/extrair_cliente.py; nao e mais derivado)
+        NOVOS_ITENS[k] = {'n': d['name'].title(), 'w': num(d['attr'].get('weight')) / 100, 'v': SELL[d['id']], 'type': 'loot', 'cid': d['id'], 'icone': f"tibia-assets/sprites15/itens/{d['id']}.png"}
 NOVOS_ITENS = {}   # itens de loot com sprite local que o cacadas100.js não tem
 def chave_item(d):
     if d['name'].lower().replace(' ', '_') in NOVOS_ITENS: return d['name'].lower().replace(' ', '_')
@@ -313,7 +313,7 @@ def build():
         d = XML_NAME[nome]; eid = re.sub(r'[^a-z0-9]+', '_', nome).strip('_')
         w = round(num(d['attr'].get('weight')) / 100, 1); mult = 1.6 if slot == 'weapon' else 1.0
         v = int(VALOR[conj] * mult * (1.3 if slot in ('armor', 'shield') else 1.0) / 1000 + .5) * 1000
-        ic = f'sprites15/itens/gerado_{eid}.png'; tingir(base, conj, OUT + ic)
+        ic = f"sprites15/itens/{d['id']}.png"   # sprite real extraido do cliente (extrair_cliente.py --itens <cid>)
         row = {'id': eid, 'n': ' '.join(x.capitalize() if x not in ('of', 'the') else x for x in nome.replace("'", "'").split()), 'slot': slot, 'voc': voc, 'wt': wt, 'st': st, 'lv': lv,
                'w': w, 'v': v, 'icone': 'tibia-assets/' + ic, 'conj': conj, 'real': {'cid': d['id'], 'armor': d['attr'].get('armor'), 'defense': d['attr'].get('defense'), 'attack': d['attr'].get('attack')}}
         equip.append(row); ids.setdefault(conj, []).append(eid)

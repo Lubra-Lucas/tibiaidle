@@ -2599,7 +2599,7 @@ MODALS.trResumo=(r)=>({title:'Treino enquanto você estava fora',sm:true,body:`<
   (r.fim?'<p class="red sm">As armas de treino acabaram e o personagem voltou para a cidade.</p>':'')+(r.ms>TR_OFF_MAX?`<p class="mut sm">O treino offline conta no máximo ${TR_OFF_MAX/H} horas.</p>`:'')+`<div style="text-align:right">${rowBtn('Continuar','closeModal','',false,'go')}</div>`});
 function drawBoneco(d,X,Y,now,labels,sx,sy){const im=folhaImg('tibia-assets/sprites15/treino/dummy.png'),ativo=W.dummies[trEst().dum]===d,dt=now-d.hit,sh=dt<220?Math.sin(dt/22)*(1-dt/220)*2.5:0;
   if(ativo){ctx.fillStyle='rgba(255,216,74,.22)';ctx.beginPath();ctx.ellipse(X+16,Y+27,15,7,0,0,7);ctx.fill();}
-  if(im)ctx.drawImage(im,X+sh,Y-12);else{ctx.save();ctx.font=`25px ${EMOJI}`;ctx.textAlign='center';ctx.fillText('🎯',X+16,Y+22);ctx.restore();}
+  if(im)ctx.drawImage(im,X+sh-32,Y-32);else{ctx.save();ctx.font=`25px ${EMOJI}`;ctx.textAlign='center';ctx.fillText('🎯',X+16,Y+22);ctx.restore();}
   if(dt<260&&d.sk==='melee'){ctx.save();ctx.globalAlpha=1-dt/260;ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X+3,Y+2);ctx.lineTo(X+29,Y+26);ctx.moveTo(X+8,Y);ctx.lineTo(X+30,Y+18);ctx.stroke();ctx.restore();}
   if(ativo)labels.push({x:sx(X+16),y:sy(Y-16),name:'Boneco de treino',hp:1,cor:'#ffd84a'});}
 cv.addEventListener('click',e=>{if(!S||S.loc!=='treino'||!W||!W.cam||!W.dummies)return;const wx=(e.clientX/ZOOM+W.cam.x)/TS,wy=(e.clientY/ZOOM+W.cam.y)/TS;let b=-1,bd=1.4;
