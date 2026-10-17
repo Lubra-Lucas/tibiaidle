@@ -30,6 +30,9 @@ canvas.ret15{image-rendering:pixelated;width:100%;height:100%;display:block}
 .ofgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:4px;max-height:200px;overflow:auto;padding:4px;background:#0a0c12;border:1px solid var(--line);border-radius:3px}
 .ofit{background:var(--ui2);border:1px solid #000;box-shadow:inset 0 0 0 1px var(--line);border-radius:3px;cursor:pointer;padding:2px;width:100%;aspect-ratio:1}
 .ofit.on{box-shadow:inset 0 0 0 2px var(--gold)}
+.ofit{position:relative}.ofit.lock canvas{filter:grayscale(1) brightness(.5)}.ofit.lock::after{content:"🔒";position:absolute;right:1px;bottom:0;font-size:11px}.ofit.cmp{box-shadow:inset 0 0 0 1px #c9a23a}
+.ofgrid.mgrid{grid-template-columns:repeat(auto-fill,minmax(60px,1fr));max-height:260px}.ofgrid.ogrid{max-height:260px}
+.oreq{background:#0a0c12;border:1px solid var(--line);border-radius:3px;padding:6px 8px;margin:8px 0}.oreq.ok{border-color:#2f7a3a}.oreq b.l{color:#ff9a6a}.oreq b.g{color:#7fe07f}
 .cgrid{display:grid;grid-template-columns:repeat(19,1fr);gap:1px;background:#000;padding:1px;width:min(100%,380px)}
 .cgrid button{width:100%;aspect-ratio:1;border:0;padding:0;cursor:pointer}
 .cgrid button.on{outline:2px solid #fff;outline-offset:-2px}
@@ -752,6 +755,7 @@ button.lnk:hover{color:var(--gold)}
 <script src="tibia-assets/chefes.js"></script>
 <script src="tibia-assets/mapas15/arena.js"></script>
 <script src="tibia-assets/outfits15.js"></script>
+<script src="tibia-assets/montarias15.js"></script>
 <script src="tibia-assets/avatares15.js"></script>
 <script>
 'use strict';
@@ -994,7 +998,7 @@ function newState(name,voc){
     bag:{hp_pot:20,mp_pot:voc==='knight'?5:20},depot:{},
     sets:{'Default':defaultHot(voc),'Set 2':defaultHot(voc),'Set 3':new Array(16).fill(null)},set:'Default',target:'near',
     imb:{weapon:[null,null],helmet:[null],armor:[null],legs:[null],boots:[null],shield:[null]},
-    prey:[0,1,2].map(i=>({opts:null,mob:null,type:null,val:0,est:1,ms:0,auto:false,trava:false,livreEm:0,lib:i===0})),wildcards:0,wcAcc:0,tc:0,favs:{},
+    prey:[0,1,2].map(i=>({opts:null,mob:null,type:null,val:0,est:1,ms:0,auto:false,trava:false,livreEm:0,lib:i===0})),wildcards:0,wcAcc:0,tc:0,favs:{},outfits:{},mount:{atual:0,on:0,owned:[]},
     best:{},bestClaim:{},charmPts:0,charms:{dmg:0,exp:0,loot:0,def:0},
     bless:false,stamina:STAM_MAX,loc:'city',lastHunt:null,pull:{},lootCfg:{},recordes:{},
     rules:{autoReturn:true,cap:90,minHp:5,minMp:5,autoSell:true,keepMats:true,sellEq:true,refill:[{id:'hp_pot',q:50},{id:'mp_pot',q:voc==='knight'?10:50}],autoBless:false,autoBack:true,smart:false,backAfterDeath:false,lure:0,ia:true,aCave:true,aAlvo:true,aCura:true,aAtk:true},
@@ -1383,7 +1387,7 @@ function mods(L){const c=L.c,T=W.time,r={melee:1,dist:1,escudo:1,feito:1,recebid
     if(b.melee)r.melee*=b.melee/100;if(b.dist)r.dist*=b.dist/100;if(b.escudo)r.escudo*=b.escudo/100;if(b.feito)r.feito*=b.feito/100;if(b.recebido)r.recebido*=b.recebido/100;
     if(b.sem_defesa)r.semDef=true;if(b.haste)r.vel*=b.haste;if(b.lento_self)r.vel*=Math.max(.3,b.lento_self);if(b.pacifico)r.pacifico=true;}
   if(c.emp&&c.emp.ate>T&&Math.max(Math.abs(L.x-c.emp.x),Math.abs(L.y-c.emp.y))<=AVT15.emp.r)r.feito*=c.emp.f;   /* Divine Empowerment: +dano em cima do campo */
-  if(c.rapido&&c.rapido.ate>T)r.vel*=c.rapido.f;if(c.lento&&c.lento.ate>T)r.vel*=c.lento.f;return r;}
+  if(c.rapido&&c.rapido.ate>T)r.vel*=c.rapido.f;if(c.lento&&c.lento.ate>T)r.vel*=c.lento.f;if(L.eJog&&!W.arena)r.vel*=montaVel();return r;}   /* montaria: +velocidade do mounts.xml */
 function valor15(L,m){if(!m.fn)return 0;const md=mods(L);let r;
   try{if(m.ftipo==='sk'){const sk=Math.round(L.skill*(L.voc==='knight'?md.melee:md.dist));r=m.fn(Object.assign({level:L.nivel,ml:L.ml},PL15),sk,L.atkArma,1);}
       else r=m.fn(Object.assign({level:L.nivel,ml:L.ml},PL15),L.nivel,L.ml);}catch(e){return 0;}
@@ -1596,7 +1600,7 @@ function passoPara(e,t,alvoDist){let best=null,bs=1e9;
 /* ======================= ARENA 1x1 CONTRA ADVERSÁRIOS SIMULADOS =======================
    Os dois lados são "lutadores" com o mesmo motor de magias: hotbar, poções, runas, Magic Shield, buffs.
    Regras de PvP do Tibia: dano entre jogadores pela metade. Ninguém perde nada ao cair na arena. */
-const OUTF15=window.OUTFITS15||{};
+const OUTF15=window.OUTFITS15||{},MONT15=window.MONTARIAS15||{};   /* MONT15[id]: montarias do mounts.xml (sheet com 4 direções); outfit.mont = id da montaria que o personagem monta (pose srcm do outfit) */
 const ARENA_DEF={n:'Arena',proprio:'arena',x:0,y:0,z:4};
 /* paleta de 133 cores do Tibia (Outfit::getColor do OTClient) */
 function cor15(c){const H=19,SI=7;if(c>=H*SI)c=0;let h,s,i;
@@ -1607,23 +1611,35 @@ function cor15(c){const H=19,SI=7;if(c>=H*SI)c=0;let h,s,i;
   return [Math.floor(r*255),Math.floor(g*255),Math.floor(b*255)];}
 /* monta a folha colorida de um outfit (base + addons, máscara pintada com as cores escolhidas) */
 const _outfit15={};
-function comporOutfit(o){const k=o.look+':'+o.cores.join(',')+':'+o.addons;if(_outfit15[k])return _outfit15[k];const O=OUTF15[o.look];if(!O)return null;
-  const im=folhaImg(O.src);if(!im||!im.naturalWidth)return null;
-  const cols=O.parado+O.andar,Wd=O.w*cols,Ht=O.h*4,cv=document.createElement('canvas');cv.width=Wd;cv.height=Ht;const g=cv.getContext('2d');
-  const tmp=document.createElement('canvas');tmp.width=Wd;tmp.height=Ht;const tg=tmp.getContext('2d',{willReadFrequently:true}),C=o.cores.map(cor15);
-  for(const py of [0,...(O.addons?[1,2].filter(p=>o.addons&p):[])]){
+/* pinta a máscara de cores de uma folha (base + addons) em um canvas; im = folha, O = meta (w,h,parado,andar) */
+function pintarFolha15(im,O,addons,C){const cols=O.parado+O.andar,Wd=O.w*cols,Ht=O.h*4,cv=document.createElement('canvas');cv.width=Wd;cv.height=Ht;const g=cv.getContext('2d');
+  const tmp=document.createElement('canvas');tmp.width=Wd;tmp.height=Ht;const tg=tmp.getContext('2d',{willReadFrequently:true});
+  for(const py of [0,...(O.addons?[1,2].filter(p=>addons&p):[])]){
     tg.clearRect(0,0,Wd,Ht);tg.drawImage(im,0,py*2*Ht,Wd,Ht,0,0,Wd,Ht);
     try{const base=tg.getImageData(0,0,Wd,Ht);tg.clearRect(0,0,Wd,Ht);tg.drawImage(im,0,(py*2+1)*Ht,Wd,Ht,0,0,Wd,Ht);const mk=tg.getImageData(0,0,Wd,Ht).data,b=base.data;
       for(let i=0;i<b.length;i+=4){if(!mk[i+3])continue;const r=mk[i],gg=mk[i+1],bb=mk[i+2],q=(r&&gg&&!bb)?C[0]:(r&&!gg)?C[1]:(gg&&!r)?C[2]:bb?C[3]:null;
         if(q){b[i]=b[i]*q[0]/255;b[i+1]=b[i+1]*q[1]/255;b[i+2]=b[i+2]*q[2]/255;}}
       tg.putImageData(base,0,0);}catch(e){tg.clearRect(0,0,Wd,Ht);tg.drawImage(im,0,py*2*Ht,Wd,Ht,0,0,Wd,Ht);}   /* sem permissão de ler pixels: fica sem cor */
     g.drawImage(tmp,0,0);}
-  return _outfit15[k]={img:cv,w:O.w,h:O.h,parado:O.parado,andar:O.andar,ms:O.ms,desl:O.desl};}
+  return cv;}
+/* montado: a montaria por baixo e a pose montada (srcm, patternZ 1) do outfit por cima, na mesma célula; quadros parados/andar de cada um mapeados pelo maior (a montaria manda no deslocamento) */
+function montar15(o,O,M,imO,imM,C){const P=Math.max(O.parado,M.parado),A=Math.max(O.andar,M.andar),w=Math.max(O.w,M.w),h=Math.max(O.h,M.h),cv=document.createElement('canvas');cv.width=w*(P+A);cv.height=h*4;const g=cv.getContext('2d');
+  const cm=pintarFolha15(imM,M,0,C),co=pintarFolha15(imO,O,o.addons,C);
+  for(let c=0;c<P+A;c++){const id=c<P,j=c-P,oc=id?Math.floor(c*O.parado/P):O.parado+Math.floor(j*O.andar/A),mc=id?Math.floor(c*M.parado/P):M.parado+Math.floor(j*M.andar/A);
+    for(let d=0;d<4;d++){g.drawImage(cm,mc*M.w,d*M.h,M.w,M.h,c*w+w-M.w,d*h+h-M.h,M.w,M.h);g.drawImage(co,oc*O.w,d*O.h,O.w,O.h,c*w+w-O.w,d*h+h-O.h,O.w,O.h);}}
+  return {img:cv,w,h,parado:P,andar:A,ms:M.parado>=O.parado?M.ms:O.ms,desl:M.desl,mt:1};}
+function comporOutfit(o){const O=OUTF15[o.look];if(!O)return null;const M=o.mont&&O.srcm&&MONT15[o.mont],k=o.look+':'+o.cores.join(',')+':'+o.addons+(M?':m'+o.mont:'');if(_outfit15[k])return _outfit15[k];
+  const C=o.cores.map(cor15);
+  if(M){const iO=folhaImg(O.srcm),iM=folhaImg(M.src);if(iO&&iM&&iO.naturalWidth&&iM.naturalWidth)return _outfit15[k]=montar15(o,O,M,iO,iM,C);return comporOutfit({look:o.look,cores:o.cores,addons:o.addons});}   /* a montaria ainda carrega: desenha desmontado */
+  const im=folhaImg(O.src);if(!im||!im.naturalWidth)return null;
+  return _outfit15[k]={img:pintarFolha15(im,O,o.addons,C),w:O.w,h:O.h,parado:O.parado,andar:O.andar,ms:O.ms,desl:O.desl};}
 /* retrato (parado, olhando para o sul) para as listas: um <canvas> desenhado depois que a janela monta.
    Desenhar canvas a partir de imagem não lê pixels, então funciona até em file:// (sem cor se a colorização falhar). */
 function ret15(o){return `<canvas class="ret15" width="64" height="64" data-o="${esc(JSON.stringify(o))}"></canvas>`;}
 function pintarRetratos(){
-  $$('canvas.ret15:not([data-ok])').forEach(c=>{let o;try{o=JSON.parse(c.dataset.o);}catch(e){return;}const O=OUTF15[o.look];if(!O)return;
+  $$('canvas.ret15:not([data-ok])').forEach(c=>{let o;try{o=JSON.parse(c.dataset.o);}catch(e){return;}
+    if(o.m){const M=MONT15[o.m],im=M&&folhaImg(M.src);if(!im)return;const g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);g.imageSmoothingEnabled=false;g.drawImage(im,0,2*M.h,M.w,M.h,0,0,c.width,c.height);c.dataset.ok='1';return;}   /* retrato de montaria */
+    const O=OUTF15[o.look];if(!O)return;
     let f=null;try{f=comporOutfit(o);}catch(e){f=null;}
     if(!f){folhaImg(O.src);return;}   /* a folha ainda carrega: retratoPronto() repinta quando terminar */
     const g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);g.imageSmoothingEnabled=false;g.drawImage(f.img,0,2*f.h,f.w,f.h,0,0,c.width,c.height);c.dataset.ok='1';});}
@@ -1818,7 +1834,7 @@ function arenaFim(venceu){const A=W.arena,E=arenaEstado(),op=A.op,esp=1/(1+Math.
   log('sys',`⚔️ ${venceu?'Vitória':'Derrota'} contra ${op.nome}! ${dp>=0?'+':''}${dp} pontos${ouro?`, +${fmt(ouro)} gold`:''}.`,venceu?'g':'r');toast(venceu?`🏆 Vitória! ${dp>=0?'+':''}${dp} pts`:`💀 Derrota ${dp} pts`);
   save();}
 /* desenho: lutadores, placar, tempo e aviso de combo */
-function drawLutador(L,X,Y){const av=drawAvatar15(L,L,L.dir,X,Y);if(av)return av;if(!L.folha&&L.op.outfit)L.folha=comporOutfit(L.op.outfit);if(!L.folha)return null;return drawFolha15(L.folha,L,L.dir,X,Y);}
+function drawLutador(L,X,Y){const av=drawAvatar15(L,L,L.dir,X,Y);if(av)return av;if(L.op.outfit&&(!L.folha||(L.op.outfit.mont&&!L.folha.mt))){const f=comporOutfit(L.op.outfit);if(f)L.folha=f;}if(!L.folha)return null;   /* montado: refaz até a montaria carregar */return drawFolha15(L.folha,L,L.dir,X,Y);}
 function drawArenaHud(){const A=W.arena;if(!A)return;const T=W.time;ctx.save();ctx.setTransform(DPR,0,0,DPR,0,0);ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='#000';
   const esc2=(t,y,f,c)=>{ctx.font=f;ctx.strokeText(t,(VW-SBW)/2,y);ctx.fillStyle=c;ctx.fillText(t,(VW-SBW)/2,y);};
   const seg=Math.max(0,Math.ceil((180000-Math.max(0,T-A.t0))/1000)),txt=A.fim?(A.fim.venceu?'🏆 VITÓRIA':'💀 DERROTA'):T<A.t0?'Prepare-se…':`${Math.floor(seg/60)}:${String(seg%60).padStart(2,'0')}`;
@@ -2255,7 +2271,7 @@ function drawCriatura(m,X,Y){const f=SPL.criaturas[m.id];
 function drawAvatar15(L,e,dir,X,Y){const b=L.c&&L.c.buffs&&L.c.buffs.avatar,f=b&&b.ate>W.time&&window.AVATAR15&&AVATAR15[L.voc];return f?drawFolha15(f,e,dir,X,Y):null;}
 function drawJogador(X,Y){const p=W.p,R74=window.ROUPAS74&&ROUPAS74[S.voc],R15=SP15.roupas[S.voc];
   const av=drawAvatar15(JOG,p,[2,1,0,3][p.face??0],X,Y);if(av)return av;
-  if(S.outfit){const fo=comporOutfit(S.outfit);if(fo)return drawFolha15(fo,p,[2,1,0,3][p.face??0],X,Y);}   /* outfit escolhido (colorido em canvas) */
+  if(S.outfit){const fo=comporOutfit(outJog());if(fo)return drawFolha15(fo,p,[2,1,0,3][p.face??0],X,Y);}   /* outfit escolhido (colorido em canvas) */
   if(R15&&S.roupa!=='moderna'){const f=R15[S.addon??3]||R15[0];if(f)return drawFolha15(f,p,[2,1,0,3][p.face??0],X,Y);}
   if(R74&&S.roupa!=='moderna'){const im=folhaImg(R74.src);if(!im)return null;const now=performance.now();
     /* como no cliente: parado = fase 0; andando, as pernas trocam a cada meio passo (fases 1 e 2) */
@@ -2457,14 +2473,69 @@ function openModal(kind,arg,keepScroll){
 function closeModal(){modal=null;outRasc=null;pararPrevia();animParar();pararPreyTimer();pararMkTimer();$('#modal').classList.add('hidden');}
 function rowBtn(label,act,arg,dis,cls=''){return `<button class="btn ${cls}" data-act="${act}" data-arg="${esc(arg)}" ${dis?'disabled':''}>${label}</button>`;}
 /* ---------- outfit do personagem: lista, 4 cores (paleta de 133), addons e prévia animada ---------- */
-const OUT_PARTES=['Cabeça','Corpo','Pernas','Pés'],OUT_TUMB=[78,69,58,76];let outRasc=null,outParte=0,outTimer=null;
+/* ---------- desbloqueio de outfits e montarias ----------
+   S.outfits = {nome: máscara de addons (1,2)} (nome canônico: Noblewoman→Nobleman; vale para os dois sexos); S.mount = {atual, on, owned:[ids]}.
+   Regras [tipo,...]: free · lv N · kill mob N (boss: vem com os 2 addons) · best N criaturas completas no bestiário · arena pontos · tc preço (loja). outChecar()/mntChecar() destravam sozinhos. */
+const canonOut=n=>String(n).replace(/woman$/,'man');
+const OUT_NOMES=(()=>{const m={};for(const k of Object.keys(OUTF15)){const c=canonOut(OUTF15[k].nome);(m[c]=m[c]||{nome:c,looks:[]}).looks.push(+k);}return m;})();
+const OUT_LIVRES=['Citizen','Hunter','Mage','Knight','Nobleman','Summoner','Warrior','Barbarian','Druid','Wizard','Oriental'];
+const OUT_REQ={Pirate:['kill','pirate_marauder',100],Assassin:['kill','assassin',150],Beggar:['kill','crazed_beggar',100],Shaman:['kill','orc_shaman',150],Norseman:['kill','barbarian_skullhunter',150],Nightmare:['kill','gazharagoth',1],Jester:['lv',30],
+  Brotherhood:['kill','novice_of_the_cult',100],'Demon Hunter':['kill','demon',100],Yalaharian:['kill','efreet',200],'Newly Wed':['lv',20],Warmaster:['arena',1300],Wayfarer:['lv',60],Afflicted:['kill','zombie',300],Elementalist:['kill','fire_elemental',200],
+  Deepling:['kill','deepling_scout',200],Insectoid:['kill','insectoid_scout',200],'Crystal Warlord':['kill','stone_rhino',150],'Soil Guardian':['kill','earth_elemental',200],Demon:['kill','ferumbras',1],'Cave Explorer':['best',10],'Dream Warden':['kill','phantasm',200],
+  'Glooth Engineer':['kill','mad_scientist',150],'Rift Warrior':['kill','instable_breach_brood',200],Festive:['lv',25],'Makeshift Warrior':['lv',40],'Battle Mage':['kill','necromancer',150],Discoverer:['best',25],'Dream Warrior':['arena',1200],'Percht Raider':['kill','yeti',150],
+  Golden:['lv',200],'Hand of the Inquisition':['kill','ghazbaran',1],'Orcsoberfest Garb':['kill','orc_warrior',300],Poltergeist:['kill','lost_soul',150],Falconer:['kill','hunter',100],Revenant:['kill','vampire',200],Rascoohan:['kill','gnarlhound',100],
+  'Citizen of Issavi':['kill','feral_sphinx',100],'Royal Bounacean Advisor':['lv',100],'Fire-Fighter':['kill','fire_devil',200],'Ancient Aucar':['kill','lizard_templar',200],'Decaying Defender':['kill','rotten_golem',150],'Draccoon Herald':['kill','dragon',300],
+  Rootwalker:['kill','branchy_crawler',100],'Fiend Slayer':['kill','orshabaal',1],Illuminator:['kill','scourge_of_oblivion',1],Jersey:['lv',15],Recruiter:['lv',35],Monk:['kill','monk',150]};
+const MONT_LIVRES=[22,13,2];   /* Rented Horse, Donkey, Racing Bird */
+const MONT_REQ={1:['kill','giant_spider',200],3:['kill','gazharagoth',1],4:['kill','sheep',100],5:['kill','gloom_wolf',200],6:['kill','dragon_hatchling',200],7:['kill','dragon_lord',300],8:['kill','orshabaal',1],9:['kill','ferumbras',1],10:['kill','boar',150],11:['kill','stone_rhino',150],
+  12:['kill','ghazbaran',1],14:['kill','slug',150],15:['lv',50],16:['kill','winter_wolf',300],17:['lv',40],18:['kill','deer',200],19:['kill','panda',200],20:['kill','dromedary',150],21:['kill','scorpion',200],27:['kill','bug',300],28:['kill','young_sea_serpent',150],
+  29:['kill','iron_servant',200],30:['kill','magma_crawler',200],31:['kill','dragon',300],32:['kill','gnarlhound',150],35:['kill','water_buffalo',150],38:['kill','behemoth',150],39:['kill','scourge_of_oblivion',1],40:['kill','lion',300],42:['kill','gazer',200],43:['kill','destroyer',100],
+  71:['kill','mad_scientist',200],87:['kill','instable_breach_brood',300],94:['best',20],98:['best',35],99:['best',50],106:['kill','stone_rhino',400],119:['kill','mole',200],126:['best',15],130:['kill','wasp',300],131:['kill','yeti',200],144:['kill','gryphon',300],167:['kill','phantasm',300],
+  174:['kill','lion',600],175:['kill','young_sea_serpent',600],182:['arena',1500],183:['kill','tortoise',300],184:['kill','fire_elemental',300],202:['kill','hydra',200],206:['kill','mutated_tiger',300],218:['kill','fox',200],222:['kill','tiger',400],227:['best',60],232:['kill','demon',666],236:['kill','darklight_construct',300]};
+const OUT_TC=l=>l<700?400:l<1200?550:700,MONT_TC=600,ADD_GP=[150000,400000],ADD_TC=[5,14];   /* preço do outfit/montaria da loja (TC) e dos addons 1 e 2 (gold ou TC) */
+const MOB_CHEFES=()=>new Set(Object.values(CH.chefes||{}).map(c=>c.mob));
+let _outRg=null,_mntRg=null;
+function regraOk(r){return r[0]!=='kill'||MOBS[r[1]]?r:['lv',Math.max(10,Math.min(200,Math.round(Math.sqrt(r[2])*8)))];}   /* monstro que não existe: troca por um level */
+function outRegras(){if(_outRg)return _outRg;const m={};for(const n in OUT_NOMES)m[n]=OUT_LIVRES.includes(n)?['free']:OUT_REQ[n]?regraOk(OUT_REQ[n]):['tc',OUT_TC(Math.min(...OUT_NOMES[n].looks))];return _outRg=m;}
+function mntRegras(){if(_mntRg)return _mntRg;const m={};let i=0;for(const id of Object.keys(MONT15).map(Number).sort((a,b)=>a-b)){const M=MONT15[id];
+    m[id]=MONT_LIVRES.includes(id)?['free']:MONT_REQ[id]?regraOk(MONT_REQ[id]):M.tipo==='store'?['tc',MONT_TC]:['lv',15+6*i++];}return _mntRg=m;}
+function bestCompletos(){let n=0;for(const k of MOB_CACADA)if(MOBS[k]&&MOBS[k].hostil&&bestStage(k)>=3)n++;return n;}
+function regraCumprida(r){switch(r[0]){case 'free':return true;case 'lv':return S.level>=r[1];case 'kill':return (S.best[r[1]]||0)>=r[2];case 'best':return bestCompletos()>=r[1];case 'arena':return arenaEstado().pontos>=r[1];default:return false;}}
+function regraTxt(r){switch(r[0]){case 'free':return 'Disponível desde o início';case 'lv':return `Alcance o level ${r[1]}`;case 'kill':return MOB_CHEFES().has(r[1])?`Derrote o boss ${MOBS[r[1]].n} (vem com os 2 addons)`:`Derrote ${fmt(r[2])} × ${MOBS[r[1]].n}`;
+  case 'best':return `Complete ${r[1]} criaturas no Bestiário`;case 'arena':return `Chegue a ${fmt(r[1])} pontos na Arena`;case 'tc':return `Compre na loja por ${r[1]} TC`;default:return '';}}
+const regraProg=r=>r[0]==='lv'?`${Math.min(S.level,r[1])}/${r[1]}`:r[0]==='kill'?`${Math.min(S.best[r[1]]||0,r[2])}/${r[2]}`:r[0]==='best'?`${Math.min(bestCompletos(),r[1])}/${r[1]}`:r[0]==='arena'?`${Math.min(arenaEstado().pontos,r[1])}/${r[1]}`:'';
+const outTem=n=>!!S.outfits&&S.outfits[canonOut(n)]!==undefined,outMask=n=>(S.outfits&&S.outfits[canonOut(n)])|0;
+function outDar(n,add,aviso){const c=canonOut(n),novo=S.outfits[c]===undefined;S.outfits[c]=(S.outfits[c]|0)|(add|0);if(novo&&aviso){toast('🎨 Novo outfit desbloqueado! '+c);log('sys',`🎨 Novo outfit desbloqueado: ${c}.`,'y');}return novo;}
+function outChecar(silencioso){if(!S)return 0;if(!S.outfits||typeof S.outfits!=='object')S.outfits={};const R=outRegras(),ch=MOB_CHEFES();let n=0;
+  for(const nome in R){if(outTem(nome))continue;const r=R[nome];if(regraCumprida(r)){outDar(nome,r[0]==='kill'&&ch.has(r[1])?3:0,!silencioso);n++;}}
+  if(silencioso&&n>OUT_LIVRES.length)log('sys',`🎨 ${n} outfits já estavam desbloqueados pelo seu progresso.`,'y');return n;}
+const mntTem=id=>!!S.mount&&S.mount.owned.includes(+id);
+function mntDar(id,aviso){if(mntTem(id))return false;S.mount.owned.push(+id);if(aviso){toast('🐴 Nova montaria desbloqueada! '+MONT15[id].nome);log('sys',`🐴 Nova montaria desbloqueada: ${MONT15[id].nome}.`,'y');}return true;}
+function mntChecar(silencioso){if(!S)return;const m=S.mount;if(!m||!Array.isArray(m.owned))S.mount={atual:0,on:0,owned:[]};const R=mntRegras();for(const id in R)if(!mntTem(id)&&regraCumprida(R[id]))mntDar(id,!silencioso);}
+let _tPc=0,_pcOk=0;
+const progChecar=silencioso=>{outChecar(silencioso);mntChecar(silencioso);};
+/* migração do save: o outfit que o jogador já usa fica desbloqueado (com os addons que usa); montaria inválida é descartada */
+function migraOutfits(o){const so={};if(o.outfits&&typeof o.outfits==='object')for(const k in o.outfits)if(OUT_NOMES[k])so[k]=clamp(Math.floor(+o.outfits[k])||0,0,3);o.outfits=so;
+  if(o.outfit&&OUTF15[o.outfit.look]){const c=canonOut(OUTF15[o.outfit.look].nome);so[c]=(so[c]|0)|(o.outfit.addons&3);}
+  const m=o.mount&&typeof o.mount==='object'?o.mount:{},ow=Array.isArray(m.owned)?[...new Set(m.owned.map(Number).filter(i=>MONT15[i]))]:[],ok=MONT15[m.atual]&&ow.includes(+m.atual);o.mount={atual:ok?+m.atual:0,on:ok&&m.on?1:0,owned:ow};}
+/* outfit com a montaria (se montado): é o que vai para o desenho, para a rede e para a party */
+let _oj=null;
+function outJog(){const o=S&&S.outfit;if(!o)return null;const m=S.mount;if(!(m&&m.on&&m.atual&&MONT15[m.atual]&&OUTF15[o.look]&&OUTF15[o.look].srcm))return o;
+  if(!_oj||_oj.o!==o||_oj.m!==m.atual)_oj={o,m:m.atual,v:Object.assign({},o,{mont:m.atual})};return _oj.v;}
+const montaVel=()=>{const m=S&&S.mount;return m&&m.on&&m.atual&&MONT15[m.atual]?1+MONT15[m.atual].vel/200:1;};   /* +10 de velocidade do mounts.xml ≈ +5% de passo */
+function montarAlt(forcar){if(!S||!S.mount)return;const m=S.mount;if(!m.atual){toast('Escolha uma montaria em Outfit › Montarias');return;}
+  const on=forcar===undefined?!m.on:!!forcar;if(on&&!S.outfit)S.outfit=Object.assign(outPadrao(),{addons:0});
+  if(on&&!(OUTF15[S.outfit.look]&&OUTF15[S.outfit.look].srcm)){toast('Esse outfit não tem pose montada');return;}
+  m.on=on?1:0;if(on){folhaImg(OUTF15[S.outfit.look].srcm);folhaImg(MONT15[m.atual].src);}sigs.ava=null;toast(on?`🐴 Montado em ${MONT15[m.atual].nome}`:'Você desmontou');if(modal==='outfit')openModal('outfit',null,true);}
+const OUT_PARTES=['Cabeça','Corpo','Pernas','Pés'],OUT_TUMB=[78,69,58,76];let outRasc=null,outParte=0,outTimer=null,outAba='o',outFil='todos',outMSel=0;
 const outPadrao=()=>({look:+Object.keys(OUTF15).find(k=>OUTF15[k].sexo==='m'),cores:OUT_TUMB.slice(),addons:3,sexo:'m'});
 function pararPrevia(){if(outTimer){clearInterval(outTimer);outTimer=null;}}
 function iniciarPrevia(){pararPrevia();outTimer=setInterval(desenharPrevia,60);}
 /* gira pelas 4 direções (sul, leste, norte, oeste); em cada uma fica parado e depois anda */
 function desenharPrevia(){const c=$('#outPrev');if(!c||modal!=='outfit'||!outRasc){pararPrevia();return;}
-  const d=outRasc,O=OUTF15[d.look];if(!O)return;let f=null;try{f=comporOutfit({look:d.look,cores:d.cores,addons:O.addons?d.addons:0});}catch(e){}
+  const d=outRasc,O=OUTF15[d.look];if(!O)return;let f=null;try{f=comporOutfit({look:d.look,cores:d.cores,addons:O.addons?d.addons:0,mont:outAba==='m'?outMSel:d.mont});}catch(e){}
   const g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);g.imageSmoothingEnabled=false;if(!f){folhaImg(O.src);return;}
+  const mid=outAba==='m'?outMSel:d.mont;if(mid&&MONT15[mid]){folhaImg(MONT15[mid].src);if(O.srcm)folhaImg(O.srcm);}
   const t=performance.now(),ciclo=2000,dir=[2,1,0,3][Math.floor(t/ciclo)%4],ft=t%ciclo,q=ft>600&&f.andar>0?f.parado+Math.floor((ft-600)/110)%f.andar:(f.parado>1?Math.floor(ft/(f.ms[0]||100))%f.parado:0);
   g.drawImage(f.img,q*f.w,dir*f.h,f.w,f.h,0,0,c.width,c.height);}
 /* ======== Configuração da hotbar: catálogo por aba, controles por tipo de ação, prioridade (s.p: 1 alta · 2 normal · 3 baixa) ======== */
@@ -2520,19 +2591,36 @@ function hotResumo(){const e=hotCatalogo().find(x=>x.id===HU.a);if(!e)return '';
 function hotRefresca(w){const set=(id,h)=>{const el=$('#'+id);if(el)el.innerHTML=h;};if(w.includes('a'))set('hAbas',hotAbasHTML());if(w.includes('g'))set('hotGrid',hotGradeHTML());if(w.includes('c'))set('hCfg',hotCfgHTML());}
 function hotAjustaV(v){const sp=HU.a&&hotSpec(HU.a);if(!sp)return;HU.v=sp.tp==='n'?clamp(Math.round(v)||1,1,8):clamp(Math.round(v)||0,0,100);const n=$('#hValN');if(n)n.textContent=HU.v+(sp.tp==='pct'?'%':'');const r=$('#hVal');if(r&&+r.value!==HU.v)r.value=HU.v;const sm=$('#hSum');if(sm)sm.innerHTML=hotResumo();}
 const MODALS={
-  outfit:()=>{if(!outRasc)outRasc=JSON.parse(JSON.stringify(S.outfit||outPadrao()));const d=outRasc,O=OUTF15[d.look]||{},lista=Object.keys(OUTF15).filter(k=>OUTF15[k].sexo===d.sexo).map(Number);
-    const tumb=lista.map(k=>`<div class="ofit${k===d.look?' on':''}" data-act="outLook" data-arg="${k}" title="${esc(OUTF15[k].nome)}">${ret15({look:k,cores:OUT_TUMB,addons:0})}</div>`).join('');
-    const cores=Array.from({length:133},(_,c)=>{const [r,g,b]=cor15(c);return `<button class="${c===d.cores[outParte]?'on':''}" style="background:rgb(${r},${g},${b})" data-act="outCor" data-arg="${c}" title="Cor ${c}"></button>`;}).join('');
-    const partes=OUT_PARTES.map((n,i)=>{const [r,g,b]=cor15(d.cores[i]);return `<button class="${i===outParte?'on':''}" data-act="outParte" data-arg="${i}"><span style="display:inline-block;width:10px;height:10px;background:rgb(${r},${g},${b});border:1px solid #000;margin-right:5px;vertical-align:middle"></span>${n}</button>`;}).join('');
-    const add=[['Sem addons',0],['Addon 1',1],['Addon 2',2],['Addon 1 + 2',3]].map(([n,v])=>`<button class="${(O.addons?d.addons:0)===v?'on':''}" data-act="outAddon" data-arg="${v}" ${O.addons||v===0?'':'disabled'}>${n}</button>`).join('');
-    return {title:'🎨 Outfit',body:`<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start">
-      <div style="width:130px"><canvas id="outPrev" class="outprev" width="64" height="64"></canvas><div class="sm" style="text-align:center;margin-top:4px"><b>${esc(O.nome||'')}</b><div class="mut">${d.sexo==='m'?'Masculino':'Feminino'}</div></div></div>
-      <div style="flex:1;min-width:260px"><div class="tabs"><button class="${d.sexo==='m'?'on':''}" data-act="outSexo" data-arg="m">Masculino</button><button class="${d.sexo==='f'?'on':''}" data-act="outSexo" data-arg="f">Feminino</button></div>
-        <div class="ofgrid">${tumb}</div></div></div>
+  outfit:()=>{progChecar(false);if(!outRasc){outRasc=JSON.parse(JSON.stringify(S.outfit||outPadrao()));outRasc.mont=S.mount.on?S.mount.atual:0;}if(!MONT15[outMSel])outMSel=S.mount.atual||+Object.keys(MONT15)[0];
+    const d=outRasc,O=OUTF15[d.look]||{},nome=canonOut(O.nome||''),R=outRegras()[nome]||['free'],tem=outTem(nome),mask=outMask(nome),ordem=(a,b)=>outTem(OUTF15[b].nome)-outTem(OUTF15[a].nome)||OUTF15[a].nome.localeCompare(OUTF15[b].nome);
+    const abas=`<div class="tabs"><button class="${outAba==='o'?'on':''}" data-act="outAba" data-arg="o">Outfits</button><button class="${outAba==='m'?'on':''}" data-act="outAba" data-arg="m">Montarias (${S.mount.owned.length}/${Object.keys(MONT15).length})</button></div>`;
+    const fil=`<div class="tabs">${[['todos','Todos'],['tem','Desbloqueados']].map(([k,n])=>`<button class="${outFil===k?'on':''}" data-act="outFil" data-arg="${k}">${n}</button>`).join('')}</div>`;
+    const prog=r=>{const p=regraProg(r);return p?` <span class="mut">(${p})</span>`:'';};
+    const mSel=MONT15[outMSel]||{},mTem=mntTem(outMSel),mR=mntRegras()[outMSel]||['free'],on=S.mount.on&&S.mount.atual===outMSel&&S.outfit&&S.outfit.look===d.look;
+    const prev=`<div style="width:130px"><canvas id="outPrev" class="outprev" width="64" height="64"></canvas><div class="sm" style="text-align:center;margin-top:4px"><b>${esc(outAba==='m'?(mSel.nome||''):(O.nome||''))}</b><div class="mut">${outAba==='m'?'+'+(mSel.vel||0)+' de velocidade':(d.sexo==='m'?'Masculino':'Feminino')}</div></div></div>`;
+    let corpo;
+    if(outAba==='m'){
+      const lista=Object.keys(MONT15).map(Number).filter(k=>outFil==='todos'||mntTem(k)).sort((a,b)=>mntTem(b)-mntTem(a)||MONT15[a].nome.localeCompare(MONT15[b].nome));
+      const tumb=lista.map(k=>`<div class="ofit${k===outMSel?' on':''}${mntTem(k)?'':' lock'}" data-act="outMSel" data-arg="${k}" title="${esc(MONT15[k].nome+' · '+(mntTem(k)?'desbloqueada':regraTxt(mntRegras()[k])))}">${ret15({m:k})}</div>`).join('');
+      corpo=`<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start">${prev}<div style="flex:1;min-width:260px">${fil}<div class="ofgrid mgrid">${tumb||'<span class="mut sm">Nenhuma montaria ainda.</span>'}</div></div></div>
+      <div class="oreq${mTem?' ok':''}">${mTem?'<b class="g">Desbloqueada</b>':`<b class="l">🔒 Bloqueada</b> · ${regraTxt(mR)}${prog(mR)}`}<div class="mut sm">Montado: +${mSel.vel||0} de velocidade (≈ +${((mSel.vel||0)/2).toFixed(1).replace('.0','')}% de passo) na cidade e nas caçadas. ${O.srcm?'':'Este outfit não tem pose montada.'}</div></div>
+      <div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-top:8px">${rowBtn('Desmontar','outDesmontar','',!S.mount.on,'red')}${mTem?rowBtn(on?'Montado ✓':'Montar','outMontar',outMSel,!O.srcm,'go'):mR[0]==='tc'?rowBtn(`Comprar · ${mR[1]} TC`,'outMComprar',outMSel,S.tc<mR[1],'go'):''}</div>`;}
+    else{
+      const lista=Object.keys(OUTF15).filter(k=>OUTF15[k].sexo===d.sexo&&(outFil==='todos'||outTem(OUTF15[k].nome))).sort(ordem);
+      const tumb=lista.map(k=>`<div class="ofit${k==d.look?' on':''}${outTem(OUTF15[k].nome)?'':' lock'}" data-act="outLook" data-arg="${k}" title="${esc(OUTF15[k].nome+' · '+(outTem(OUTF15[k].nome)?'desbloqueado':regraTxt(outRegras()[canonOut(OUTF15[k].nome)])))}">${ret15({look:k,cores:OUT_TUMB,addons:0})}</div>`).join('');
+      const cores=Array.from({length:133},(_,c)=>{const [r,g,b]=cor15(c);return `<button class="${c===d.cores[outParte]?'on':''}" style="background:rgb(${r},${g},${b})" data-act="outCor" data-arg="${c}" title="Cor ${c}"></button>`;}).join('');
+      const partes=OUT_PARTES.map((n,i)=>{const [r,g,b]=cor15(d.cores[i]);return `<button class="${i===outParte?'on':''}" data-act="outParte" data-arg="${i}"><span style="display:inline-block;width:10px;height:10px;background:rgb(${r},${g},${b});border:1px solid #000;margin-right:5px;vertical-align:middle"></span>${n}</button>`;}).join('');
+      const ad=tem&&O.addons?d.addons&mask:0,add=[['Sem addons',0],['Addon 1',1],['Addon 2',2],['Addon 1 + 2',3]].map(([n,v])=>`<button class="${ad===v?'on':''}" data-act="outAddon" data-arg="${v}" ${(v&~mask)||!tem||(!O.addons&&v)?'disabled':''}>${n}</button>`).join('');
+      const compra=O.addons&&tem?[1,2].filter(b=>!(mask&b)).map(b=>`<div style="display:flex;gap:6px;align-items:center;margin-top:4px;flex-wrap:wrap"><span class="sm grow">Addon ${b}</span>${rowBtn(fmt(ADD_GP[b-1])+' gp','outAddonComprar',b+':gp',S.gold<ADD_GP[b-1])}${rowBtn(ADD_TC[b-1]+' TC','outAddonComprar',b+':tc',S.tc<ADD_TC[b-1])}</div>`).join(''):'';
+      corpo=`<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start">${prev}
+      <div style="flex:1;min-width:260px"><div class="tabs"><button class="${d.sexo==='m'?'on':''}" data-act="outSexo" data-arg="m">Masculino</button><button class="${d.sexo==='f'?'on':''}" data-act="outSexo" data-arg="f">Feminino</button></div>${fil}
+        <div class="ofgrid ogrid">${tumb||'<span class="mut sm">Nenhum outfit.</span>'}</div></div></div>
+      <div class="oreq${tem?' ok':''}">${tem?`<b class="g">Desbloqueado</b> · addons: ${mask===3?'1 e 2':mask?mask:'nenhum'}`:`<b class="l">🔒 Bloqueado</b> · ${regraTxt(R)}${prog(R)}`}</div>
+      ${!tem&&R[0]==='tc'?`<div style="margin:6px 0">${rowBtn(`Comprar ${esc(nome)} · ${R[1]} TC`,'outComprar',nome,S.tc<R[1],'go')}</div>`:''}
       <h3>Cores</h3><div class="tabs">${partes}</div><div class="cgrid">${cores}</div>
-      <h3>Addons</h3><div class="tabs">${add}</div>
-      <div style="display:flex;justify-content:space-between;margin-top:12px">${rowBtn('Voltar ao padrão da vocação','outPadrao','',!S.outfit,'red')}${rowBtn('Aplicar outfit','outAplicar','',false,'go')}</div>
-      <div class="mut sm" style="margin-top:6px">O outfit aparece nas caçadas, na cidade e na arena. No 4×4 o seu time veste o seu outfit na cor azul do time.</div>`};},
+      <h3>Addons</h3><div class="tabs">${add}</div>${compra}
+      <div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-top:12px">${rowBtn('Voltar ao padrão da vocação','outPadrao','',!S.outfit,'red')}${rowBtn(S.mount.on?'Desmontar':'Montar','outMontarAlt','',!S.mount.atual&&!S.mount.on)}${rowBtn('Aplicar outfit','outAplicar','',!tem,'go')}</div>`;}
+    return {title:'🎨 Outfit',body:`${abas}${corpo}<div class="mut sm" style="margin-top:6px">O outfit aparece nas caçadas, na cidade e na arena. No 4×4 o seu time veste o seu outfit na cor azul do time. Tecla <b>M</b>: montar/desmontar.</div>`};},
   arena:()=>{const A=arenaEstado(),ops=arenaOponentes(),[fx,fc]=faixa15(A.pontos),cidade=S.loc==='city',eq=A.modo==='equipe';
     const ret=o=>`<span title="${esc(o.nome)} · ${VOC[o.voc].n} ${o.nivel}" style="display:inline-block;width:50px;height:50px">${ret15(o.outfit)}</span>`;
     const lin=ops.map((o,i)=>`<div class="row"><div class="ic" style="width:${eq?200:64}px;height:52px;display:flex">${o.membros.map(ret).join('')}</div><div class="grow"><b>${esc(o.nome)}</b>
@@ -3347,8 +3435,19 @@ function act(a,arg){
     case 'outParte':outParte=+arg;openModal('outfit',null,true);break;
     case 'outCor':outRasc.cores[outParte]=+arg;openModal('outfit',null,true);break;
     case 'outAddon':outRasc.addons=+arg;openModal('outfit',null,true);break;
-    case 'outAplicar':{const O=OUTF15[outRasc.look];S.outfit={look:outRasc.look,cores:outRasc.cores.slice(),addons:O&&O.addons?outRasc.addons:0,sexo:outRasc.sexo};sigs.ava=null;toast('🎨 Outfit aplicado');log('sys','🎨 Você trocou de outfit.','y');break;}
-    case 'outPadrao':delete S.outfit;sigs.ava=null;outRasc=null;toast('Outfit padrão da vocação');openModal('outfit',null,true);break;
+    case 'outAba':outAba=arg;openModal('outfit',null,true);break;
+    case 'outFil':outFil=arg;openModal('outfit',null,true);break;
+    case 'outMSel':outMSel=+arg;openModal('outfit',null,true);break;
+    case 'outMontar':if(mntTem(arg)){S.mount.atual=+arg;outRasc.mont=+arg;montarAlt(1);}break;
+    case 'outDesmontar':outRasc.mont=0;montarAlt(0);break;
+    case 'outMontarAlt':if(S.mount.on)outRasc.mont=0;else outRasc.mont=S.mount.atual;montarAlt();break;
+    case 'outComprar':{const r=outRegras()[arg];if(r&&r[0]==='tc'&&!outTem(arg)&&S.tc>=r[1]){S.tc-=r[1];outDar(arg,0,true);}else toast('Tibia Coins insuficientes');openModal('outfit',null,true);break;}
+    case 'outMComprar':{const r=mntRegras()[arg];if(r&&r[0]==='tc'&&!mntTem(arg)&&S.tc>=r[1]){S.tc-=r[1];mntDar(arg,true);}else toast('Tibia Coins insuficientes');openModal('outfit',null,true);break;}
+    case 'outAddonComprar':{const [b,m]=arg.split(':'),bit=+b,nm=canonOut((OUTF15[outRasc.look]||{}).nome||'');if(!outTem(nm)||(outMask(nm)&bit)||!(bit===1||bit===2))break;
+      if(m==='tc'){if(S.tc<ADD_TC[bit-1]){toast('Tibia Coins insuficientes');break;}S.tc-=ADD_TC[bit-1];}else{if(S.gold<ADD_GP[bit-1]){toast('Gold insuficiente');break;}S.gold-=ADD_GP[bit-1];}
+      S.outfits[nm]|=bit;outRasc.addons|=bit;toast(`🎨 Addon ${bit} de ${nm} desbloqueado!`);log('sys',`🎨 Você comprou o addon ${bit} do outfit ${nm}.`,'y');openModal('outfit',null,true);break;}
+    case 'outAplicar':{const O=OUTF15[outRasc.look],nm=canonOut((O||{}).nome||'');if(!outTem(nm)){toast('Outfit bloqueado');break;}S.outfit={look:outRasc.look,cores:outRasc.cores.slice(),addons:O&&O.addons?outRasc.addons&outMask(nm):0,sexo:outRasc.sexo};sigs.ava=null;toast('🎨 Outfit aplicado');log('sys','🎨 Você trocou de outfit.','y');break;}
+    case 'outPadrao':delete S.outfit;S.mount.on=0;sigs.ava=null;outRasc=null;toast('Outfit padrão da vocação');openModal('outfit',null,true);break;
     case 'arenaModo':arenaEstado().modo=arg;arenaOponentes(true);openModal('arena');setTimeout(()=>modal==='arena'&&openModal('arena'),400);break;
     case 'arenaNovos':arenaOponentes(true);openModal('arena');setTimeout(()=>modal==='arena'&&openModal('arena'),400);break;
     case 'resetSess':S.sess=newSess(S.loc==='city'?null:S.loc);sigs.loot=null;break;
@@ -3480,6 +3579,7 @@ document.addEventListener('keydown',e=>{if(!S||e.ctrlKey||e.altKey||e.metaKey)re
   const f=/^F([1-9]|1[0-2])$/.exec(e.key);
   if(f){const n=+f[1];if(e.shiftKey&&n>4)return;e.preventDefault();   /* F5 não recarrega a página no jogo */
     if(modal||e.repeat||!W)return;hotUsar(e.shiftKey?11+n:n-1);return;}
+  if(!modal&&!e.repeat&&!e.shiftKey&&e.key.toLowerCase()==='m'){e.preventDefault();montarAlt();return;}   /* M: montar/desmontar */
   if(modal||!W||!emCaca()||ehMembro())return;
   if(e.key==='Tab'){e.preventDefault();hotTab(e.shiftKey?-1:1);}
   else if(e.key==='Escape'){W.p.target=null;W.p.tgMan=null;W.p.vai=null;}});
@@ -3761,7 +3861,7 @@ function save(){if(!S||ON.parado)return;if(ON.modo==='online'){ON.sujo=true;try{
 function load(){try{const r=localStorage.getItem(KEY);if(!r)return null;return carregarSave(JSON.parse(r));}catch(e){return null;}}
 /* valida e migra um save (local ou da nuvem) e devolve o estado, ou null */
 function carregarSave(d){try{if(!d||!VOC[d.voc])return null;const b=newState(d.name,d.voc);
-  const o=Object.assign(b,d);o.rules=Object.assign(newState(d.name,d.voc).rules,d.rules);o.sess=Object.assign(newSess(null),d.sess);o.charms=Object.assign({dmg:0,exp:0,loot:0,def:0},d.charms);o.pull=d.pull||{};o.lootCfg=d.lootCfg||{};o.recordes=d.recordes||{};o.ui=d.ui||{};o.favs=d.favs||{};o.wildcards=clamp(Math.floor(+d.wildcards)||0,0,1000);o.wcAcc=+d.wcAcc||0;o.tc=+d.tc||0;migraPrey(o);
+  const o=Object.assign(b,d);o.rules=Object.assign(newState(d.name,d.voc).rules,d.rules);o.sess=Object.assign(newSess(null),d.sess);o.charms=Object.assign({dmg:0,exp:0,loot:0,def:0},d.charms);o.pull=d.pull||{};o.lootCfg=d.lootCfg||{};o.recordes=d.recordes||{};o.ui=d.ui||{};o.favs=d.favs||{};o.wildcards=clamp(Math.floor(+d.wildcards)||0,0,1000);o.wcAcc=+d.wcAcc||0;o.tc=+d.tc||0;migraPrey(o);migraOutfits(o);
   o.imb=Object.assign(newState('x',o.voc).imb,d.imb||{});for(const [k,n] of Object.entries(IMB_SLOTS)){o.imb[k]=(o.imb[k]||[]).slice(0,n);while(o.imb[k].length<n)o.imb[k].push(null);}
   /* saves antigos tinham um skill 'melee' só: espada, machado e clava começam com o mesmo nível e tentativas dele (ninguém perde progresso); o 'melee' é descartado */
   {const ds=d.skills||{},sk=Object.assign({},b.skills,ds),m=ds.melee;if(m)for(const k of MELEE)if(!ds[k])sk[k]={lv:m.lv,t:m.t};delete sk.melee;
@@ -3789,6 +3889,7 @@ function tickLoop(){
   if(el>60000){const r=offline(el);S.lastTick=now;if(el>120000)openModal('offline',r);mercadoTick();hud();save();return;}
   quiet=el>3000;while(el>=STEP){update(STEP);el-=STEP;S.lastTick+=STEP;}quiet=false;
   mercadoTick();
+  if(now-_tPc>4000){_tPc=now;if(!S.outfits||!S.mount)migraOutfits(S);progChecar(!_pcOk);_pcOk=1;}   /* destrava outfits/montarias conforme o progresso (a 1ª passada, ao carregar o save, é silenciosa) */
 }
 /* ======================= presença na cidade (Supabase Realtime; ?rede=local = BroadcastChannel para teste) ======================= */
 const PR={ativo:false,pid:null,tr:null,modo:null,remotos:new Map(),ult:null,tEnv:0,tBat:0,tFala:0,fala:null,sigPerfil:'',nTent:0,tReco:0,erro:null,ultN:-1,sigLista:'',falaRx:{}};
@@ -3797,9 +3898,9 @@ const prNum=(v,a,b,d)=>{v=Math.round(+v);return Number.isFinite(v)?clamp(v,a,b):
 const prTxt=(v,n)=>String(v==null?'':v).replace(/[\u0000-\u001f\u007f<>]/g,' ').replace(/\s+/g,' ').trim().slice(0,n);
 function prOutfit(o){try{if(!o||typeof o!=='object')return null;const look=+o.look;if(!Number.isInteger(look)||!OUTF15[look])return null;
   if(!Array.isArray(o.cores)||o.cores.length!==4)return null;const cores=o.cores.map(c=>+c);if(cores.some(c=>!Number.isInteger(c)||c<0||c>132))return null;
-  const ad=+o.addons;if(!Number.isInteger(ad)||ad<0||ad>3)return null;return {look,cores,addons:OUTF15[look].addons?ad:0};}catch(e){return null;}}
+  const ad=+o.addons;if(!Number.isInteger(ad)||ad<0||ad>3)return null;const r={look,cores,addons:OUTF15[look].addons?ad:0},mt=+o.mont;if(Number.isInteger(mt)&&MONT15[mt]&&OUTF15[look].srcm)r.mont=mt;return r;}catch(e){return null;}}   /* mont: id da montaria (só vale com pose montada) */
 function prQuebrar(t,n){const out=[];let l='';for(const w of String(t).split(' ')){if((l+' '+w).trim().length>n&&l){out.push(l);l=w;}else l=(l+' '+w).trim();}if(l)out.push(l);return out.slice(0,4);}
-function prMeta(){const p=W&&W.p||{x:0,y:0,face:0};return {pid:PR.pid,nome:prTxt(S.name,20),voc:S.voc,level:S.level,outfit:S.outfit||null,x:p.x,y:p.y,dir:p.face||0};}
+function prMeta(){const p=W&&W.p||{x:0,y:0,face:0};return {pid:PR.pid,nome:prTxt(S.name,20),voc:S.voc,level:S.level,outfit:outJog(),x:p.x,y:p.y,dir:p.face||0};}
 const prPidRt=()=>REDE_RT?(PR.pidT||(PR.pidT=(()=>{let sl='';try{sl=localStorage.getItem('tibiaRtSalt')||'';if(!sl){sl=Math.random().toString(36).slice(2,8);localStorage.setItem('tibiaRtSalt',sl);}}catch(e){sl=Math.random().toString(36).slice(2,8);}   /* pid fixo por perfil (como o do personagem real), para testar recarregar a página */
   return 'T'+((location.search.match(/[?&]perfil=(\d+)/)||[])[1]||0)+sl;})())):String(ON.pid);
 function prModoRede(){return REDE_LOCAL?'local':REDE_RT?(SB&&ON.modo==='offline'?'rt':null):(SB&&ON.modo==='online'&&!ON.parado&&ON.pid?'rt':null);}
@@ -3860,7 +3961,7 @@ function prEntrar(){if(PR.ativo)return;const modo=prModoRede();if(!modo||!S)retu
     PR.tr=modo==='local'?prTrLocal(chave):prTrRealtime(chave);PR.ativo=true;PR.ult=null;PR.sigPerfil=prSigPerfil();PR.remotos.clear();
     PR.tr.entrar(PR_H,prMeta);}catch(e){PR.ativo=false;PR.tr=null;}}
 function prSair(){if(!PR.ativo)return;PR.ativo=false;try{PR.tr.sair();}catch(e){}PR.tr=null;PR.remotos.clear();PR.falaRx={};}
-const prSigPerfil=()=>S?S.level+'|'+JSON.stringify(S.outfit||null)+'|'+S.name:'';
+const prSigPerfil=()=>S?S.level+'|'+JSON.stringify(outJog())+'|'+S.name:'';
 function prTick(){try{
   const naCidade=!!(S&&W&&W.city&&S.loc==='city'&&!W.loading&&!ON.parado);
   if(W&&W.city)W.remotos=PR.remotos;
@@ -4174,7 +4275,7 @@ function ptFechar(){const t=PT.tr;PT.tr=null;if(t)try{t.fechar();}catch(e){}}
 function ptEnv(t,pl){if(!PT.tr)return;PT.n.env++;PT.n.te[t]=(PT.n.te[t]||0)+1;PT.tr.enviar(t,pl||{});}
 /* ---- dados dos membros ---- */
 function ptMetaEu(){const HU=PT.hunt,b=HU&&HU.b,s=S.sess;
-  return {v:PT_VER,nome:prTxt(S.name,20),voc:S.voc,level:S.level,outfit:S.outfit||null,hp:Math.round(S.hp),hpMax:maxHp(),mp:Math.round(S.mp),mpMax:maxMp(),loc:S.loc,
+  return {v:PT_VER,nome:prTxt(S.name,20),voc:S.voc,level:S.level,outfit:outJog(),hp:Math.round(S.hp),hpMax:maxHp(),mp:Math.round(S.mp),mpMax:maxMp(),loc:S.loc,
     xp:b?Math.max(0,Math.round(s.exp-b.xp)):0,lc:b?Math.round(s.gold+s.loot-s.sup-b.lc):0,st:b?Math.max(0,Math.round(s.t-b.st)):0};}
 function ptSan(m,o){o=o||{};o.nome=prTxt(m.nome,20)||'Jogador';o.voc=VOC[m.voc]?m.voc:'knight';o.level=prNum(m.level,1,9999,1);o.outfit=prOutfit(m.outfit);
   o.hpMax=prNum(m.hpMax,1,200000,100);o.hp=prNum(m.hp,0,o.hpMax,o.hpMax);o.mpMax=prNum(m.mpMax,1,200000,50);o.mp=prNum(m.mp,0,o.mpMax,o.mpMax);
@@ -4295,7 +4396,7 @@ const ptBonusTxt=r=>`${r.nv} vocaç${r.nv===1?'ão':'ões'}: +${Math.round(r.bon
 function ptFicha(){const eq={},t={};for(const k of ['weapon','helmet','armor','legs','boots','shield']){eq[k]=S.eq[k].id;t[k]=S.eq[k].t||0;}
   const slots=(S.sets[S.set]||[]).map(x=>x&&{a:x.a,v:x.v,p:x.p}),bag={};for(const s of slots){if(!s)continue;const it=ITEMS[s.a];if(it&&(it.type==='pot'||it.type==='runa'))bag[s.a]=S.bag[s.a]|0;}
   return {nome:prTxt(S.name,20),voc:S.voc,nivel:S.level,sk:{sword:S.skills.sword.lv,axe:S.skills.axe.lv,club:S.skills.club.lv,melee:S.skills[S.voc==='knight'?mainSk():'sword'].lv/* só para clientes p5 */,distance:S.skills.distance.lv,shielding:S.skills.shielding.lv,magic:S.skills.magic.lv},eq,t,procs:JOG.procs,slots,bag,
-    outfit:S.outfit||null,addon:S.addon??3,hp:Math.round(S.hp),mp:Math.round(S.mp),prot:JOG.protecao()};}
+    outfit:outJog(),addon:S.addon??3,hp:Math.round(S.hp),mp:Math.round(S.mp),prot:JOG.protecao()};}
 function ptValFicha(f){try{if(!f||typeof f!=='object'||!VOC[f.voc])return null;const voc=f.voc,nivel=prNum(f.nivel,1,9999,0);if(!nivel)return null;
   const sk={};for(const k of ['sword','axe','club','distance','shielding','magic'])sk[k]=prNum(f.sk&&(f.sk[k]!==undefined?f.sk[k]:MELEE.includes(k)?f.sk.melee:undefined),1,3000,1);   /* ficha antiga (p5) só tem melee: vale para os três */
   const eq={},t={};for(const k of ['weapon','helmet','armor','legs','boots','shield']){const it=ITEMS[f.eq&&f.eq[k]];
@@ -4363,7 +4464,7 @@ function ptEntrouHunt(){const p=PT.pend;PT.pend=null;if(!p||p.loc!==S.loc||p.ate
   else{W.mobs=[];W.respawns=[];W.occ.fill(0);W.spawns=[];HU.mobs=new Map();HU.rem=new Map();W.partyR=HU.rem;ptEnviarFicha();}
   if(p.papel==='lider'&&HUNTS[p.loc].boss)chefeIniciar();
   PT.tSin=0;PT.tEst=0;PT.sig='';if(p.papel==='lider')ptRost();}
-const ptSigHot=()=>S.set+JSON.stringify(S.sets[S.set]||[]);
+const ptSigHot=()=>S.set+JSON.stringify(S.sets[S.set]||[])+JSON.stringify(outJog());
 function ptEnviarFicha(){const HU=PT.hunt;if(!HU||HU.papel!=='membro')return;HU.nFic++;HU.tFic=performance.now();HU.sigHot=ptSigHot();ptEnv('ficha',{ep:HU.ep,f:ptFicha()});}
 /* mais monstros com a party: spawns × (1 + 0,5 × (n−1)) */
 function ptPull(n){if(n<2)return;const h=HUNTS[S.loc],tot=W.mobs.length+W.respawns.length,extra=Math.round(tot*.5*(n-1)),sps=W.spawns.filter(sp=>cheb(sp,W.p)>=6);if(!sps.length||!h)return;
