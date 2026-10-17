@@ -67,6 +67,8 @@ img.ui{width:24px;height:24px;image-rendering:pixelated;flex:none}
 .dd button{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;border-radius:2px;padding:5px 8px;color:#e6dcc6;font:12px Verdana,sans-serif;text-align:left;cursor:pointer}
 .dd button:hover{background:#262c3e;box-shadow:inset 0 0 0 1px #8a6a2a}
 .dd small{display:block;color:var(--mut);font-size:10px}
+.bon{display:flex;align-items:center;gap:5px;background:#1a2a14;border:1px solid #3d7a2a;color:#9be26b;border-radius:3px;padding:3px 8px;font-size:11px;white-space:nowrap;cursor:help;box-shadow:inset 0 0 0 1px #000}.bon .dot{width:7px;height:7px;border-radius:50%;background:#7fe04a;box-shadow:0 0 6px #7fe04a}.bon.off{background:#14161d;border-color:#2b3040;color:#7b8294}.bon.off .dot{background:#59607a;box-shadow:none}
+#offOv{position:fixed;inset:0;z-index:90;background:#000b;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)}.offbox{background:#151925;border:1px solid #2b3040;border-radius:6px;padding:18px 22px;min-width:260px;max-width:86vw;text-align:center;box-shadow:0 8px 40px #000}.offbox b{display:block;color:#fff;margin-bottom:10px}.offbox .prog{height:10px;margin-bottom:6px}.offbox small{color:var(--mut)}
 .pill{display:flex;align-items:center;gap:6px;background:#0a0c12;border:1px solid var(--line);border-radius:3px;padding:2px 10px 2px 4px;min-width:104px;justify-content:space-between;box-shadow:inset 0 0 0 1px #000}
 .pill b{color:var(--gold)}
 #tGoldIc{position:relative}
@@ -638,6 +640,7 @@ html.mob .charbox>div:last-child{display:block}
 html.mob .ava{width:38px;height:38px}
 html.mob .cn{font-size:11px;max-width:74px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 html.mob .cv{font-size:9px;white-space:nowrap}
+html.mob #top .bon{padding:2px 5px;font-size:10px;flex:none}html.mob #top .bon b{font-weight:600}html.mob:not(.land) #top .bl{display:none}html.land #top .bon{position:fixed;left:calc(70px + env(safe-area-inset-left));top:62px;background:#000a;pointer-events:none;z-index:5}
 html.mob #top .pill{min-width:0;padding:2px 6px 2px 3px;gap:4px;font-size:11px;flex:none}
 html.mob #top .pill img.ui{width:18px;height:18px}
 html.mob #mMenuBtn{display:grid;place-items:center;flex:none;width:44px;height:44px;background:linear-gradient(#323a54,#1d2232);border:1px solid #000;box-shadow:inset 0 0 0 1px #8a6a2a;border-radius:4px;color:var(--title);font-size:22px;padding:0;cursor:pointer}
@@ -811,6 +814,7 @@ html.land #condCid{top:4px;left:calc((100vw - var(--mrw))/2)}
   </nav>
   <div class="status" id="tStatus"></div>
   <button class="shopbtn" data-open="shop"><img class="ui" src="tibia-assets/sprites15/ui/loja.png" alt=""><span class="mtx">Loja</span></button>
+  <div class="bon off" id="tBon" title=""><span class="dot"></span><b><span class="bl">Online </span><span class="bt">+25%</span></b></div>
   <div class="pill" id="tGoldIc"><img class="ui" src="tibia-assets/sprites15/ui/gold.png" alt=""><b id="tGold">0</b></div>
   <button class="onl hidden" id="tOnl" data-open="online" title="Jogadores online na cidade"><span class="dot"></span><b id="tOnN">0</b> online<span id="tOnB"></span></button>
   <div id="nuvem" data-st="ok"><svg viewBox="0 0 24 24"><path d="M6.6 19.5a4.6 4.6 0 0 1-.5-9.2A6.2 6.2 0 0 1 17.9 8.9a5.3 5.3 0 0 1-.4 10.6z"/></svg></div>
@@ -1166,6 +1170,21 @@ const PVP_CACADAS=['deepling_depths','fire_devil_forge','cyclops_fort','frost_gi
 for(const k of PVP_CACADAS)if(HUNTS[k])HUNTS[k].pvp=true;
 const PVP_NIVEL=50,PVP_BONUS=.1,PVP_BRANCA=15*MIN,PVP_LOCK=60e3,PVP_VERM=3*24*H,PVP_FRAG24=3,PVP_FRAG7=5,PVP_REV_T=30e3;   /* nível mínimo (atacar/ser atacado), bônus de exp/loot, caveira branca, PZ lock, caveira vermelha (3 dias reais), frags injustificados 24 h / 7 dias, tempo do revide automático sem nova agressão */
 const pvpBonus=()=>S&&!PT.hunt&&HUNTS[S.loc]&&HUNTS[S.loc].pvp?PVP_BONUS:0;   /* caçada da party (líder simula) é protegida e sem bônus */
+/* ---- caçada online x offline ----
+   BONUS_ONLINE: +25% de exp, de chance de drop e de ouro/moedas enquanto você caça com a página VISÍVEL (não vale em catch-up, offline nem aba oculta).
+   Offline: o personagem segue na mesma caçada com suprimentos infinitos (cobrados), no máx. OFF_DIA por janela móvel de 24 h, sem o bônus. */
+const BONUS_ONLINE=.25, OFF_DIA=12*H, OFF_JAN=24*H, OFF_CATCH=15*MIN, OFF_CAL=6*MIN, OFF_EFF=.9, OFF_CALF=.9, OFF_BASE_MIN=10*MIN, OFF_VELHA=30*24*H;
+let OFFRUN=null;   /* durante a simulação/aplicação offline: {cal,stop,kit,...} */
+const visivel=()=>document.visibilityState==='visible';
+const naCaca=()=>!!S&&S.loc!=='city'&&S.loc!=='arena'&&S.loc!=='treino'&&!!HUNTS[S.loc];
+const bonusOn=()=>!quiet&&!OFFRUN&&visivel()&&naCaca();
+const bonusF=()=>bonusOn()?1+BONUS_ONLINE:1;
+const offElegivel=k=>!!HUNTS[k]&&!HUNTS[k].boss&&!HUNTS[k].pvp;
+/* medição online (linha de base de taxas por caçada): só sessões online, solo, sem o bônus (valores base) */
+const obOn=()=>(OFFRUN?OFFRUN.cal:!quiet)&&!PT.hunt&&naCaca()&&offElegivel(S.loc);
+const obOf=()=>S.sess.ob||(S.sess.ob={t:0,exp:0,gl:0,sup:0,k:{},tr:{},it:{},ch:{}});
+const obS=v=>{if(obOn())obOf().sup+=v;};
+const raroLoot=(it,c)=>!!(it.raro||c<=.005||it.v>=2000);
 const CHEFE_CD=20*H, CHEFE_TEMPO=20*MIN;   /* cooldown por personagem depois de matar o boss (como os cooldowns de boss do Tibia) e tempo máximo da luta */
 const PULL_MODOS=['cauteloso','ousado','agressivo'];
 /* imbuements com as receitas reais do Tibia (materiais cumulativos por nível) */
@@ -1237,7 +1256,7 @@ function newState(name,voc){
     best:{},bestClaim:{},charmPts:0,charms:{dmg:0,exp:0,loot:0,def:0},
     bless:false,stamina:STAM_MAX,loc:'city',cidade:'desertcity',lastHunt:null,pull:{},lootCfg:{},recordes:{},
     rules:{autoReturn:true,cap:90,minHp:5,minMp:5,autoSell:true,keepMats:true,sellEq:true,refill:[{id:'hp_pot',q:50},{id:'mp_pot',q:voc==='knight'?10:50}],autoBless:false,autoAol:false,autoBack:true,smart:false,backAfterDeath:false,lure:0,ia:true,aCave:true,aAlvo:true,aCura:true,aAtk:true},
-    sess:null,lastTick:Date.now(),ui:{}};
+    sess:null,lastTick:Date.now(),ui:{},taxas:{},offLog:[]};
   s.sess=newSess(null);return s;
 }
 function newSess(hunt){return{hunt,t:0,exp:0,gold:0,loot:0,sup:0,kills:{},items:{},used:{},tries:{}};}
@@ -1399,7 +1418,7 @@ function bfs(sx,sy,goal,forMob,maxN=3200){
 
 /* ======================= COMBATE ======================= */
 function need(k,lv){const m=V().mult[k]??V().mult.melee;return k==='magic'?Math.round(150*m**lv):Math.round(30*m**(lv-10));}
-function train(k,n){if(k==='melee')k=mainSk();const s=S.skills[k];if(!s)return;s.t+=n;S.sess.tries[k]=(S.sess.tries[k]||0)+n;let up=false;while(s.t>=need(k,s.lv)){s.t-=need(k,s.lv);s.lv++;up=true;}
+function train(k,n){if(k==='melee')k=mainSk();const s=S.skills[k];if(!s)return;s.t+=n;S.sess.tries[k]=(S.sess.tries[k]||0)+n;if(obOn()){const t=obOf().tr;t[k]=(t[k]||0)+n;}let up=false;while(s.t>=need(k,s.lv)){s.t-=need(k,s.lv);s.lv++;up=true;}
   if(up){log('sys',k==='magic'?`Você avançou para o nível mágico ${s.lv}.`:`Você avançou para ${SKN[k]} nível ${s.lv}.`,'w');}}
 function gainExp(n){S.exp+=n;S.sess.exp+=n;const b=S.level;while(S.exp>=expFor(S.level+1))S.level++;
   if(S.level>b){S.hp=maxHp();S.mp=maxMp();log('sys',`Você avançou do Level ${b} para o Level ${S.level}.`,'w');toast(`⬆ Level ${S.level}!`);if(W)fxt(W.p.x,W.p.y,'LEVEL UP','#ffd84a',1);}}
@@ -1422,7 +1441,7 @@ function hitMob(m,dmg,col,fisico,proc){
 }
 /* ---- acessórios em combate: absorção por elemento (1 carga por golpe absorvido), Energy Ring (dano vira gasto de mana), tempo de anéis, offline ---- */
 function accAcaba(k){const it=eqa(k);S.eq[k]={id:null,t:0};log('sys',`${it.n} acabou.`,'o');toast(`${it.n} acabou`);dirty.all=true;}
-function accUsa(k,n){const e=S.eq[k];e.t-=n;const c=S.sess.ch||(S.sess.ch={});c[k]=(c[k]||0)+n;if(e.t<=0)accAcaba(k);}
+function accUsa(k,n){const e=S.eq[k];e.t-=n;const c=S.sess.ch||(S.sess.ch={});c[k]=(c[k]||0)+n;if(obOn()){const t=obOf().ch;t[k]=(t[k]||0)+n;}if(e.t<=0)accAcaba(k);}
 function accDano(d,el,semMs){if(!(d>0))return d;let f=1;const use=[];
   for(const k of ACCD){const it=eqa(k);if(!it||!it.abs)continue;const a=it.abs[el==='poison'?'earth':el];if(!a)continue;f*=1-a/100;if(a>0&&it.ch)use.push(k);}
   d=Math.round(d*f);for(const k of use)accUsa(k,1);
@@ -1466,19 +1485,25 @@ function killMob(m){
   if(m.inv){ef15(me15('poff'),m.x,m.y);return;}   /* invocação: sem cadáver, exp ou loot */
   W.corpses.push({x:m.x,y:m.y,m:m.d,id:m.id,b:performance.now()});if(W.corpses.length>25)W.corpses.shift();
   if(PT.hunt&&PT.hunt.papel==='lider')return ptKill(m);   /* party: exp e loot divididos */
-  const sm=S.stamina>0?1:0,ex=Math.round(m.d.exp*stage(S.level)*(1+charmV('exp')+preyB(m.id,'exp'))*sm*(1+pvpBonus()));
+  const bf=bonusF(),ob=obOn()?obOf():null,sm=S.stamina>0?1:0,exB=Math.round(m.d.exp*stage(S.level)*(1+charmV('exp')+preyB(m.id,'exp'))*sm*(1+pvpBonus())),ex=bf>1?Math.round(exB*bf):exB;   /* bf: bônus online (+25%) */
   if(ex){gainExp(ex);fxt(m.x,m.y-.4,ex+' exp','#ffffff');}
+  if(bf>1&&ex>exB)S.sess.bx=(S.sess.bx||0)+ex-exB;
   S.best[m.id]=(S.best[m.id]||0)+1;S.sess.kills[m.id]=(S.sess.kills[m.id]||0)+1;checkBest(m.id);
-  const g0=S.gold,ic=[],gold=rint(m.d.gold[0],m.d.gold[1]);S.gold+=gold;S.sess.gold+=gold;
+  if(ob){ob.exp+=exB;ob.k[m.id]=(ob.k[m.id]||0)+1;}
+  const g0=S.gold,ic=[],gB=rint(m.d.gold[0],m.d.gold[1]),gold=bf>1?Math.round(gB*bf):gB;S.gold+=gold;S.sess.gold+=gold;
+  if(ob)ob.gl+=gB;if(bf>1)S.sess.bg=(S.sess.bg||0)+gold-gB;
   const got=[];if(gold)got.push(gold+' gold coins');
-  const lm=1+charmV('loot')+preyB(m.id,'loot')+pvpBonus();let vend=0;
+  const lm=(1+charmV('loot')+preyB(m.id,'loot')+pvpBonus())*bf;let vend=0;
   for(const [id,c,mc] of m.d.loot){if(Math.random()>=c*lm)continue;const it=ITEMS[id],q=mc>1?rint(1,mc):1;
-    if(it.type==='coin'){const g=Math.round(it.v*q*OURO_X);S.gold+=g;S.sess.gold+=g;got.push(Math.round(q*OURO_X)+' '+it.n.toLowerCase()+'s');continue;}   /* moedas viram gold direto (OURO_X) */
+    if(it.type==='coin'){const g=Math.round(it.v*q*OURO_X*bf);S.gold+=g;S.sess.gold+=g;if(ob)ob.gl+=Math.round(it.v*q*OURO_X);if(bf>1)S.sess.bg=(S.sess.bg||0)+g-Math.round(it.v*q*OURO_X);got.push(Math.round(q*OURO_X*bf)+' '+it.n.toLowerCase()+'s');continue;}   /* moedas viram gold direto (OURO_X) */
     const cf=lootCfgDe(id);if(!cf.pegar)continue;   /* PEGAR desligado: fica no chão */
+    if(bf>1)S.sess.bg=(S.sess.bg||0)+it.v*q*(1-1/bf);   /* parte esperada do valor que veio do bônus de drop */
     if(cf.vender&&it.v>0){const g=Math.round(it.v*q);S.gold+=g;S.sess.gold+=g;S.sess.vend=(S.sess.vend||0)+g;vend+=g;got.push((q>1?`${q} ${it.n}`:it.n)+' ($)');   /* VENDER: vira gold na hora pelo preço de NPC, sem peso */
+      if(ob&&!raroLoot(it,c))ob.gl+=g;
       if(g>=500)ic.push(id);if(it.v*q>=2000||c<=.005){log('loot',`🎉 Drop raro: ${it.n} (${fmt(it.v)} gp)!`,'o');}continue;}
     if(capFree()<it.w*q){if(!W.capWarn||W.time>W.capWarn){log('sys','Capacidade cheia! Loot deixado no chão.','o');W.capWarn=W.time+15000;}continue;}
     S.bag[id]=(S.bag[id]||0)+q;S.sess.items[id]=(S.sess.items[id]||0)+q;S.sess.loot+=it.v*q;got.push(q>1?`${q} ${it.n}`:it.n);ic.push(id);
+    if(ob&&!raroLoot(it,c)){ob.gl+=it.v*q;ob.it[id]=(ob.it[id]||0)+q;}
     if(it.v>=2000||c<=.005){log('loot',`🎉 Drop raro: ${it.n} (${fmt(it.v)} gp)!`,'o');toast(`🎉 ${it.n}!`);}}
   ouroFx(m.x,m.y,S.gold-g0,ic.sort((a,b)=>ITEMS[b].v-ITEMS[a].v));
   log('loot',`Loot de ${m.d.n}: ${got.length?got.join(', '):'nada'}.`,'g');
@@ -1700,7 +1725,7 @@ function lancar15(L,m,s,dry){const T=W.time,g=GRUPO15(m),v=s.v||0,hp=L.hp/L.max*
   if((L.cd[g]||0)>T||(L.cd[m.id]||0)>T||(m.focus&&(L.cd.focus||0)>T))return false;
   if(mods(L).pacifico&&g==='atk')return false;
   const tg=L.alvo&&L.alvo.vivo()?L.alvo:null,ini=inimigos15(L);let ok=false,at=0;
-  const paga=()=>{if(m.runa){L.bag[s.a]--;if(!L.bag[s.a])delete L.bag[s.a];if(L.eJog&&!W.arena){const it=ITEMS[s.a];S.sess.sup+=it.price||0;S.sess.used[s.a]=(S.sess.used[s.a]||0)+1;}}
+  const paga=()=>{if(m.runa){L.bag[s.a]--;if(!L.bag[s.a])delete L.bag[s.a];if(L.eJog&&!W.arena){const it=ITEMS[s.a];S.sess.sup+=it.price||0;obS(it.price||0);S.sess.used[s.a]=(S.sess.used[s.a]||0)+1;}}
     else{L.mp-=m.mana;if(L.eJog)train('magic',m.mana);}anuncia(L,m);};
   switch(m.t){
     case 'alvo':case 'dot':{if(!tg||cheb(L,tg)>(m.runa?7:m.alcance||3)||tg.resist(m.el||m.dot_el)<.35)return false;
@@ -1777,7 +1802,7 @@ function virar15(L,t){if(t)L.dir=dirPara(L,t);}
 function usarPocao15(L,it,s){const T=W.time;if((L.cd.pot||0)>T||!(L.bag[it.id]>0)||L.nivel<it.lv||(it.voc&&!it.voc.includes(L.voc)))return false;
   const hp=L.hp/L.max*100,mp=L.mp/L.maxMp*100;if(!(it.hp?hp<s.v:mp<s.v))return false;
   L.bag[it.id]--;if(!L.bag[it.id])delete L.bag[it.id];
-  if(L.eJog){if(!W.arena){S.sess.sup+=it.price;S.sess.used[it.id]=(S.sess.used[it.id]||0)+1;}if(it.hp)healP(it.hp);if(it.mp)manaP(it.mp);}
+  if(L.eJog){if(!W.arena){S.sess.sup+=it.price;obS(it.price);S.sess.used[it.id]=(S.sess.used[it.id]||0)+1;}if(it.hp)healP(it.hp);if(it.mp)manaP(it.mp);}
   else{if(it.hp){const q=Math.min(L.max-L.hp,it.hp);L.hp+=q;ptHeal(L,q);fxt(L.x,L.y,'+'+q,'#7fe07f');}if(it.mp)L.mp=Math.min(L.maxMp,L.mp+it.mp);}
   ef15(me15('magic_blue'),L.x,L.y);L.cd.pot=T+1000;return true;}
 /* dano esperado de uma magia sobre uma lista de alvos (cada um limitado à própria vida: sem contar o desperdício) */
@@ -2336,11 +2361,12 @@ function update(dt){
   if(S.loc==='arena'){arenaLogic(dt);return;}
   if(S.loc==='treino'){treinoLogic(dt);return;}
   if(S.loc==='city'){S.stamina=Math.min(STAM_MAX,S.stamina+dt/3);const p=W.p;p.mt=Math.min(1+dt/p.stepMs,p.mt+dt/p.stepMs);andarMao();cidTick();cityLogic();return;}
-  S.sess.t+=dt;S.stamina-=dt;if(W.rec&&!W.rec.fim)medirRecorde();
+  S.sess.t+=dt;S.stamina-=dt;if(W.rec&&!W.rec.fim&&!OFFRUN)medirRecorde();
+  if(obOn()){const o=obOf();o.t+=dt;if(o.t>=OFF_BASE_MIN&&!OFFRUN)taxaFlush();}
   for(const arr of Object.values(S.imb))for(const im of arr)if(im&&im.ms>0)im.ms-=dt;accTick(dt);
   preyTick(dt);wcTempo(dt);
   for(let i=W.respawns.length-1;i>=0;i--){const r=W.respawns[i];if(W.time>=r.t&&cheb(W.p,r.sp)>7){W.respawns.splice(i,1);spawnMob(r.sp,r.sp.mob||pickMob(HUNTS[S.loc]));}}
-  mobLogic(dt);if(S.hp<=0){die();return;}
+  mobLogic(dt);if(S.hp<=0){if(OFFRUN){OFFRUN.stop='morte';S.hp=maxHp();S.mp=maxMp();}else die();return;}
   playerLogic(dt);if(W.pl)ptLider(dt);
   W.chk+=dt;if(W.chk>=1000){W.chk=0;autoChecks();}
 }
@@ -2352,6 +2378,7 @@ function medirRecorde(){const r=W.rec,s=S.sess,dt=s.t-r.t0;if(dt<0){W.rec=null;r
   if(novo){rc.pull=pullMd(S.loc);rc.lv=S.level;rc.t=Date.now();log('sys',`🏆 Recorde em ${HUNTS[S.loc].n}: ${fmt(rc.exp)} exp/h · ${fmt(rc.lucro)} gp/h (primeiros 5 min).`,'y');toast('🏆 Novo recorde!');}}
 function autoChecks(){
   if(W.loading)return;
+  if(OFFRUN){offTopUp();return;}   /* offline/catch-up: suprimentos infinitos (repostos e cobrados), sem voltar à cidade */
   if(S.stamina<=0){S.stamina=0;returnCity('stamina esgotada',false);return;}
   if(S.hp/maxHp()<.12&&countPots('hp')===0){returnCity('HP baixo e sem poções',false);return;}
   const r=S.rules;if(!r.autoReturn)return;let why=null;
@@ -2411,11 +2438,11 @@ function cityLogic(){
 function bestHunt(){let b=Object.keys(HUNTS)[0];for(const [k,h] of Object.entries(HUNTS))if(!h.boss&&!h.pvp&&h.lv<=S.level)b=k;return b;}
 
 /* ======================= ECONOMIA ======================= */
-function quickSell(auto){
+function quickSell(auto,mudo){
   let tot=0,n=0;for(const [k,c] of Object.entries(S.bag)){const it=ITEMS[parseKey(k).id];if(!it)continue;
     const ok=it.type==='loot'?!(S.rules.keepMats&&MATS.has(k)):it.type==='eq'&&S.rules.sellEq&&!it.keep;
     if(ok&&it.v>0){tot+=it.v*c;n+=c;delete S.bag[k];}}
-  if(tot){S.gold+=tot;log('sys',`Venda rápida: ${n} itens vendidos por ${fmt(tot)} gp.`,'y');}else if(!auto)log('sys','Nada para vender.','m');
+  if(tot){S.gold+=tot;if(!mudo)log('sys',`Venda rápida: ${n} itens vendidos por ${fmt(tot)} gp.`,'y');}else if(!auto)log('sys','Nada para vender.','m');
   dirty.all=true;
 }
 function refill(){
@@ -2456,31 +2483,98 @@ function buyItem(id,q){const it=ITEMS[id];const cost=it.price*q;if(S.gold<cost){
 function matCount(id){return (S.bag[id]||0)+(S.depot[id]||0);}
 function useMat(id,n){const b=Math.min(n,S.bag[id]||0);if(b){S.bag[id]-=b;if(!S.bag[id])delete S.bag[id];}const r=n-b;if(r){S.depot[id]-=r;if(!S.depot[id])delete S.depot[id];}}
 
-/* ======================= OFFLINE ======================= */
-function offline(ms){
-  const r={ms,hunting:S.loc!=='city',exp:0,lv:0,gold:0,kills:0,est:false};
-  if(S.loc==='city'||S.sess.t<2*MIN){S.stamina=Math.min(STAM_MAX,S.stamina+ms/3);S.hp=maxHp();S.mp=maxMp();
-    if(S.loc!=='city'){r.note='Sessão curta demais para estimar (precisa de 2 min de caçada).';}return r;}
-  const s=S.sess,t=s.t,R=S.rules;let eff=Math.min(ms,S.stamina);
-  const loopOk=R.autoReturn&&R.autoSell&&R.autoBack;
-  if(!loopOk)for(const [id,n] of Object.entries(s.used)){const rate=n/t;if(rate>0)eff=Math.min(eff,(S.bag[id]||0)/rate);}
-  eff=Math.max(0,eff);r.est=true;r.eff=eff;const f=eff/t,L0=S.level,snap=JSON.stringify(s),gained=Math.round(s.exp*f);
-  quiet=true;
-  gainExp(gained);for(const [k,n] of Object.entries(s.tries))train(k,n*f);
-  for(const [m,n] of Object.entries(s.kills)){const k=Math.round(n*f);S.best[m]=(S.best[m]||0)+k;r.kills+=k;checkBest(m);}
-  let g=s.gold*f;
-  if(loopOk){g+=s.loot*f-s.sup*f;for(const [id,n] of Object.entries(s.items))if(MATS.has(id)&&R.keepMats){const k=Math.round(n*f);S.depot[id]=(S.depot[id]||0)+k;g-=ITEMS[id].v*k;}}
-  else{for(const [id,n] of Object.entries(s.items)){const k=Math.min(Math.round(n*f),Math.floor(capFree()/ITEMS[id].w));if(k>0)S.bag[id]=(S.bag[id]||0)+k;}
-    for(const [id,n] of Object.entries(s.used)){S.bag[id]=Math.max(0,(S.bag[id]||0)-Math.round(n*f));if(!S.bag[id])delete S.bag[id];}}
-  g=Math.round(g);S.gold=Math.max(0,S.gold+g);r.gold=g;
-  S.stamina-=eff;S.stamina+=Math.max(0,ms-eff)/3;S.stamina=clamp(S.stamina,0,STAM_MAX);
-  for(const arr of Object.values(S.imb))for(const im of arr)if(im)im.ms-=eff;accOff(eff,f);
-  r.wc=wcTempo(eff);preyTick(eff);
-  S.sess=JSON.parse(snap);quiet=false;
-  r.exp=gained;r.lv=S.level-L0;
-  if(eff<ms){r.note=S.stamina<=0?'A stamina acabou e o personagem voltou para a cidade.':'Os suprimentos acabaram e o personagem voltou para a cidade.';quiet=true;travel('city',null);quiet=false;}
-  return r;
+/* ======================= OFFLINE =======================
+   Ausência > 1 min com o personagem numa caçada comum (não boss/PvP): ele segue na MESMA caçada (mesmo modo de pull) com suprimentos infinitos — como se fosse ao depot,
+   repusesse, vendesse o loot e voltasse. Para só quando acaba o limite diário (OFF_DIA = 12 h por janela móvel de 24 h; S.offLog=[[início,ms creditados]]) ou a stamina.
+   Sem o bônus online. Como se calcula:
+   - até OFF_CATCH (15 min): simulação REAL em lotes (update() em modo quiet, com overlay de progresso);
+   - mais que isso: usa a linha de base S.taxas[caçada] (taxas/h medidas em sessões ONLINE de ≥10 min, sem o bônus, média móvel ponderada); sem base (ou velha: level/equip mudou
+     muito) simula de verdade os primeiros OFF_CAL (6 min), mede as taxas e projeta o resto (conservador: x OFF_EFF por viagens ao depot, x OFF_CALF por vir de amostra curta). */
+function offUsado(now){let u=0;const j=now-OFF_JAN;for(const [a,d] of S.offLog||[]){const x=Math.max(a,j),y=Math.min(a+d,now);if(y>x)u+=y-x;}return u;}
+const offRest=now=>Math.max(0,OFF_DIA-offUsado(now||Date.now()));
+const offFmt=ms=>{const m=Math.floor(Math.max(0,ms)/60000);return Math.floor(m/60)+'h'+String(m%60).padStart(2,'0');};
+const eqPow=()=>Math.round(Object.keys(S.eq).reduce((a,k)=>a+pontosEq(eqi(k)),0)+Object.values(S.skills).reduce((a,x)=>a+x.lv,0)*4);
+function taxaFresca(T){if(!T||typeof T.exp!=='number'||!T.k||!T.it||!T.tr||!T.ch||Date.now()-T.t>OFF_VELHA)return false;
+  const q=eqPow()/Math.max(1,T.eq);return Math.abs(S.level-T.lv)<=Math.max(8,T.lv*.15)&&q>.7&&q<1.5;}
+function taxaDe(o){const h=H/o.t,x={exp:o.exp*h,gl:o.gl*h,sup:o.sup*h,k:{},tr:{},it:{},ch:{}};for(const f of ['k','tr','it','ch'])for(const id in o[f])x[f][id]=o[f][id]*h;return x;}
+function taxaMix(old,nv,a){const m={exp:0,gl:0,sup:0,k:{},tr:{},it:{},ch:{}};for(const f of ['exp','gl','sup'])m[f]=old[f]*(1-a)+nv[f]*a;
+  for(const f of ['k','tr','it','ch'])for(const id of new Set([...Object.keys(old[f]||{}),...Object.keys(nv[f])]))m[f][id]=((old[f]||{})[id]||0)*(1-a)+(nv[f][id]||0)*a;return m;}
+/* guarda as taxas/h medidas (o = acumulador S.sess.ob) em S.taxas[caçada], com o snapshot de level/equipamento */
+function taxaSalvar(o,cal){const hk=S.loc,T=S.taxas||(S.taxas={}),old=T[hk],nv=taxaDe(o);let x=nv;
+  if(!cal&&old&&!old.cal&&taxaFresca(old))x=taxaMix(old,nv,clamp(o.t/(o.t+Math.min(old.n||0,H)),.3,.7));   /* média móvel ponderada */
+  x.lv=S.level;x.eq=eqPow();x.pull=pullMd(hk);x.t=Date.now();x.n=Math.min(48*H,((old&&!old.cal&&old.n)||0)+o.t);if(cal)x.cal=1;T[hk]=x;}
+function taxaFlush(){const o=S.sess.ob;if(!o||o.t<OFF_BASE_MIN)return;taxaSalvar(o,false);S.sess.ob=null;}
+function poisson(l){if(!(l>0))return 0;if(l>40)return Math.max(0,Math.round(l+Math.sqrt(l)*1.7*(Math.random()+Math.random()+Math.random()+Math.random()-2)));let L=Math.exp(-l),k=0,p=1;do{k++;p*=Math.random();}while(p>L);return k-1;}
+/* suprimentos infinitos durante a simulação offline: repõe o que foi gasto (cobra o preço) e vende o loot quando a mochila enche */
+function offTopUp(){const R=OFFRUN;if(!R)return;const want=Object.assign({},R.kit);
+  for(const r of S.rules.refill){const it=ITEMS[r.id];if(it&&r.q>0&&S.level>=it.lv&&!(it.voc&&!it.voc.includes(S.voc)))want[r.id]=Math.max(want[r.id]||0,r.q);}
+  for(const id in want){const it=ITEMS[id],have=S.bag[id]||0;if(it&&have<want[id]*.5){const n=want[id]-have,c=n*(it.price||0);S.bag[id]=want[id];S.gold=Math.max(0,S.gold-c);R.pago+=c;}}
+  if(capUsed()/maxCap()*100>=Math.min(S.rules.cap||90,80))quickSell(true,true);}
+function offOv(txt,p){let e=$('#offOv');if(txt===null){if(e)e.remove();return;}
+  if(!e){e=document.createElement('div');e.id='offOv';e.innerHTML='<div class="offbox"><b></b><div class="prog"><div></div></div><small></small></div>';document.body.appendChild(e);}
+  e.querySelector('b').textContent=txt;e.querySelector('.prog>div').style.width=Math.round(clamp(p,0,1)*100)+'%';e.querySelector('small').textContent=Math.round(clamp(p,0,1)*100)+'%';}
+const offYield=()=>new Promise(res=>{if(document.hidden){const c=new MessageChannel();c.port1.onmessage=()=>res();c.port2.postMessage(0);}else setTimeout(res,0);});
+function offFim(){OFFRUN=null;quiet=false;offOv(null);if(S)S.lastTick=Date.now();}
+/* aplica ms de caçada projetada com as taxas T (por hora): exp, kills, tries, gold+loot, suprimentos, raros (Poisson), cargas, imbuement, stamina */
+function offAplica(T,ms,r){const h=ms/H,e=OFF_EFF*(T.cal?OFF_CALF:1),snap=JSON.stringify(S.sess),rr=S.rules;quiet=true;
+  try{const ex=Math.round(T.exp*h*e);if(ex>0)gainExp(ex);r.exp+=ex;
+    for(const m in T.k){if(!MOBS[m])continue;const k=Math.round(T.k[m]*h*e);if(k>0){S.best[m]=(S.best[m]||0)+k;r.kills+=k;checkBest(m);}}
+    for(const k in T.tr)if(S.skills[k]&&T.tr[k]>0)train(k,T.tr[k]*h*e);
+    let gl=T.gl*h*e;
+    for(const id in T.it){const k=Math.round(T.it[id]*h*e);if(k>0&&ITEMS[id]&&MATS.has(id)&&rr.keepMats){S.depot[id]=(S.depot[id]||0)+k;gl-=ITEMS[id].v*k;}}   /* materiais de imbuement vão para o depot, não são vendidos */
+    for(const m in T.k){const mb=MOBS[m];if(!mb)continue;const n=Math.round(T.k[m]*h*e),lm=1+charmV('loot')+preyB(m,'loot');
+      for(const [id,c,mc] of mb.loot){const it=ITEMS[id];if(!it||it.type==='coin'||!raroLoot(it,c))continue;const cf=lootCfgDe(id);if(!cf.pegar)continue;
+        const q=poisson(n*c*lm);if(!q)continue;const tot=Math.max(1,Math.round(q*(mc>1?(1+mc)/2:1)));
+        if(cf.vender&&it.v>0)gl+=it.v*tot;else{const k=Math.min(tot,Math.floor(capFree()/it.w));if(k<=0)continue;S.bag[id]=(S.bag[id]||0)+k;}
+        r.rare[id]=(r.rare[id]||0)+tot;}}
+    gl=Math.round(gl);const sup=Math.round(T.sup*h);S.gold=Math.max(0,S.gold+gl-sup);r.bruto+=gl;r.sup+=sup;
+    S.stamina-=ms;for(const arr of Object.values(S.imb))for(const im of arr)if(im)im.ms-=ms;
+    for(const k of ACC){const it=eqa(k),q=S.eq[k];if(!it||!(it.dur||it.ch))continue;q.t-=it.dur?Math.round(ms/1000):Math.round(((T.ch||{})[k]||0)*h);if(q.t<=0)S.eq[k]={id:null,t:0};}
+    r.wc+=wcTempo(ms);preyTick(ms);
+  }finally{S.sess=JSON.parse(snap);quiet=false;}}
+async function offRun(el,now){
+  const hk=S.loc,t0=S.lastTick,rem=offRest(now),st=S.stamina,eff0=Math.max(0,Math.min(el,rem,st));
+  const r={ms:el,off:true,est:true,hunt:hk,pull:pullMd(hk),eff:0,sim:0,ext:0,exp:0,lv:0,kills:0,bruto:0,sup:0,rare:{},wc:0,cap:eff0>=el?null:rem<=st?'dia':'stamina',base:'real',morte:false,note:''};
+  const L0=S.level,s=S.sess,x0={e:s.exp,g:s.gold,l:s.loot,s:s.sup,k:Object.values(s.kills).reduce((a,b)=>a+b,0)},T=S.taxas||(S.taxas={}),b=taxaFresca(T[hk])?T[hk]:null;
+  const simMs=el<=OFF_CATCH?eff0:b?0:Math.min(OFF_CAL,eff0);let rates=el>OFF_CATCH?b:null;r.base=el<=OFF_CATCH?'real':b?'baseline':'calibracao';
+  const kit={};for(const [k,n] of Object.entries(S.bag)){const it=ITEMS[parseKey(k).id];if(it&&(it.type==='pot'||it.type==='runa'))kit[k]=n;}for(const id in s.used)if(ITEMS[id]&&!kit[id])kit[id]=Math.max(S.bag[id]||0,s.used[id]>0?1:0);
+  const ent=[t0,0];S.offLog=(S.offLog||[]).filter(e=>e[0]+e[1]>now-OFF_JAN);S.offLog.push(ent);
+  OFFRUN={cal:!b&&el>OFF_CATCH&&simMs>0,stop:null,kit,pago:0};
+  if(OFFRUN.cal)s.ob=null;
+  try{
+    if(simMs>=STEP){let left=simMs;offOv('Recuperando o tempo fora…',0);
+      while(left>=STEP&&!OFFRUN.stop){const tt=performance.now();quiet=true;
+        try{while(left>=STEP&&!OFFRUN.stop&&performance.now()-tt<28){update(STEP);left-=STEP;S.lastTick+=STEP;}}finally{quiet=false;}
+        ent[1]=simMs-left;offOv('Recuperando o tempo fora…',(simMs-left)/simMs);await offYield();}
+      r.sim=simMs-left;}
+    r.exp=S.sess.exp-x0.e;r.bruto=S.sess.gold-x0.g+S.sess.loot-x0.l;r.sup=S.sess.sup-x0.s;r.kills=Object.values(S.sess.kills).reduce((a,b)=>a+b,0)-x0.k;
+    const stop=OFFRUN.stop;let ext=eff0-r.sim;
+    if(OFFRUN.cal&&!stop){const o=S.sess.ob;if(o&&o.t>=2*MIN){rates=taxaDe(o);rates.cal=1;taxaSalvar(o,true);}S.sess.ob=null;}
+    if(stop){r.morte=stop==='morte';ext=0;}
+    if(ext>=STEP&&rates){offAplica(rates,ext,r);r.ext=ext;}
+    ent[1]=r.sim+r.ext;r.eff=r.sim+r.ext;
+    if(r.base==='calibracao'&&!rates&&ext>=STEP)r.note='Amostra curta demais para projetar o restante do tempo.';
+    S.stamina=clamp(S.stamina+Math.max(0,el-r.eff)/3,0,STAM_MAX);
+    if(S.rules.autoSell)quickSell(true,true);offTopUp();   /* volta ao depot: vende o loot e repõe os suprimentos */
+    S.hp=maxHp();S.mp=maxMp();
+    r.lv=S.level-L0;r.resta=offRest(Date.now());
+    if(r.morte){r.note='O personagem morreu na caçada e voltou para a cidade (sem perda de exp).';quiet=true;travel('city',null);quiet=false;}
+    else if(r.cap==='stamina'||S.stamina<=0){r.note='A stamina acabou e o personagem voltou para a cidade.';quiet=true;travel('city',null);quiet=false;}
+    else if(r.cap==='dia')r.note=`Limite de caça offline do dia atingido (${Math.round(OFF_DIA/H)} h por 24 h): o personagem parou de caçar.`;
+  }finally{offFim();}
+  mercadoTick();hud();save();
+  if(el>120000)openModal('offline',r);else log('sys',`Enquanto você esteve fora (${hms(el)}): +${fmt(r.exp)} exp, ${fmt(r.bruto-r.sup)} gp de lucro.`,'y');
 }
+/* ausência > 1 min: caçada comum -> offRun; cidade/boss/PvP -> só descansa */
+function offIr(el,now){
+  if(PT.hunt){const lp=S.loc;ptSairHunt('Você ficou ausente: sua parte da caçada continua sozinha, offline.',true);if(offElegivel(lp)){quiet=true;try{travel(lp,null);}finally{quiet=false;}}}   /* party: quem some segue solo (sem o bônus da party) */
+  if(W.loading)return;
+  if(naCaca()&&offElegivel(S.loc)){offRun(el,now).catch(e=>{console.error(e);offFim();});return;}
+  const r=offline(el);S.lastTick=now;if(el>120000)openModal('offline',r);mercadoTick();hud();save();}
+function offline(ms){
+  const r={ms,off:false,hunting:S.loc!=='city'};S.stamina=Math.min(STAM_MAX,S.stamina+ms/3);S.hp=maxHp();S.mp=maxMp();
+  if(S.loc!=='city'){r.note='Esta caçada (boss/PvP) não rende progresso offline: o personagem voltou para a cidade.';quiet=true;travel('city',null);quiet=false;}
+  return r;}
 
 /* ======================= RENDER (CANVAS) ======================= */
 const cv=$('#world'),ctx=cv.getContext('2d');let VW=0,VHt=0,ZOOM=2,DPR=1;
@@ -2707,7 +2801,8 @@ function renderAna(){const s=S.sess,t=Math.max(1,s.t),prof=s.gold+s.loot-s.sup,e
   $('#anaBody').innerHTML=`<div><small>Sessão atual</small><b class="g">${hms(s.t)}</b></div><div><small>Próximo level</small><b>${eh>0?hms(eta):'--:--:--'}</b></div>
     <div><small>Exp total</small><b>${fmt(s.exp)}</b></div><div><small>Exp/h</small><b>${s.t>5000?fmt(eh):'---'}</b></div>
     <div><small>Lucro total</small><b class="${prof<0?'r':'g'}">${fmt(prof)}</b></div><div><small>Lucro/h</small><b class="${prof<0?'r':'g'}">${s.t>5000?fmt(prof/t*H):'---'}</b></div>
-    <div><small>Monstros</small><b>${fmt(Object.values(s.kills).reduce((a,b)=>a+b,0))}</b></div><div><small>Suprimentos</small><b class="r">${fmt(s.sup)}</b></div>`;}
+    <div><small>Monstros</small><b>${fmt(Object.values(s.kills).reduce((a,b)=>a+b,0))}</b></div><div><small>Suprimentos</small><b class="r">${fmt(s.sup)}</b></div>
+    <div title="Exp extra vindo do bônus online (+${Math.round(BONUS_ONLINE*100)}%)"><small>Bônus online · exp</small><b class="g">+${fmt(s.bx||0)}</b></div><div title="Gold e loot extras do bônus online (valor esperado dos drops)"><small>Bônus online · gold</small><b class="g">+${fmt(s.bg||0)}</b></div>`;}
 function renderChat(){if(!logDirty)return;logDirty=false;const el=$('#chatLog'),stick=el.scrollHeight-el.scrollTop-el.clientHeight<30;
   el.innerHTML=LOGS[chatTab].map(([t,m,c])=>`<div class="c-${c}"><span class="c-time">${t}</span>${esc(m)}</div>`).join('');if(stick)el.scrollTop=el.scrollHeight;}
 function condTxt(s){const c=condSug(s);if(c)return c;const sp=SP[s.a],it=ITEMS[s.a];if(sp&&!(MAGIAS15[s.a]||RUNAS15[s.a])){if(sp.t==='heal')return `HP<${s.v}%`;if(sp.t==='atk')return `MP≥${s.v}%`;return `${s.v}+ alvos`;}if(it&&it.type==='pot')return it.hp?`HP<${s.v}%`:`MP<${s.v}%`;return '';}
@@ -2735,6 +2830,9 @@ function hud(){
   if(!S)return;const keysSet=Object.keys(S.sets).join('|');if(sigs.sets!==keysSet){sigs.sets=keysSet;$('#selSet').innerHTML=Object.keys(S.sets).map(k=>`<option>${esc(k)}</option>`).join('');}
 const mh=maxHp(),mm=maxMp();
   {const sk=pvSk(),sg=S.name+'|'+sk;if(sigs.nm!==sg){sigs.nm=sg;$('#tName').innerHTML=esc(S.name)+(sk?' '+cavHTML(sk,13):'');}}$('#tVoc').textContent=`${V().n} Lv ${S.level}`;$('#tGold').textContent=fmt(S.gold);$('#tGoldIc').title=`${Math.floor(S.gold/10000)} crystal · ${Math.floor(S.gold%10000/100)} platinum · ${S.gold%100} gold`;
+  {const b=$('#tBon');if(b){const on=bonusOn(),ca=naCaca(),pct=Math.round(BONUS_ONLINE*100),tx=`+${pct}%`;
+    const tt=on?`Bônus online ativo: +${pct}% de exp, de chance de drop e de ouro enquanto você caça com a página aberta e visível. Offline não tem bônus.`:ca?`Bônus online pausado (página oculta ou recuperando o tempo fora). Volte a ver a página para ganhar +${pct}% de exp e loot.`:`Entre numa caçada com a página aberta para ganhar +${pct}% de exp, loot e ouro. Caça offline disponível hoje: ${offFmt(offRest())} de ${Math.round(OFF_DIA/H)}h.`;
+    b.classList.toggle('off',!on);$('#tBon .bt').textContent=tx;if(b.title!==tt)b.title=tt;}}
   const bonus=(stage(S.level)*(1+charmV('exp'))-1)*100;$('#tRate').textContent=`+${Math.round(bonus)}%`;
   const avk=S.voc+'|'+(S.outfit?JSON.stringify(S.outfit):'');if(sigs.ava!==avk){sigs.ava=avk;$('#tAva').innerHTML=S.outfit?ret15(S.outfit):`<img src="${surl(V().outfit)}" alt="">`;pintarRetratos();}
   $('#bHp').style.width=clamp(S.hp/mh*100,0,100)+'%';$('#sHp').textContent=`${Math.max(0,Math.round(S.hp))}/${mh}`;
@@ -3004,7 +3102,7 @@ const MODALS={
   char:()=>{const sk=Object.keys(SKN).map(k=>{const s=S.skills[k],p=s.t/need(k,s.lv)*100;return `<div class="row"><div class="grow">${SKN[k]}${k===mainSk()&&k!=='magic'?' <span class="green sm" title="Skill da arma equipada: é o que treina e dá dano">● em uso</span>':''}<div class="prog"><div style="width:${p}%"></div></div></div><b style="font-size:16px">${s.lv}${accSk(k)?` <span class="${accSk(k)>0?'green':'red'} sm" title="Bônus de equipamento (anéis, amuletos, livro de magia): efetivo ${skE(k)}">${accSk(k)>0?'+':'−'}${Math.abs(accSk(k))}</span>`:''}</b></div>`;}).join('');
     return {title:'👤 Personagem',body:`<div style="display:flex;gap:14px;align-items:flex-start"><div><div style="width:64px;height:64px">${S.outfit?ret15(S.outfit):ico(V().outfit,'🧑','m64')}</div><div style="margin-top:6px"><button class="btn" data-open="outfit">🎨 Outfit</button></div></div><div class="kv" style="flex:1"><span>Nome</span><b>${esc(S.name)}</b><span>Vocação</span><b>${V().n}</b><span>Level</span><b>${S.level}</b><span>Experiência</span><b>${fmt(S.exp)}</b>
       <span>HP / Mana</span><b>${maxHp()} / ${maxMp()}</b><span>Capacidade</span><b>${maxCap()} oz</b><span>Ataque${V().wt==='wand'||V().wt==='rod'?' (wand/rod)':''}</span><b>${eqi('weapon').atk?atk():eqi('weapon').min+'-'+eqi('weapon').max}</b>
-      ${S.voc==='knight'?`<span>Arma / skill</span><b>${eqi('weapon').n} · ${SKN[mainSk()]} ${S.skills[mainSk()].lv}</b>`:''}<span>Armadura / Defesa</span><b>${armor()} / ${def()}</b><span>Taxa de exp</span><b>${stage(S.level)}x</b><span>Blessings</span><b class="${S.bless?'green':'red'}">${S.bless?'Ativas':'Nenhuma'}</b><span>Mortes</span><b>${S.deaths}</b><span>PvP</span><b>${pvResumo()}</b>
+      ${S.voc==='knight'?`<span>Arma / skill</span><b>${eqi('weapon').n} · ${SKN[mainSk()]} ${S.skills[mainSk()].lv}</b>`:''}<span>Armadura / Defesa</span><b>${armor()} / ${def()}</b><span>Taxa de exp</span><b>${stage(S.level)}x</b><span>Caça offline hoje</span><b title="Janela móvel de 24 h: o personagem segue caçando sozinho (sem bônus online) até esse limite">${offFmt(offRest())} de ${Math.round(OFF_DIA/H)}h disponíveis</b><span>Blessings</span><b class="${S.bless?'green':'red'}">${S.bless?'Ativas':'Nenhuma'}</b><span>Mortes</span><b>${S.deaths}</b><span>PvP</span><b>${pvResumo()}</b>
       <span>Roubo de vida / mana</span><b>${Math.round(imbVal('vamp')*100)}% / ${Math.round(imbVal('void')*100)}%</b><span>Crítico (Strike)</span><b>${Math.round(imbVal('strike')*100)}% · +50%</b><span>Fatal (Onslaught)</span><b>${((S.eq.weapon.t||0)*1.5).toFixed(1)}% · +60%</b><span>Esquiva (Ruse)</span><b>${((S.eq.armor.t||0)*1.5).toFixed(1)}%</b><span>Agonia</span><b>${Math.round(imbVal('agonia')*100)}% · +25%</b></div></div><h3>Skills</h3>${sk}`};},
   bestiary:(sel)=>{const ids=[...MOB_CACADA].filter(k=>MOBS[k]&&MOBS[k].hostil).sort((a,b)=>MOBS[a].exp-MOBS[b].exp||MOBS[a].n.localeCompare(MOBS[b].n));sel=sel||ids[0];const m=MOBS[sel],st=bestStage(sel),th=bestTh(sel),k=S.best[sel]||0;
     const cards=ids.map(id=>{const s=bestStage(id),kk=S.best[id]||0,t=bestTh(id);return `<div class="card${id===sel?' on':''}" data-act="bestSel" data-arg="${id}" style="cursor:pointer;padding:6px;text-align:center"><div style="height:48px;${kk?'':'filter:brightness(0)'}">${mi(MOBS[id],'m48')}</div><div class="sm">${kk?MOBS[id].n:'???'}</div><div class="prog"><div style="width:${Math.min(100,kk/t[2]*100)}%"></div></div><div class="mut sm">${'★'.repeat(s)}${'☆'.repeat(3-s)}</div></div>`;}).join('');
@@ -3057,9 +3155,16 @@ const MODALS={
     <label style="display:flex;gap:8px;align-items:center;margin:8px 0 4px" title="Bots são personagens simulados (marcados com um robô) que dão vida à cidade, às zonas PvP e às caçadas e completam grupos ao procurar party. Existem só no seu cliente."><input type="checkbox" data-rule="bots" ${S.rules.bots!==false?'checked':''}> Mostrar bots ${botHTML(14)} <span class="mut sm">(cidade, zonas PvP, caçadas e busca de party)</span></label>
     <label style="display:flex;gap:8px;align-items:center;margin:4px 0 8px" class="sm">Densidade de bots na cidade <select data-rule="botsN"><option value="0.5" ${+S.rules.botsN===.5?'selected':''}>Poucos</option><option value="1" ${!(+S.rules.botsN>0)||+S.rules.botsN===1?'selected':''}>Normal</option><option value="1.5" ${+S.rules.botsN===1.5?'selected':''}>Muitos</option></select></label>
     <div style="display:flex;gap:6px;flex-wrap:wrap">${rowBtn('Mostrar todas as janelas','showWins','')}${rowBtn('Recarregar mapas','reloadMaps','')}${ON.modo==='online'?rowBtn('Trocar de personagem','onTrocar','')+rowBtn('Sair da conta','onSairJogo',''):''}${rowBtn('Apagar personagem','reset','',false,'red')}</div>`}),
-  offline:(r)=>({title:'Enquanto você estava fora...',sm:true,body:`<p>Você ficou fora por <b>${hms(r.ms)}</b>.</p>${r.est?`<div class="kv"><span>Tempo caçando</span><b>${hms(r.eff)}</b><span>Experiência</span><b>+${fmt(r.exp)}</b><span>Levels</span><b>+${r.lv}</b><span>Monstros</span><b>${fmt(r.kills)}</b><span>Gold (lucro)</span><b class="${r.gold<0?'red':'gold'}">${r.gold>=0?'+':''}${fmt(r.gold)}</b>${r.wc?`<span>Prey wildcards</span><b>+${r.wc}</b>`:''}</div><p class="mut sm">Estimativa feita a partir da média da sua sessão de caça.</p>`:'<p class="mut">Seu personagem descansou na cidade e recuperou stamina.</p>'}${r.note?`<p class="red sm">${r.note}</p>`:''}
-    <div style="text-align:right">${rowBtn('Continuar','closeModal','',false,'go')}</div>`}),
-};
+  offline:(r)=>{if(!r.off)return {title:'Enquanto você estava fora...',sm:true,body:`<p>Você ficou fora por <b>${hms(r.ms)}</b>.</p><p class="mut">Seu personagem descansou na cidade e recuperou stamina.</p>${r.note?`<p class="red sm">${r.note}</p>`:''}<div style="text-align:right">${rowBtn('Continuar','closeModal','',false,'go')}</div>`};
+    const liq=r.bruto-r.sup,rr=Object.entries(r.rare||{}),mt={real:'Simulação real do tempo fora.',baseline:'Projeção pelas taxas medidas nas suas sessões online nesta caçada (conservadora).',calibracao:'Primeiros minutos simulados de verdade; o resto foi projetado de forma conservadora.'}[r.base]||'';
+    return {title:'Enquanto você estava fora...',sm:true,body:`<p>Você ficou fora por <b>${hms(r.ms)}</b>.</p><div class="kv"><span>Caça offline creditada</span><b>${hms(r.eff)}${r.cap==='dia'?' <span class="red sm">(limite diário)</span>':r.cap==='stamina'?' <span class="red sm">(stamina)</span>':''}</b>
+      <span>Caçada / modo</span><b>${esc((HUNTS[r.hunt]||{n:r.hunt}).n)} · ${esc(r.pull||'')}</b><span>Monstros</span><b>${fmt(r.kills)}</b><span>Experiência</span><b>+${fmt(r.exp)}</b><span>Levels</span><b>+${r.lv}</b>
+      <span>Gold + loot (bruto)</span><b class="gold">${fmt(r.bruto)}</b><span>Suprimentos gastos</span><b class="red">−${fmt(r.sup)}</b><span>Lucro líquido</span><b class="${liq<0?'red':'gold'}">${liq>=0?'+':'−'}${fmt(Math.abs(liq))}</b>
+      ${rr.length?`<span>Itens raros</span><b>${rr.map(([id,n])=>(n>1?n+'x ':'')+esc((ITEMS[id]||{n:id}).n)).join(', ')}</b>`:''}${r.wc?`<span>Prey wildcards</span><b>+${r.wc}</b>`:''}
+      <span>Caça offline restante hoje</span><b>${offFmt(r.resta||0)} de ${Math.round(OFF_DIA/H)}h</b></div>
+      <p class="mut sm">${mt} Sem o bônus online; suprimentos infinitos (cobrados).</p>${r.note?`<p class="red sm">${r.note}</p>`:''}
+      <p class="sm" style="color:#9be26b">Cace com o jogo aberto para ganhar +${Math.round(BONUS_ONLINE*100)}% de exp e loot.</p>
+    <div style="text-align:right">${rowBtn('Continuar','closeModal','',false,'go')}</div>`};},};
 /* ======================= TREINO: exercise weapons + sala de treino =======================
    Exercise weapons do Tibia (sword 28552, axe 28553, club 28554, bow 28555, rod 28556, wand 28557; durable +6727; lasting +6733).
    Cada arma tem cargas; 1 carga = 1 ataque no boneco a cada 2 s (500 cargas = 16 min 40 s; durable 1.800 = 1 h; lasting 14.400 = 8 h). O Knight tem 3 skills de arma (sword/axe/club):
@@ -3994,7 +4099,7 @@ async function sincRelogio(){const t0=Date.now(),r=await SB.rpc('agora');if(r.er
 function olSaveLocal(){try{const r=localStorage.getItem(KEY);if(!r)return null;const d=JSON.parse(r);return d&&VOC[d.voc]?{raw:r,d}:null;}catch(e){return null;}}
 function importado(){try{const p=localStorage.getItem(KEY+'_importado');return !!p&&ON.chars.some(c=>c.id===p);}catch(e){return false;}}
 /* save enviado à nuvem e guardado no cache local: lastTick e salvoEm ficam na hora do servidor (o relógio do PC não conta) */
-function payload(s){s=s||S;const o=Object.assign({},s);o.lastTick=(+s.lastTick||Date.now())+ON.off;o.salvoEm=Date.now()+ON.off;return o;}
+function payload(s){s=s||S;const o=Object.assign({},s);o.lastTick=(+s.lastTick||Date.now())+ON.off;o.offLog=(s.offLog||[]).map(e=>[e[0]+ON.off,e[1]]);o.salvoEm=Date.now()+ON.off;return o;}
 function novoSave(nome,voc){const ant=S;S=personagemForte(newState(nome,voc));S.hp=maxHp();S.mp=maxMp();const s=S;S=ant;return s;}
 
 /* ---------- entrada: login → lista de personagens → jogar (ou jogar offline) ---------- */
@@ -4031,7 +4136,7 @@ async function jogar(pid,auto){
     if(cache&&cache.voc&&(+cache.salvoEm||0)>(+(row.save&&row.save.salvoEm)||0)){s=carregarSave(cache);usouCache=!!s;}   /* o cache local é mais novo que a nuvem: usa e sobe */
     if(!s)s=carregarSave(row.save);
     if(!s)throw new Error('O save deste personagem não pôde ser lido. Nada foi alterado na nuvem.');
-    s.lastTick=Math.min(Date.now(),(+s.lastTick||Date.now())-ON.off);
+    s.lastTick=Math.min(Date.now(),(+s.lastTick||Date.now())-ON.off);s.offLog=(s.offLog||[]).map(e=>[e[0]-ON.off,e[1]]);
     ON.pid=pid;ON.ses=row.sessao;ON.modo='online';ON.parado=false;ON.sujo=usouCache;ON.falhas=0;S=s;
     ENT.ativo=false;ocupado(false);closeModal();ENT.fim('online');return true;
   }catch(e){ocupado(false);ON.pid=null;ON.erroJogar=errPT(e);if(!auto)olMsg(ON.erroJogar);return false;}
@@ -4228,7 +4333,7 @@ function save(){if(!S||ON.parado)return;if(ON.modo==='online'){ON.sujo=true;try{
 function load(){try{const r=localStorage.getItem(KEY);if(!r)return null;return carregarSave(JSON.parse(r));}catch(e){return null;}}
 /* valida e migra um save (local ou da nuvem) e devolve o estado, ou null */
 function carregarSave(d){try{if(!d||!VOC[d.voc])return null;const b=newState(d.name,d.voc);
-  const o=Object.assign(b,d);o.rules=Object.assign(newState(d.name,d.voc).rules,d.rules);o.sess=Object.assign(newSess(null),d.sess);o.charms=Object.assign({dmg:0,exp:0,loot:0,def:0},d.charms);o.pull=d.pull||{};o.lootCfg=d.lootCfg||{};o.recordes=d.recordes||{};o.ui=d.ui||{};o.favs=d.favs||{};o.wildcards=clamp(Math.floor(+d.wildcards)||0,0,1000);o.wcAcc=+d.wcAcc||0;o.tc=+d.tc||0;o.pv=pvLimpa(d.pv);migraPrey(o);migraOutfits(o);
+  const o=Object.assign(b,d);o.rules=Object.assign(newState(d.name,d.voc).rules,d.rules);o.sess=Object.assign(newSess(null),d.sess);o.charms=Object.assign({dmg:0,exp:0,loot:0,def:0},d.charms);o.pull=d.pull||{};o.lootCfg=d.lootCfg||{};o.recordes=d.recordes||{};o.taxas=d.taxas&&typeof d.taxas==='object'?d.taxas:{};o.offLog=Array.isArray(d.offLog)?d.offLog.filter(e=>Array.isArray(e)&&Number.isFinite(+e[0])&&+e[1]>0).map(e=>[+e[0],+e[1]]).slice(-200):[];o.ui=d.ui||{};o.favs=d.favs||{};o.wildcards=clamp(Math.floor(+d.wildcards)||0,0,1000);o.wcAcc=+d.wcAcc||0;o.tc=+d.tc||0;o.pv=pvLimpa(d.pv);migraPrey(o);migraOutfits(o);
   o.imb=Object.assign(newState('x',o.voc).imb,d.imb||{});for(const [k,n] of Object.entries(IMB_SLOTS)){o.imb[k]=(o.imb[k]||[]).slice(0,n);while(o.imb[k].length<n)o.imb[k].push(null);}
   /* saves antigos tinham um skill 'melee' só: espada, machado e clava começam com o mesmo nível e tentativas dele (ninguém perde progresso); o 'melee' é descartado */
   {const ds=d.skills||{},sk=Object.assign({},b.skills,ds),m=ds.melee;if(m)for(const k of MELEE)if(!ds[k])sk[k]={lv:m.lv,t:m.t};delete sk.melee;
@@ -4245,19 +4350,18 @@ function carregarSave(d){try{if(!d||!VOC[d.voc])return null;const b=newState(d.n
   for(const obj of [o.best,o.bestClaim,o.sess.kills])for(const k of Object.keys(obj||{}))if(!MOBS[k])delete obj[k];
   for(const k of Object.keys(o.sess.items||{}))if(!ITEMS[k])delete o.sess.items[k];
   for(const p of o.prey||[])if((p.mob&&!MOBS[p.mob])||(p.opts&&p.opts.some(m=>!MOBS[m]))){p.mob=null;p.opts=null;p.ms=0;}
-  for(const obj of [o.pull,o.recordes,o.favs])for(const k of Object.keys(obj||{}))if(!HUNTS[k])delete obj[k];   /* saves de antes das 100 caçadas */
+  for(const obj of [o.pull,o.recordes,o.favs,o.taxas])for(const k of Object.keys(obj||{}))if(!HUNTS[k])delete obj[k];   /* saves de antes das 100 caçadas */
   for(const k of Object.keys(o.lootCfg||{}))if(!ITEMS[k])delete o.lootCfg[k];
   if(o.mercado&&o.mercado.o){o.mercado.o=o.mercado.o.filter(x=>x.a==='tc'||ITEMS[x.a]);o.mercado.h=(o.mercado.h||[]).filter(x=>x.a==='tc'||ITEMS[x.a]);for(const k of Object.keys(o.mercado.p||{}))if(k!=='tc'&&!ITEMS[k])delete o.mercado.p[k];for(const k of Object.keys(o.mercado.liv||{}))if(k!=='tc'&&!ITEMS[k])delete o.mercado.liv[k];}
   if(o.leilao&&o.leilao.lst){o.leilao.lst=o.leilao.lst.filter(x=>ITEMS[x.a]);o.leilao.enc=(o.leilao.enc||[]).filter(x=>ITEMS[x.a]);}
   if(o.sess.hunt&&!HUNTS[o.sess.hunt])o.sess=newSess(null);
   if(o.loc!=='city'&&o.loc!=='treino'&&!HUNTS[o.loc])o.loc='city';if(o.lastHunt&&!HUNTS[o.lastHunt])o.lastHunt=null;return o;}catch(e){return null;}}
 function tickLoop(){
-  if(!S||!W||ON.parado||modal==='create')return;const now=Date.now();let el=now-S.lastTick;if(el<STEP)return;
+  if(!S||!W||ON.parado||modal==='create'||OFFRUN)return;const now=Date.now();let el=now-S.lastTick;if(el<STEP)return;
   if(S.pv&&S.pv.fuga){S.pv.fuga=0;if(el>30000){S.lastTick=now;log('sys','☠ Você fechou a página com PZ lock ativo (estava atacando jogadores): sem progresso offline desta vez.','r');toast('Sem progresso offline: fechou com PZ lock');save();return;}}   /* fugir fechando a página custa o offline */
   if(el>60000&&S.loc==='arena'){W.arena=null;S.loc='city';buildWorld('city');}
   if(el>60000&&S.loc==='treino'&&!PT.hunt){const r=trOffline(el);S.lastTick=now;if(r.usadas>0||el>120000)openModal('trResumo',r);hud();save();return;}   /* treino: aplica as cargas do tempo fora (não usa o offline da caçada) */
-  if(el>60000&&PT.hunt){S.lastTick=now;if(S.loc!=='city'&&S.loc!=='arena'){quiet=true;travel('city',null);quiet=false;}log('sys','A caçada da party não rende progresso offline.','o');return;}
-  if(el>60000){const r=offline(el);S.lastTick=now;if(el>120000)openModal('offline',r);mercadoTick();hud();save();return;}
+  if(el>60000){offIr(el,now);return;}
   quiet=el>3000;while(el>=STEP){update(STEP);el-=STEP;S.lastTick+=STEP;}quiet=false;
   mercadoTick();
   if(now-_tPc>4000){_tPc=now;if(!S.outfits||!S.mount)migraOutfits(S);progChecar(!_pcOk);_pcOk=1;}   /* destrava outfits/montarias conforme o progresso (a 1ª passada, ao carregar o save, é silenciosa) */
@@ -5122,13 +5226,15 @@ function ptAplicar(r){if(!Array.isArray(r))return;const mid=r[0],mp=r[1],mob=MOB
   if(anT.length)anuncio('🏆 Item de topo do boss!',anT.slice(0,6));
   const e=mp[me];if(!Array.isArray(e))return;
   if(mob.chefe){const bk=Object.keys(HUNTS).find(k=>HUNTS[k].boss===mid);if(bk){(S.chefeCd||(S.chefeCd={}))[bk]=Date.now()+CHEFE_CD;log('sys',`🏆 ${mob.n} derrotado! Cooldown de ${fmt(CHEFE_CD/H)} h para este boss.`,'y');}}
-  const eb=clamp(+e[0]||0,0,mob.exp),gold=prNum(e[1],0,1e7,0),its=Array.isArray(e[2])?e[2].slice(0,30):[];
-  const sm=S.stamina>0?1:0,ex=Math.round(eb*stage(S.level)*(1+charmV('exp')+preyB(mid,'exp'))*sm);
+  const bf=bonusF(),eb=clamp(+e[0]||0,0,mob.exp),goldB=prNum(e[1],0,1e7,0),gold=bf>1?Math.round(goldB*bf):goldB,its=Array.isArray(e[2])?e[2].slice(0,30):[];   /* bônus online: cada cliente aplica o seu (página visível) */
+  const sm=S.stamina>0?1:0,exB=Math.round(eb*stage(S.level)*(1+charmV('exp')+preyB(mid,'exp'))*sm),ex=bf>1?Math.round(exB*bf):exB;
   if(ex){gainExp(ex);fxt(W.p.x,W.p.y-.4,ex+' exp','#ffffff');}
+  if(bf>1){S.sess.bx=(S.sess.bx||0)+ex-exB;S.sess.bg=(S.sess.bg||0)+gold-goldB;}
   S.best[mid]=(S.best[mid]||0)+1;S.sess.kills[mid]=(S.sess.kills[mid]||0)+1;checkBest(mid);
   const g0=S.gold,ic=[];S.gold+=gold;S.sess.gold+=gold;const got=[];if(gold)got.push(gold+' gold coins');
-  for(const i of its){if(!Array.isArray(i))continue;const id=i[0],it=ITEMS[id];if(!it||it.type==='coin'||!mob.loot.some(l=>l[0]===id))continue;const q=prNum(i[1],1,100,1);
+  for(const i of its){if(!Array.isArray(i))continue;const id=i[0],it=ITEMS[id];if(!it||it.type==='coin'||!mob.loot.some(l=>l[0]===id))continue;let q=prNum(i[1],1,100,1);
     const cf=lootCfgDe(id);if(!cf.pegar)continue;
+    if(bf>1&&!i[2]){const x=q*BONUS_ONLINE,xq=Math.floor(x)+(Math.random()<x%1?1:0);if(xq>0){q+=xq;S.sess.bg=(S.sess.bg||0)+it.v*xq;}}   /* bônus de loot na party: +25% de quantidade (sorteado); raros e itens de topo ficam fora */
     if(cf.vender&&it.v>0){const g=Math.round(it.v*q);S.gold+=g;S.sess.gold+=g;S.sess.vend=(S.sess.vend||0)+g;got.push((q>1?`${q} ${it.n}`:it.n)+' ($)');if(g>=500)ic.push(id);if(i[2])log('loot',`🎉 Drop raro: ${it.n} (${fmt(it.v)} gp)!`,'o');if(i[2]===2)anE.push(`Você recebeu ${it.n}`);continue;}
     if(capFree()<it.w*q){if(!W.capWarn||W.time>W.capWarn){log('sys','Capacidade cheia! Loot deixado no chão.','o');W.capWarn=W.time+15000;}continue;}
     S.bag[id]=(S.bag[id]||0)+q;S.sess.items[id]=(S.sess.items[id]||0)+q;S.sess.loot+=it.v*q;got.push(q>1?`${q} ${it.n}`:it.n);ic.push(id);
@@ -5309,7 +5415,7 @@ function ptEstLoop(){try{const HU=PT.hunt;if(HU&&HU.papel==='lider'&&PT.id&&S&&S
 /* relógio da party num Worker: abas escondidas por muito tempo têm os timers da página reduzidos a 1 por minuto, e a party dependeria deles */
 let ptWorker=null;
 try{ptWorker=new Worker(URL.createObjectURL(new Blob(['let n=0;setInterval(()=>{n++;postMessage(n&1?1:2)},50)'],{type:'text/javascript'})));
-  ptWorker.onmessage=e=>{ptEstLoop();if(e.data===2){ptTick();if(PT.hunt)tickLoop();}};}catch(e){ptWorker=null;}
+  ptWorker.onmessage=e=>{ptEstLoop();if(e.data===2){ptTick();if(PT.hunt||document.hidden)tickLoop();}};}   /* aba oculta no PC: o relógio do Worker mantém a caçada solo andando (online, sem o bônus, sem gastar o limite offline) */catch(e){ptWorker=null;}
 if(!ptWorker){setInterval(ptTick,100);setInterval(ptEstLoop,50);}
 addEventListener('pagehide',ptSairPagina);addEventListener('beforeunload',ptSairPagina);
 /* ======================= BOTS =======================
@@ -5701,7 +5807,8 @@ async function boot(){
   if(S){buildWorld(S.loc);setupWins();log('sys',`Bem-vindo de volta, ${S.name}!`,'y');presenteImbuements();}
   else openModal('create');
   setInterval(tickLoop,100);setInterval(hud,200);setInterval(save,10000);
-  addEventListener('beforeunload',save);document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});
+  addEventListener('beforeunload',save);addEventListener('pagehide',save);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)save();else tickLoop();});addEventListener('pageshow',()=>{tickLoop();});   /* celular: salva ao ocultar/sair e, ao voltar (inclusive bfcache), recupera o tempo fora na hora */
   if(modo==='online')nuvemIniciar();
   requestAnimationFrame(frame);tickLoop();
 }
