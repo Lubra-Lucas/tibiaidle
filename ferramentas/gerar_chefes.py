@@ -4,18 +4,21 @@
 Fontes (nada aqui é inventado à mão além da tabela CONFIG abaixo):
   - Canary (opentibiabr/canary, clone esparso com data-otservbr-global/monster, data/items/items.xml, data-otservbr-global/npc,
     src/utils/utils_definitions.hpp): vida, exp, ataques, defesas, resistências, loot e estatísticas reais dos itens;
-  - Belerin87/TibiaSprites (GIFs da TibiaWiki dos bosses e criaturas): viram folhas de criatura no formato 15.01 do jogo
-    (1 quadro parado + 8 de andar x 4 direções; o GIF só tem a frente: N/L reaproveitam o quadro e O é o espelho);
+  - cliente Tibia 15.10 (Tibia.dat + Tibia.spr, fora do repo; --cliente DIR): folhas de criatura reais (outfit lookType/cores/addons do
+    Canary, 4 direções, todos os quadros parado/andar, via ferramentas/extrair_cliente.py) e os sprites dos cadáveres (monster.corpse);
   - ícones dos itens de topo: sprites reais do cliente, extraídos com ferramentas/extrair_cliente.py para
     tibia-assets/sprites15/itens/<cid>.png (o gerador só aponta o caminho; rode o extrator antes).
-Uso: gerar_chefes.py CANARY_DIR TIBIASPRITES_DIR [--out tibia-assets]   (precisa de Pillow)"""
+Uso: gerar_chefes.py CANARY_DIR --cliente DIR_COM_Tibia.dat_e_Tibia.spr [--out tibia-assets]   (precisa de Pillow)"""
 import sys, os, re, json, argparse, colorsys
-from PIL import Image, ImageSequence
+from PIL import Image
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import extrair_cliente as XC
 
 ap = argparse.ArgumentParser()
-ap.add_argument('canary'); ap.add_argument('sprites'); ap.add_argument('--out', default='tibia-assets')
+ap.add_argument('canary'); ap.add_argument('--cliente', required=True); ap.add_argument('--out', default='tibia-assets')
 A = ap.parse_args()
-CAN, SPR, OUT = A.canary.rstrip('/') + '/', A.sprites.rstrip('/') + '/', A.out.rstrip('/') + '/'
+CAN, CLI, OUT = A.canary.rstrip('/') + '/', A.cliente.rstrip('/') + '/', A.out.rstrip('/') + '/'
 ITENS_DIR = OUT + 'sprites15/itens/'; CRIA_DIR = OUT + 'sprites15/criaturas/'
 
 # ---------------------------------------------------------------- dados do jogo atual
@@ -178,22 +181,25 @@ def montar_mob(nome_canary, mid, classe, extra=None):
     if extra: m.update(extra)
     return m
 
-# ---------------------------------------------------------------- sprites de criatura a partir dos GIFs
-def folha_criatura(gif, mid):
-    im = Image.open(gif); fr = [f.convert('RGBA') for f in ImageSequence.Iterator(im)]
-    w, h = fr[0].size; cel = 64 if max(w, h) > 32 else 32
-    def cel_de(f, flip=False):
-        c = Image.new('RGBA', (cel, cel), (0, 0, 0, 0)); x = (cel - f.width) // 2; y = cel - f.height
-        if flip: f = f.transpose(Image.FLIP_LEFT_RIGHT)
-        c.paste(f, (x, y), f); return c
-    n = len(fr); seq = [fr[min(n - 1, i * n // 8)] for i in range(8)]
-    folha = Image.new('RGBA', (cel * 9, cel * 4), (0, 0, 0, 0))
-    for d in range(4):
-        flip = d == 3
-        folha.paste(cel_de(seq[0], flip), (0, d * cel))
-        for i in range(8): folha.paste(cel_de(seq[i], flip), ((i + 1) * cel, d * cel))
-    os.makedirs(CRIA_DIR, exist_ok=True); folha.save(f'{CRIA_DIR}{mid}.png')
-    return {'w': cel, 'h': cel, 'parado': 1, 'andar': 8, 'ms': [300], 'desl': [0, 0], 'src': f'tibia-assets/sprites15/criaturas/{mid}.png', 'cad': 5995}
+# ---------------------------------------------------------------- sprites de criatura do cliente
+_CLI = {}
+def cliente():
+    if not _CLI:
+        spr = XC.Spr(CLI + 'Tibia.spr'); dat, _ = XC.detectar(CLI + 'Tibia.dat', spr.n); _CLI.update(spr=spr, dat=dat)
+    return _CLI['spr'], _CLI['dat']
+CAD_DIR = OUT + 'sprites15/cadaveres/'; CADAVERES = {}   # cadáveres (id do item -> {w,h,src}) que o sprites15.js pode ainda não ter
+def folha_criatura(nome, mid):
+    """folha real do cliente para o monstro do Canary `nome` (outfit + cores + addons); o cadáver vem de monster.corpse (0 = não deixa cadáver)"""
+    spr, dat = cliente(); look, corpo = XC.ler_monstro_lua_txt(MON[nome.lower()])
+    if look.get('lookTypeEx'): im, meta = XC.folha_criatura(spr, dat, look['lookTypeEx'], ex=True)
+    else: im, meta = XC.folha_criatura(spr, dat, look['lookType'], tuple(look.get(k, 0) for k in ('lookHead', 'lookBody', 'lookLegs', 'lookFeet')), look.get('lookAddons', 0))
+    os.makedirs(CRIA_DIR, exist_ok=True); im.save(f'{CRIA_DIR}{mid}.png'); meta['src'] = f'tibia-assets/sprites15/criaturas/{mid}.png'
+    if corpo:
+        meta['cad'] = corpo; arq = f'{CAD_DIR}{corpo}.png'
+        if not os.path.exists(arq):
+            os.makedirs(CAD_DIR, exist_ok=True); XC.render(spr, dat.cats[XC.CAT_ITEM][corpo]).save(arq)
+        c = Image.open(arq); CADAVERES[str(corpo)] = {'w': c.width, 'h': c.height, 'src': f'tibia-assets/sprites15/cadaveres/{corpo}.png'}
+    return meta
 
 # ---------------------------------------------------------------- CONFIG: bosses e minions
 MINIONS = {   # id do jogo: (nome Canary, GIF, classe); os que já existem no jogo (CD.mobs / COMB15.monstros) não entram aqui
@@ -320,7 +326,7 @@ def build():
     mobs = {}; sprites = {}
     for mid, (nome, gif, classe) in MINIONS.items():
         mobs[mid] = montar_mob(nome, mid, classe, {'invocado': True})
-        if mid not in SPR_EXISTE: sprites[mid] = folha_criatura(SPR + gif, mid)
+        if mid not in SPR_EXISTE: sprites[mid] = folha_criatura(nome, mid)
     chefes = {}
     for b in BOSSES:
         m = montar_mob(b['nome'], b['id'], b['classe'], {'chefe': True})
@@ -329,15 +335,15 @@ def build():
         for conj, ch in DROPS.get(b['id'], []):
             for eid in ids[conj]:
                 r = next(e for e in equip if e['id'] == eid); m['loot'].append([eid, round(ch * (.6 if r['slot'] == 'weapon' else 1), 5), 1])
-        mobs[b['id']] = m; sprites[b['id']] = folha_criatura(SPR + b['gif'], b['id'])
+        mobs[b['id']] = m; sprites[b['id']] = folha_criatura(b['nome'], b['id'])
         chefes['boss_' + b['id']] = {'n': b['nome'], 'mob': b['id'], 'lv': b['lv'], 'mapa': b['mapa'], 'minions': b['minions'], 'desc': b['desc'], 'min': 2, 'rec': 3}
     # minions que o jogo já tem mas o jogo nunca precisou de loot de: ok. Remove loot repetido por nome e ordena por chance
-    return {'v': 1, 'itens': NOVOS_ITENS, 'eq': equip, 'mobs': mobs, 'chefes': chefes, 'sprites': sprites}
+    return {'v': 1, 'itens': NOVOS_ITENS, 'eq': equip, 'mobs': mobs, 'chefes': chefes, 'sprites': sprites, 'cadaveres': CADAVERES}
 
 if __name__ == '__main__':
     D = build()
-    cab = '/* gerado por ferramentas/gerar_chefes.py: bosses em grupo, minions, itens de topo (Canary) e folhas de criatura (GIFs da TibiaWiki). Não editar à mão. */\n'
-    js = 'window.CHEFES=' + json.dumps({k: v for k, v in D.items() if k != 'sprites'}, ensure_ascii=False, separators=(',', ':')) + ';\n'
-    js += '(function(){var S=window.SPR15;if(!S)return;var o=' + json.dumps(D['sprites'], separators=(',', ':')) + ';for(var k in o)S.criaturas[k]=o[k];})();\n'
+    cab = '/* gerado por ferramentas/gerar_chefes.py: bosses em grupo, minions, itens de topo (Canary) e folhas de criatura reais do cliente 15.10. Não editar à mão. */\n'
+    js = 'window.CHEFES=' + json.dumps({k: v for k, v in D.items() if k not in ('sprites', 'cadaveres')}, ensure_ascii=False, separators=(',', ':')) + ';\n'
+    js += '(function(){var S=window.SPR15;if(!S)return;var o=' + json.dumps(D['sprites'], separators=(',', ':')) + ';for(var k in o)S.criaturas[k]=o[k];var c=' + json.dumps(D['cadaveres'], separators=(',', ':')) + ';for(var k in c)if(!S.cadaveres[k])S.cadaveres[k]=c[k];})();\n'
     open(OUT + 'chefes.js', 'w', encoding='utf-8').write(cab + js)
     print('equip', len(D['eq']), 'mobs', len(D['mobs']), 'itens novos', len(D['itens']), 'sem sprite:', sorted(SPRITE_FALTA)[:40])

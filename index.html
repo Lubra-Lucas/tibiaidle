@@ -2163,7 +2163,7 @@ function draw(){
   for(let i=W.corpses.length-1;i>=0;i--){const c=W.corpses[i],age=now-c.b;if(age>15000){W.corpses.splice(i,1);continue;}
     ctx.globalAlpha=Math.min(1,(15000-age)/2000);const X=c.x*TS,Y=c.y*TS;
     const cad=SP15.criaturas[c.id]&&SP15.cadaveres[SP15.criaturas[c.id].cad],ci=cad&&folhaImg(cad.src);
-    if(ci)ctx.drawImage(ci,X+32-cad.w,Y+32-cad.h);else if(!(c.m.dead&&drawSprite(c.m.dead,X,Y,false))){ctx.fillStyle='#6a0c0c';ctx.beginPath();ctx.ellipse(X+16,Y+22,10,5,0,0,7);ctx.fill();ctx.fillStyle='#8a1a1a';ctx.fillRect(X+8,Y+18,4,3);ctx.fillRect(X+20,Y+24,3,3);}
+    if(ci)ctx.drawImage(ci,X+32-cad.w,Y+32-cad.h);else if(SP15.criaturas[c.id]&&!SP15.criaturas[c.id].cad){/* Canary: corpse = 0, não deixa cadáver */}else if(!(c.m.dead&&drawSprite(c.m.dead,X,Y,false))){ctx.fillStyle='#6a0c0c';ctx.beginPath();ctx.ellipse(X+16,Y+22,10,5,0,0,7);ctx.fill();ctx.fillStyle='#8a1a1a';ctx.fillRect(X+8,Y+18,4,3);ctx.fillRect(X+20,Y+24,3,3);}
     ctx.globalAlpha=1;}
   const rows={};for(const m of W.mobs){const p=rpos(m),r=Math.round(p.y);(rows[r]=rows[r]||[]).push({m,p});}
   if(!W.arena){const r=Math.round(pp.y);(rows[r]=rows[r]||[]).push({pl:1,p:pp});}

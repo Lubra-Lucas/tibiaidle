@@ -9,6 +9,7 @@ Uso (sempre com -I):
   python3 -I ferramentas/extrair_cliente.py --dat Tibia.dat --spr Tibia.spr --info
   python3 -I ferramentas/extrair_cliente.py --dat ... --spr ... --itens 3031,28552 --saida tibia-assets/sprites15/itens
   python3 -I ferramentas/extrair_cliente.py --dat ... --spr ... --sheet 36040 --saida dir   # fases de animacao em tira horizontal
+  python3 -I ferramentas/extrair_cliente.py --dat ... --spr ... --criaturas 21,demon=35:0,0,0,0 --saida dir   # folha de criatura (outfit)
   python3 -I ferramentas/extrair_cliente.py --nomes items.xml --buscar "exercise sword"      # id -> nome (items.xml do Canary)
 
 Formato (variante detectada por tentativa em detectar()):
@@ -20,6 +21,7 @@ Formato (variante detectada por tentativa em detectar()):
        RLE (u16 transparentes, u16 coloridos, pixels RGB ou RGBA).
 """
 import argparse
+import json
 import os
 import struct
 import sys
@@ -102,9 +104,12 @@ class Dat:
                     ngrupos = b[p]
                     p += 1
                 for _ in range(ngrupos):
+                    tipo = 0
                     if cat == CAT_OUTFIT and self.grupos:
-                        p += 1  # tipo do grupo
+                        tipo = b[p]  # tipo do grupo: 0 = parado, 1 = andando
+                        p += 1
                     g = Grupo()
+                    g.tipo = tipo
                     g.w, g.h = b[p], b[p + 1]
                     p += 2
                     if g.w > 1 or g.h > 1:
@@ -233,6 +238,113 @@ def render(spr, t, frame=0, x=0, y=0, z=0, grupo=0):
                     im.alpha_composite(spr.sprite(sid), (32 * (g.w - ww - 1), 32 * (g.h - hh - 1)))
     return im
 
+def cor_outfit(c):
+    """Paleta de 133 cores do Tibia (Outfit::getColor do OTClient), igual a cor15() do index.html -> (r, g, b) 0-255."""
+    H, SI = 19, 7
+    if c >= H * SI:
+        c = 0
+    if c % H:
+        h = c % H / 18
+        s, i = [(.25, 1), (.25, .75), (.5, .75), (.667, .75), (1, 1), (1, .75), (1, .5)][c // H]
+    else:
+        h, s, i = 0, 0, 1 - c / H / SI
+    if not i:
+        return (0, 0, 0)
+    if not s:
+        v = int(i * 255)
+        return (v, v, v)
+    if h < 1 / 6:
+        r = i; b = i * (1 - s); g = b + (i - b) * 6 * h
+    elif h < 2 / 6:
+        g = i; b = i * (1 - s); r = g - (i - b) * (6 * h - 1)
+    elif h < 3 / 6:
+        g = i; r = i * (1 - s); b = r + (i - r) * (6 * h - 2)
+    elif h < 4 / 6:
+        b = i; r = i * (1 - s); g = b - (i - r) * (6 * h - 3)
+    elif h < 5 / 6:
+        b = i; g = i * (1 - s); r = g + (i - g) * (6 * h - 4)
+    else:
+        r = i; g = i * (1 - s); b = r - (i - g) * (6 * h - 5)
+    return (int(r * 255), int(g * 255), int(b * 255))
+
+
+def camada_img(spr, g, frame, x, y, camada):
+    im = Image.new("RGBA", (32 * g.w, 32 * g.h), (0, 0, 0, 0))
+    for hh in range(g.h):
+        for ww in range(g.w):
+            sid = g.ids[indice(g, frame, x, y, 0, camada, hh, ww)]
+            if sid:
+                im.alpha_composite(spr.sprite(sid), (32 * (g.w - ww - 1), 32 * (g.h - hh - 1)))
+    return im
+
+
+def celula_outfit(spr, g, frame, direcao, cores, addons):
+    """Um quadro de outfit: base (patternY 0) + addons ligados em `addons` (bit 1 = patternY 1, bit 2 = patternY 2);
+    se o outfit tem 2 camadas, a 2a e a mascara de cores (amarelo=cabeca, vermelho=corpo, verde=pernas, azul=pes),
+    aplicada como no comporOutfit() do index.html (multiplica a base pela cor). direcao: 0=N 1=E 2=S 3=W (patternX)."""
+    out = Image.new("RGBA", (32 * g.w, 32 * g.h), (0, 0, 0, 0))
+    px = direcao % g.px
+    pal = [cor_outfit(c) for c in cores]
+    for py in [0] + [k for k in (1, 2) if addons & k and k < g.py]:
+        base = camada_img(spr, g, frame, px, py, 0)
+        if g.layers > 1:
+            mk = camada_img(spr, g, frame, px, py, 1)
+            b, m = base.load(), mk.load()
+            for yy in range(base.height):
+                for xx in range(base.width):
+                    r, gg, bb, a = m[xx, yy]
+                    if not a:
+                        continue
+                    q = pal[0] if (r and gg and not bb) else pal[1] if (r and not gg) else pal[2] if (gg and not r) else pal[3] if bb else None
+                    if q:
+                        v = b[xx, yy]
+                        b[xx, yy] = (v[0] * q[0] // 255, v[1] * q[1] // 255, v[2] * q[2] // 255, v[3])
+        out.alpha_composite(base)
+    return out
+
+
+def folha_criatura(spr, dat, look, cores=(0, 0, 0, 0), addons=0, ex=False):
+    """Folha de criatura no formato do jogo (tibia-assets/sprites15/criaturas): linhas = direcoes N,L,S,O
+    (patternX 0..3), colunas = quadros parados + quadros de andar (grupos de quadro 0 e 1 do outfit), celula w x h
+    = tamanho do outfit em pixels. Devolve (Image, meta) onde meta e o dict do SPR15.criaturas (sem src/cad).
+    ex=True trata `look` como um item (lookTypeEx): um quadro, as 4 direcoes iguais."""
+    if ex:
+        t = dat.cats[CAT_ITEM][look]
+        im = render(spr, t)
+        folha = Image.new("RGBA", (im.width, im.height * 4), (0, 0, 0, 0))
+        for d in range(4):
+            folha.paste(im, (0, d * im.height))
+        return folha, {"w": im.width, "h": im.height, "parado": 1, "andar": 0, "ms": [300], "desl": [0, 0]}
+    t = dat.cats[CAT_OUTFIT][look]
+    gp = [g for g in t.grupos if g.tipo == 0] or t.grupos[:1]
+    g0 = gp[0]
+    gm = [g for g in t.grupos if g.tipo == 1 and g is not g0]
+    gm = gm[0] if gm else None
+    quadros = [(g0, f) for f in range(g0.fases)] + ([(gm, f) for f in range(gm.fases)] if gm else [])
+    W, H = 32 * max(g.w for g, _ in quadros), 32 * max(g.h for g, _ in quadros)   # grupos de tamanhos diferentes: ancora no canto inferior direito
+    folha = Image.new("RGBA", (W * len(quadros), H * 4), (0, 0, 0, 0))
+    for col, (g, f) in enumerate(quadros):
+        for d in range(4):
+            c = celula_outfit(spr, g, f, d, cores, addons)
+            folha.paste(c, (col * W + W - c.width, d * H + H - c.height))
+    ms = [max(1, g0.dur[i][0]) for i in range(g0.fases)] if g0.dur and g0.fases > 1 else [300]
+    dl = t.flags.get("displacement")
+    desl = [dl[0] | dl[1] << 8, dl[2] | dl[3] << 8] if dl else [0, 0]
+    return folha, {"w": W, "h": H, "parado": g0.fases, "andar": gm.fases if gm else 0, "ms": ms, "desl": desl}
+
+
+def ler_monstro_lua(caminho):
+    """Do .lua de um monstro do Canary: (outfit {lookType|lookTypeEx, lookHead, lookBody, lookLegs, lookFeet, lookAddons}, corpse)."""
+    return ler_monstro_lua_txt(open(caminho, encoding="utf-8", errors="ignore").read())
+
+
+def ler_monstro_lua_txt(s):
+    import re
+    m = re.search(r"monster\.outfit\s*=\s*\{(.*?)\}", s, re.S)
+    o = {k: int(v) for k, v in re.findall(r"(\w+)\s*=\s*(-?\d+)", m.group(1))} if m else {}
+    c = re.search(r"monster\.corpse\s*=\s*(\d+)", s)
+    return o, int(c.group(1)) if c else None
+
 
 def carregar_nomes(xml):
     r = {}
@@ -248,6 +360,65 @@ def carregar_nomes(xml):
     return r
 
 
+def atlas_combate(spr, dat, cat, ids, saida, nome="combate", primeiro=0, src_prefixo="tibia-assets/sprites15/", largura=2048, altura=2048):
+    """Empacota efeitos (cat 2) ou missiles (cat 3) em atlas PNG no formato do COMB15 (tibia-assets/combate15.js):
+      efeito: tira horizontal de fases (cada fase = 32*w x 32*h, a mesma de render()), meta {x,y,w,h,n,ms,src}; ms = (min+max)//2 de cada fase (100 se parado);
+      missil: grade 3x3 de direcoes (coluna 0=oeste..2=leste, linha 0=norte..2=sul), cada celula 32*w x 32*h, meta {x,y,w,h,src}
+              (missil com 1 padrao so, sem direcoes, repete o mesmo desenho nas 9 celulas); atlas <nome>_<N>.png (N = primeiro, primeiro+1, ...).
+    Coisas totalmente transparentes (efeitos/missiles que o cliente define vazios) nao entram: voltam na lista de vazios.
+    Devolve (meta {id: {...}}, vazios [ids], arquivos [caminhos])."""
+    pecas = []
+    vazios = []
+    for i in ids:
+        t = dat.cats[cat][i]
+        g = t.grupos[0]
+        if cat == CAT_EFFECT:
+            quadros = [render(spr, t, q) for q in range(g.fases)]
+            if not any(q.getbbox() for q in quadros):
+                vazios.append(i)
+                continue
+            W, H = quadros[0].size
+            ms = [(d[0] + d[1]) // 2 for d in g.dur] if g.dur else [100]
+            pecas.append((i, W * len(quadros), H, quadros, ms))
+        else:
+            cel = [[render(spr, t, 0, px % g.px, py % g.py) for px in range(3)] for py in range(3)]
+            if not any(c.getbbox() for l in cel for c in l):
+                vazios.append(i)
+                continue
+            W, H = cel[0][0].size
+            pecas.append((i, 3 * W, 3 * H, cel, None))
+    pecas.sort(key=lambda p: (-p[2], p[0]))
+    folhas, meta = [], {}
+    x = y = linha = 0
+    atual = None
+    for i, pw, ph, dados, ms in pecas:
+        if atual is None or x + pw > largura:
+            x, y, linha = 0, y + linha, 0
+        if atual is None or y + ph > altura:
+            atual = Image.new("RGBA", (largura, altura), (0, 0, 0, 0))
+            folhas.append([atual, 0])
+            x = y = linha = 0
+        linha = max(linha, ph)
+        src = f"{src_prefixo}{nome}_{primeiro + len(folhas) - 1}.png"
+        if cat == CAT_EFFECT:
+            for q, im in enumerate(dados):
+                atual.paste(im, (x + q * im.width, y))
+            meta[i] = {"x": x, "y": y, "w": dados[0].width, "h": dados[0].height, "n": len(dados), "ms": ms, "src": src}
+        else:
+            for py in range(3):
+                for px in range(3):
+                    atual.paste(dados[py][px], (x + px * dados[0][0].width, y + py * dados[0][0].height))
+            meta[i] = {"x": x, "y": y, "w": dados[0][0].width, "h": dados[0][0].height, "src": src}
+        x += pw
+        folhas[-1][1] = max(folhas[-1][1], y + linha)
+    arquivos = []
+    for n, (im, h) in enumerate(folhas):
+        caminho = os.path.join(saida, f"{nome}_{primeiro + n}.png")
+        im.crop((0, 0, largura, (h + 31) // 32 * 32)).save(caminho)
+        arquivos.append(caminho)
+    return meta, vazios, arquivos
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dat")
@@ -256,6 +427,11 @@ def main():
     ap.add_argument("--itens", help="client ids separados por virgula (ex.: 3031,28552)")
     ap.add_argument("--cat", choices=["item", "outfit", "effect", "missile"], default="item")
     ap.add_argument("--sheet", help="ids cujas fases de animacao viram uma tira horizontal <id>_anim.png")
+    ap.add_argument("--criaturas", help="folhas de criatura: lookType[:cabeca,corpo,pernas,pes[:addons]] separados por virgula "
+                    "(lookTypeEx com prefixo e, ex.: e3031); grava <id>.png (ou <nome>=<spec> para escolher o nome do arquivo) e imprime o JSON da folha")
+    ap.add_argument("--atlas", help="(com --cat effect|missile) ids ou 'todos': empacota em atlas combate_N.png no formato do COMB15 e imprime o JSON")
+    ap.add_argument("--atlas-nome", default="combate", help="prefixo dos atlas (padrao combate)")
+    ap.add_argument("--atlas-primeiro", type=int, default=0, help="numero do primeiro atlas (padrao 0)")
     ap.add_argument("--saida", default=".")
     ap.add_argument("--nomes", help="items.xml do Canary")
     ap.add_argument("--buscar", help="texto a procurar nos nomes (com --nomes)")
@@ -289,6 +465,21 @@ def main():
         im = render(spr, t)
         im.save(os.path.join(a.saida, f"{cid}.png"))
         print(f"{cid}: {t.grupos[0].w}x{t.grupos[0].h} tiles, {t.grupos[0].fases} fases -> {im.size}")
+    for s in (a.criaturas.split(",") if a.criaturas else []):
+        nome, _, spec = s.rpartition("=")
+        nome = nome or spec.split(":")[0]
+        pt = spec.split(":")
+        ex = pt[0].startswith("e")
+        cores = tuple(int(v) for v in pt[1].split(",")) if len(pt) > 1 and pt[1] else (0, 0, 0, 0)
+        folha, meta = folha_criatura(spr, dat, int(pt[0].lstrip("e")), cores, int(pt[2]) if len(pt) > 2 else 0, ex)
+        folha.save(os.path.join(a.saida, f"{nome}.png"))
+        print(nome, json.dumps(meta))
+    if a.atlas:
+        if cat not in (CAT_EFFECT, CAT_MISSILE):
+            ap.error("--atlas precisa de --cat effect ou missile")
+        ids = sorted(dat.cats[cat]) if a.atlas == "todos" else [int(v) for v in a.atlas.split(",")]
+        meta, vazios, arq = atlas_combate(spr, dat, cat, ids, a.saida, a.atlas_nome, a.atlas_primeiro)
+        print(json.dumps({"meta": meta, "vazios": vazios, "arquivos": arq}, separators=(",", ":")))
     for s in (a.sheet.split(",") if a.sheet else []):
         cid = int(s)
         t = dat.cats[cat][cid]
