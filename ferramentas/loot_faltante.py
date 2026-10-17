@@ -6,7 +6,7 @@ Fontes: Canary (data-otservbr-global/monster/**.lua, data/items/items.xml, data/
 script NAO extrai: rode antes  ferramentas/extrair_cliente.py --itens <cids> --saida tibia-assets/sprites15/itens  (o script imprime os cids que faltam).
 Preço (v): o maior preço de compra de NPC do Canary (npc/*.lua, igual ao appearances.dat); sem comprador de NPC, estimativa marcada com 'estimado' (tabela EST).
 Equipamento que o modelo do jogo entende (espada de 1 mão, arco/besta, armadura, bota, escudo) vira item equipável de boss (chefes.js 'eq'); machados, clavas, armas de
-2 mãos, spellbooks, anéis etc. entram só como loot para vender. Idempotente: pode rodar de novo. Uso:
+2 mãos, anéis etc. entram só como loot para vender (os spellbooks viraram escudos de mage: index.html e livros_eq.py). Idempotente: pode rodar de novo. Uso:
   loot_faltante.py CANARY_DIR [--out tibia-assets]"""
 import sys, os, re, json, glob, argparse, struct
 
