@@ -111,6 +111,7 @@ img.ui{width:24px;height:24px;image-rendering:pixelated;flex:none}
 .eqgrid{grid-template-columns:repeat(3,40px);gap:3px;padding:5px;background:#0a0c12;box-shadow:inset 0 0 0 1px #000,inset 0 0 0 2px #232a3d}
 .eqgrid .slot{width:40px;height:40px}
 .eqgrid .slot.empty{opacity:.18;cursor:default;background:#10131c}
+.eqgrid .slot.empty.acc{opacity:.35;font-size:17px;filter:grayscale(1)}.bagwrap h4 img.sp{margin-right:3px}
 .eqst{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;font-size:10px;color:var(--mut)}
 .eqst div{display:flex;justify-content:space-between;align-items:center;background:#0a0c12;box-shadow:inset 0 0 0 1px #000,inset 0 0 0 2px #232a3d;padding:3px 6px;text-transform:uppercase;letter-spacing:.04em}
 .eqst b{color:#fff;font-size:12px}.eqst .gold b{color:var(--gold)}
@@ -682,7 +683,7 @@ button.lnk:hover{color:var(--gold)}
 <div id="sideTabs"><button data-act="sideTab" data-arg="inv" class="on">Mochila</button><button data-act="sideTab" data-arg="caca">Caçada</button><button data-act="sideTab" data-arg="loot">Loot</button></div>
 <div class="win dock" id="w-inv" data-tab="inv">
   <div class="win-h"><span>Equipamento</span><button data-fold="w-inv" title="Recolher">–</button></div>
-  <div class="win-b"><div id="eqBody"></div><div class="bagwrap"><h4>Mochila</h4><div id="invBody"></div></div></div>
+  <div class="win-b"><div id="eqBody"></div><div class="bagwrap"><h4 id="bagHd">Mochila</h4><div id="invBody"></div></div></div>
 </div>
 
 <div class="win dock hidden" id="trPanel" data-tab="caca">
@@ -894,6 +895,35 @@ for(const e of CH.eq)ITEMS[e.id]=Object.assign({id:e.id,n:e.n,i:'✨',slot:e.slo
  ['two_handed_sword',30,0,20,'sword'],['crystal_sword',35,0,25,'sword'],['wyvern_fang',32,0,25,'sword'],['epee',37,0,30,'sword'],['haunted_blade',40,0,30,'sword'],['mercenary_sword',43,0,40,'sword'],['assassin_dagger',40,0,40,'sword'],['dragon_slayer',44,0,45,'sword'],
  ['relic_sword',42,0,50,'sword'],['demonrage_sword',49,0,60,'sword'],['twiceslicer',49,0,58,'sword'],['crystalline_sword',49,0,62,'sword'],['nightmare_blade',46,0,70,'sword']
 ].forEach(([id,atk,price,lv,wt])=>{const l=CD.itens[id];if(!l||ITEMS[id])return;ITEMS[id]={id,n:l.n,i:{axe:'🪓',club:'🔨',sword:'🗡️'}[wt],slot:'weapon',price,lv,wt,type:'eq',w:Math.min(80,l.w||SLOTW.weapon),v:price?Math.round(price*.25):(l.v||0),icone:l.icone,atk};});
+/* ACESSÓRIOS: amuletos, anéis e mochilas (slots amulet / ring / backpack), com os valores do items.xml do Canary. abs = absorção % por elemento (multiplicativa; negativa = fraqueza), ch = cargas (1 por golpe absorvido),
+   dur = segundos de uso (só correm caçando), sk = bônus de skill, spd = velocidade (+30 ≈ +15% de passo, como a montaria), rg = regeneração extra na caçada [HP, mana] como fração da regen base do jogo, ms = escudo de mana (Energy Ring),
+   aol = Amulet of Loss, keep = a venda rápida não vende, cap = oz de capacidade extra (mochila). O slot guarda em t as cargas/segundos que restam (0 = item novo; o saldo viaja na chave da mochila id#restante).
+   Mesmo nome do loot dos monstros => o loot vira o item equipável (LOOT_ID). Sem efeito no jogo (Power/Stealth/Dwarven/Crystal Ring, Werewolf/Demonbone Amulet...) continuam só vendáveis. */
+const ACC=['amulet','ring'],ACCS=['amulet','ring','backpack'],EQ6=['weapon','helmet','armor','legs','boots','shield'];
+const E7=v=>({phys:v,fire:v,earth:v,energy:v,ice:v,holy:v,death:v});
+[['amulet_of_loss','Amulet of Loss','amulet',3057,{aol:1,keep:1},50000,0,4.2,45000],['stone_skin_amulet','Stone Skin Amulet','amulet',3081,{abs:{phys:80,death:80},ch:5},25000,0,7,500],
+ ['protection_amulet','Protection Amulet','amulet',3084,{abs:{phys:6},ch:250},700,0,5.5,100],['garlic_necklace','Garlic Necklace','amulet',3083,{abs:{lifedrain:20},ch:150},100,0,3.8,50],
+ ['dragon_necklace','Dragon Necklace','amulet',3085,{abs:{fire:8},ch:200},1000,0,6.3,100],['elven_amulet','Elven Amulet','amulet',3082,{abs:E7(5),ch:50},500,0,2.7,100],
+ ['bronze_amulet','Bronze Amulet','amulet',3056,{abs:{manadrain:20},ch:200},100,0,5,50],['silver_amulet','Silver Amulet','amulet',3054,{abs:{earth:10},ch:200},100,0,5,50],
+ ['platinum_amulet','Platinum Amulet','amulet',3055,{arm:2},0,0,6,2500],['sacred_tree_amulet','Sacred Tree Amulet','amulet',9302,{abs:{phys:60,earth:40},ch:5},0,80,7,3000],
+ ['shockwave_amulet','Shockwave Amulet','amulet',9304,{abs:{phys:60,energy:40},ch:5},0,80,7,3000],['lightning_pendant','Lightning Pendant','amulet',816,{abs:{energy:20,earth:-10},ch:200},0,60,5,1500],
+ ['terra_amulet','Terra Amulet','amulet',814,{abs:{earth:20,fire:-10},ch:200},0,60,5,1500],['magma_amulet','Magma Amulet','amulet',817,{abs:{fire:20,ice:-10},ch:200},0,60,5,1500],
+ ['necklace_of_the_deep','Necklace of the Deep','amulet',13990,{abs:{lifedrain:50},ch:50},0,120,5.09,3000],['collar_of_blue_plasma','Collar of Blue Plasma','amulet',23542,{sk:{magic:2,distance:4},dur:1800},0,150,5,6000,['paladin']],
+ ['might_ring','Might Ring','ring',3048,{abs:E7(20),ch:20},25000,0,1,250],['energy_ring','Energy Ring','ring',3051,{ms:1,dur:600},2000,0,.8,100,['knight','paladin']],
+ ['time_ring','Time Ring','ring',3053,{spd:30,dur:600},2000,0,.9,100],['life_ring','Life Ring','ring',3052,{rg:[.5,1.5],dur:1200},900,0,.8,50],
+ ['ring_of_healing','Ring of Healing','ring',3098,{rg:[1.5,4.5],dur:450},2000,0,.8,100],['sword_ring','Sword Ring','ring',3091,{sk:{sword:4},dur:1800},500,0,.9,100],
+ ['axe_ring','Axe Ring','ring',3092,{sk:{axe:4},dur:1800},500,0,.9,100],['club_ring','Club Ring','ring',3093,{sk:{club:4},dur:1800},500,0,.9,100],
+ ['death_ring','Death Ring','ring',6299,{abs:{death:5},arm:1,sk:{shielding:-10},dur:480},0,0,.8,1000],['butterfly_ring','Butterfly Ring','ring',25698,{abs:{death:3},arm:2},0,50,1.2,2000],
+ ['ring_of_blue_plasma','Ring of Blue Plasma','ring',23529,{sk:{magic:1,distance:3},dur:1800},0,100,.9,8000,['paladin']],['ring_of_green_plasma','Ring of Green Plasma','ring',23531,{sk:{magic:2},rg:[.25,1],dur:1800},0,100,.9,8000,['sorcerer','druid']],
+ /* mochilas: só visual, exceto as de mais espaço (containersize do Canary: +10 oz por slot acima de 20) e a Bag You Desire (+100 oz) */
+ ['backpack','Backpack','backpack',2854,{cap:0},20,0,18,5],['green_backpack','Green Backpack','backpack',2865,{cap:0},20,0,18,5],['yellow_backpack','Yellow Backpack','backpack',2866,{cap:0},20,0,18,5],
+ ['red_backpack','Red Backpack','backpack',2867,{cap:0},20,0,18,5],['purple_backpack','Purple Backpack','backpack',2868,{cap:0},20,0,18,5],['blue_backpack','Blue Backpack','backpack',2869,{cap:0},20,0,18,5],
+ ['grey_backpack','Grey Backpack','backpack',2870,{cap:0},20,0,18,5],['golden_backpack','Golden Backpack','backpack',2871,{cap:0},20,0,18,5],['camouflage_backpack','Camouflage Backpack','backpack',2872,{cap:0},30,0,18,5],
+ ['brocade_backpack','Brocade Backpack','backpack',8860,{cap:0},20,0,18,5],['beach_backpack','Beach Backpack','backpack',5949,{cap:0},20,0,18,5],['fur_backpack','Fur Backpack','backpack',7342,{cap:0},20,0,18,5],
+ ['orange_backpack','Orange Backpack','backpack',9602,{cap:0},20,0,18,5],['crown_backpack','Crown Backpack','backpack',9605,{cap:0},800,0,17,200],['heart_backpack','Heart Backpack','backpack',10202,{cap:0},500,0,18,125],
+ ['fur_bag','Fur Bag','backpack',7343,{cap:0},5,0,8,25],['jewelled_backpack','Jewelled Backpack','backpack',5801,{cap:20},0,0,17,300],['moon_backpack','Moon Backpack','backpack',9604,{cap:0},0,0,18,300],
+ ['bag_you_desire','Bag You Desire','backpack',34109,{cap:100},0,0,15,130000]
+].forEach(([id,n,slot,cid,st,price,lv,w,v,voc])=>{const l=CD.itens[id];ITEMS[id]=Object.assign({id,n,i:slot==='ring'?'💍':slot==='amulet'?'📿':'🎒',slot,price,lv,type:'eq',w,v,icone:(l&&l.icone)||`tibia-assets/sprites15/itens/${cid}.png`,voc},st);});
 /* ECONOMIA: multiplicador único das moedas (gold/platinum/crystal coin) que caem dos monstros. O Canary dá as contagens reais, mas o jogo abate bem menos monstros por hora que um jogador real de Tibia (~300/h contra ~1000/h): 1,5 aproxima o gold/h do jogo real sem mexer no loot de itens. */
 const OURO_X=1.5;
 const tituloCase=s=>s.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
@@ -915,6 +945,8 @@ for(const [k,m] of Object.entries(CD.mobs)){
 const OURO_PISO=.2;
 for(const m of Object.values(MOBS))if(CD.mobs[m.id]&&!m.chefe&&!m.invocado&&['Human','Demon','Magical'].includes(m.classe)&&m.exp>=70&&Object.values(CD.hunts).some(h=>h.mobs[m.id])&&!m.loot.some(l=>ITEMS[l[0]].type==='coin')){
   const g=m.exp*OURO_PISO,pl=g>=200;m.loot.push([LOOT_ID[pl?'platinum_coin':'gold_coin']||(pl?'platinum_coin':'gold_coin'),1,Math.max(2,Math.round(pl?g/100:g))]);m.ouroPiso=1;}
+/* drops reais (Canary) de mochilas que o loot das caçadas não trazia */
+for(const [m,id,c] of [['dark_torturer','jewelled_backpack',.01192],['wisp','moon_backpack',.0022]])if(MOBS[m])MOBS[m].loot.push([id,c,1]);
 /* ataques, defesas, resistências e invocações reais (Canary) para os monstros do combate 15.01 que não vêm das caçadas (familiares, invocáveis) */
 if(CB)for(const [k,c] of Object.entries(CB.monstros)){
   if(CD.mobs[k])continue;
@@ -983,7 +1015,7 @@ function personagemForte(s){
   const v=s.voc,L=100;s.level=L;s.exp=expFor(L);s.addon=3;s.gold=100000;
   const sk={knight:{sword:85,axe:50,club:50,distance:30,shielding:80,magic:9},paladin:{sword:30,distance:90,shielding:70,magic:22},sorcerer:{sword:20,distance:20,shielding:30,magic:80},druid:{sword:20,distance:20,shielding:30,magic:80}}[v];
   for(const k in sk)s.skills[k]={lv:sk[k],t:0};
-  for(const slot of Object.keys(s.eq)){const op=Object.values(ITEMS).filter(i=>i.type==='eq'&&i.slot===slot&&i.price>0&&i.lv<=L&&(slot!=='weapon'||i.wt===VOC[v].wt)).sort((a,b)=>b.price-a.price);if(op[0])s.eq[slot]={id:op[0].id,t:0};}
+  for(const slot of EQ6){const op=Object.values(ITEMS).filter(i=>i.type==='eq'&&i.slot===slot&&i.price>0&&i.lv<=L&&(slot!=='weapon'||i.wt===VOC[v].wt)).sort((a,b)=>b.price-a.price);if(op[0])s.eq[slot]={id:op[0].id,t:0};}
   const pot={knight:{ghp_pot:300,mp_pot:200},paladin:{gsp_pot:300,smp_pot:200},sorcerer:{gmp_pot:200,hp_pot:60},druid:{gmp_pot:200,hp_pot:60}}[v];
   s.bag=Object.assign({},pot);s.rules.refill=Object.entries(pot).map(([id,q])=>({id,q}));
   const runas={sorcerer:{'sudden death rune':200,'great fireball rune':100,'ultimate healing rune':40},druid:{'sudden death rune':150,'avalanche rune':150,'paralyze rune':20,'ultimate healing rune':60},paladin:{'sudden death rune':100,'great fireball rune':60}}[v]||{};
@@ -994,14 +1026,14 @@ function personagemForte(s){
 function newState(name,voc){
   const s={v:1,name,voc,level:1,exp:0,hp:150,mp:55,gold:200,deaths:0,
     skills:{magic:{lv:0,t:0},sword:{lv:10,t:0},axe:{lv:10,t:0},club:{lv:10,t:0},distance:{lv:10,t:0},shielding:{lv:10,t:0}},
-    eq:{weapon:{id:STARTER[voc],t:0},helmet:{id:'leather_helmet',t:0},armor:{id:'leather_armor',t:0},legs:{id:'leather_legs',t:0},boots:{id:'leather_boots',t:0},shield:{id:'wooden_shield',t:0}},
+    eq:{weapon:{id:STARTER[voc],t:0},helmet:{id:'leather_helmet',t:0},armor:{id:'leather_armor',t:0},legs:{id:'leather_legs',t:0},boots:{id:'leather_boots',t:0},shield:{id:'wooden_shield',t:0},amulet:{id:null,t:0},ring:{id:null,t:0},backpack:{id:'backpack',t:0}},
     bag:{hp_pot:20,mp_pot:voc==='knight'?5:20},depot:{},
     sets:{'Default':defaultHot(voc),'Set 2':defaultHot(voc),'Set 3':new Array(16).fill(null)},set:'Default',target:'near',
     imb:{weapon:[null,null],helmet:[null],armor:[null],legs:[null],boots:[null],shield:[null]},
     prey:[0,1,2].map(i=>({opts:null,mob:null,type:null,val:0,est:1,ms:0,auto:false,trava:false,livreEm:0,lib:i===0})),wildcards:0,wcAcc:0,tc:0,favs:{},outfits:{},mount:{atual:0,on:0,owned:[]},
     best:{},bestClaim:{},charmPts:0,charms:{dmg:0,exp:0,loot:0,def:0},
     bless:false,stamina:STAM_MAX,loc:'city',lastHunt:null,pull:{},lootCfg:{},recordes:{},
-    rules:{autoReturn:true,cap:90,minHp:5,minMp:5,autoSell:true,keepMats:true,sellEq:true,refill:[{id:'hp_pot',q:50},{id:'mp_pot',q:voc==='knight'?10:50}],autoBless:false,autoBack:true,smart:false,backAfterDeath:false,lure:0,ia:true,aCave:true,aAlvo:true,aCura:true,aAtk:true},
+    rules:{autoReturn:true,cap:90,minHp:5,minMp:5,autoSell:true,keepMats:true,sellEq:true,refill:[{id:'hp_pot',q:50},{id:'mp_pot',q:voc==='knight'?10:50}],autoBless:false,autoAol:false,autoBack:true,smart:false,backAfterDeath:false,lure:0,ia:true,aCave:true,aAlvo:true,aCura:true,aAtk:true},
     sess:null,lastTick:Date.now(),ui:{}};
   s.sess=newSess(null);return s;
 }
@@ -1010,13 +1042,19 @@ function newSess(hunt){return{hunt,t:0,exp:0,gold:0,loot:0,sup:0,kills:{},items:
 const V=()=>VOC[S.voc];
 const maxHp=()=>145+5*Math.min(S.level,8)+V().hp*Math.max(0,S.level-8);
 const maxMp=()=>50+5*Math.min(S.level,8)+V().mp*Math.max(0,S.level-8);
-const maxCap=()=>400+V().cap*S.level;
+const maxCap=()=>400+V().cap*S.level+capBp();
 const eqi=k=>ITEMS[S.eq[k].id]||ITEMS[STARTER[S.voc]];
+const eqa=k=>{const e=S.eq[k];return e&&ITEMS[e.id]||null;};   /* acessório equipado (amulet / ring / backpack) ou null */
+const capBp=()=>(eqa('backpack')||{}).cap||0;
+function accSk(k){let v=0;for(const s of ACC){const it=eqa(s);if(it&&it.sk&&it.sk[k])v+=it.sk[k];}return v;}
+const skE=k=>S.skills[k].lv+accSk(k);   /* skill efetivo: nível + anéis/amuletos (Sword Ring +4...) */
+const accRg=i=>ACC.reduce((a,s)=>a+((eqa(s)||{}).rg||[0,0])[i],0);
+const accVel=()=>ACC.reduce((a,s)=>a+((eqa(s)||{}).spd||0),0)/200+1;   /* Time Ring: +30 de velocidade ≈ +15% de passo (a mesma conta da montaria) */
 const mainSk=()=>skW(S.voc,eqi('weapon').wt);   /* skill que a arma equipada treina e usa no dano (Knight: sword/axe/club) */
 function capUsed(){let w=0;for(const [k,c] of Object.entries(S.bag)){const it=ITEMS[parseKey(k).id];if(it)w+=it.w*c;}return w;}
 const capFree=()=>maxCap()-capUsed();
 function atk(){const it=eqi('weapon'),t=S.eq.weapon.t;return (it.atk||0)+2*t;}
-function armor(){return ['helmet','armor','legs','boots'].reduce((a,k)=>a+eqi(k).arm+S.eq[k].t,0);}
+function armor(){return ['helmet','armor','legs','boots'].reduce((a,k)=>a+eqi(k).arm+S.eq[k].t,0)+ACC.reduce((a,k)=>a+((eqa(k)||{}).arm||0),0);}
 function def(){return eqi('shield').def+S.eq.shield.t;}
 function imbVal(kind){let v=0;for(const arr of Object.values(S.imb))for(const im of arr)if(im&&im.k===kind&&im.ms>0)v+=IMB[kind].tiers[im.t].v;return v/100;}
 function preyB(mob,type){for(const p of S.prey)if(p.mob===mob&&p.type===type&&p.ms>0)return p.val/100;return 0;}
@@ -1162,10 +1200,10 @@ function gainExp(n){S.exp+=n;S.sess.exp+=n;const b=S.level;while(S.exp>=expFor(S
   if(S.level>b){S.hp=maxHp();S.mp=maxMp();log('sys',`Você avançou do Level ${b} para o Level ${S.level}.`,'w');toast(`⬆ Level ${S.level}!`);if(W)fxt(W.p.x,W.p.y,'LEVEL UP','#ffd84a',1);}}
 function healP(n){const r=Math.min(Math.round(n),maxHp()-S.hp);if(r>0){ATK_T.eu=W.time;S.hp+=r;fxt(W.p.x,W.p.y,'+'+r,'#66ff66');}}
 function manaP(n){const r=Math.min(Math.round(n),maxMp()-S.mp);if(r>0){S.mp+=r;fxt(W.p.x,W.p.y,'+'+r,'#7aa2ff');}}
-function healBase(){const L=S.level,ml=S.skills.magic.lv;if(S.voc==='knight')return L*.4+S.skills[mainSk()].lv*.6+10;if(S.voc==='paladin')return L*.3+ml*1.5+12;return (L*.2+ml*1.6+10)*(V().healMul||1);}
-function spellDmg(s){const L=S.level,ml=S.skills.magic.lv;
+function healBase(){const L=S.level,ml=skE('magic');if(S.voc==='knight')return L*.4+skE(mainSk())*.6+10;if(S.voc==='paladin')return L*.3+ml*1.5+12;return (L*.2+ml*1.6+10)*(V().healMul||1);}
+function spellDmg(s){const L=S.level,ml=skE('magic');
   if(MAGES.includes(S.voc))return rnd(L*.2+ml*1.6+8,L*.2+ml*2.6+16)*s.mul*V().spellMul;
-  const sk=S.skills[mainSk()].lv;return rnd(.6,1)*(0.085*atk()*sk*V().dmg+L/5)*s.mul;}
+  const sk=skE(mainSk());return rnd(.6,1)*(0.085*atk()*sk*V().dmg+L/5)*s.mul;}
 function dmgMult(m){const st=bestStage(m.id);return 1+charmV('dmg')+preyB(m.id,'dmg')+(st>=3?.1:st>=2?.05:0);}
 let ATKR='eu';const ATK_T={};   /* quem causou o dano (party): 'eu' ou o pid do lutador */
 function hitMob(m,dmg,col,fisico,proc){
@@ -1177,14 +1215,25 @@ function hitMob(m,dmg,col,fisico,proc){
   log('cmb',`${m.d.n} perdeu ${dmg} de vida.`,'m');
   if(m.hp<=0)killMob(m);
 }
-function hurtPlayer(raw,magic,src){
+/* ---- acessórios em combate: absorção por elemento (1 carga por golpe absorvido), Energy Ring (dano vira gasto de mana), tempo de anéis, offline ---- */
+function accAcaba(k){const it=eqa(k);S.eq[k]={id:null,t:0};log('sys',`${it.n} acabou.`,'o');toast(`${it.n} acabou`);dirty.all=true;}
+function accUsa(k,n){const e=S.eq[k];e.t-=n;const c=S.sess.ch||(S.sess.ch={});c[k]=(c[k]||0)+n;if(e.t<=0)accAcaba(k);}
+function accDano(d,el,semMs){if(!(d>0))return d;let f=1;const use=[];
+  for(const k of ACC){const it=eqa(k);if(!it||!it.abs)continue;const a=it.abs[el==='poison'?'earth':el];if(!a)continue;f*=1-a/100;if(a>0&&it.ch)use.push(k);}
+  d=Math.round(d*f);for(const k of use)accUsa(k,1);
+  const ri=eqa('ring');if(!semMs&&ri&&ri.ms&&d>0&&S.mp>0){const a=Math.min(d,Math.floor(S.mp));S.mp-=a;d-=a;if(a)fxt(W.p.x,W.p.y,String(a),'#5aa0ff');}
+  return d;}
+function accTick(dt){W.accMs=(W.accMs||0)+dt;while(W.accMs>=1000){W.accMs-=1000;for(const k of ACC){const it=eqa(k);if(it&&it.dur){S.eq[k].t--;if(S.eq[k].t<=0)accAcaba(k);}}}}
+function accOff(eff,f){for(const k of ACC){const it=eqa(k),e=S.eq[k];if(!it||!(it.dur||it.ch))continue;e.t-=it.dur?Math.round(eff/1000):Math.round(((S.sess.ch||{})[k]||0)*f);if(e.t<=0)S.eq[k]={id:null,t:0};}}
+function hurtPlayer(raw,magic,src,el){
   if(raw>0&&esquiva15(JOG,W.p.x,W.p.y))return -1;   /* Ruse: forja da armadura */
   let dmg=raw;const md=mods(JOG);
-  if(!magic){train('shielding',1);const x=def()*S.skills.shielding.lv*md.escudo,bc=md.semDef?0:Math.min(.55,x/(x+1500));
+  if(!magic){train('shielding',1);const x=def()*skE('shielding')*md.escudo,bc=md.semDef?0:Math.min(.55,x/(x+1500));
     if(Math.random()<bc){fxt(W.p.x,W.p.y,'bloqueou','#9ad');return -1;}
     const A=armor();dmg=Math.max(0,raw-(A>3?rint(Math.floor(A/2),A-1):rint(0,A)));}
   else dmg=Math.round(raw*(1-Math.min(.25,armor()/160)));
   dmg=Math.round(dmg*md.recebido*Math.max(.3,1-imbVal('prot')-charmV('def')-preyB(src.id,'def')));
+  dmg=accDano(dmg,el||(magic?'magic':'phys'));
   const e=JOG.c.escudo;if(dmg>0&&e&&e.ate>W.time&&e.resto>0&&S.mp>0){const a=Math.min(dmg,e.resto,Math.floor(S.mp));S.mp-=a;e.resto-=a;dmg-=a;
     fxt(W.p.x,W.p.y,String(a),'#5aa0ff');ef15(me15('loseenergy'),W.p.x,W.p.y);if(e.resto<=0)JOG.c.escudo=null;if(!dmg)return 0;}
   S.hp-=dmg;fxt(W.p.x,W.p.y,dmg?String(dmg):'0',dmg?'#ff3b30':'#aaa');
@@ -1195,10 +1244,12 @@ function hurtPlayer(raw,magic,src){
    poção, runa nem equipamento melhor que o atual) */
 const pontosEq=i=>(i.atk||0)+((i.min||0)+(i.max||0))/2+(i.arm||0)+(i.def||0);
 function melhorQueAtual(it){return it.type==='eq'&&canEquip(it)&&pontosEq(it)>pontosEq(eqi(it.slot));}
+const accUtil=it=>canEquip(it)&&(it.slot==='backpack'?(it.cap||0)>capBp():!S.eq[it.slot].id);
 function lootPadrao(id){const it=ITEMS[id];
   if(!it)return {pegar:false,vender:false};
   if(it.type==='coin')return {pegar:true,vender:true};
   if(it.type==='pot'||it.type==='runa'||it.type==='use'||MATS.has(id))return {pegar:true,vender:false};
+  if(it.type==='eq'&&ACCS.includes(it.slot))return {pegar:true,vender:!it.keep&&!accUtil(it)};   /* acessório: guarda se o slot está vazio (ou a mochila dá mais cap), senão vende */
   if(it.type==='eq')return {pegar:true,vender:!it.raro&&!melhorQueAtual(it)};
   return {pegar:it.v>0,vender:true};}
 function lootCfgDe(id){const c=S.lootCfg&&S.lootCfg[id];return c?Object.assign(lootPadrao(id),c):lootPadrao(id);}
@@ -1275,7 +1326,7 @@ function ef15(id,x,y,atraso){if(quiet||!W||!CB||!id||!CB.efeitos[id])return;if(P
 function tiro15(id,a,b){if(!CB||!id||!CB.tiros[id])return 0;const dur=150*Math.sqrt(Math.hypot(b.x-a.x,b.y-a.y));if(PT.ev&&!quiet)ptEv(['t',id,a.x,a.y,b.x,b.y]);if(!quiet&&W)W.t15.push({id,x1:a.x,y1:a.y,x2:b.x,y2:b.y,b:performance.now(),dur});return dur;}
 function resist(m,el){const e=m.d.el;return e&&e[el]!==undefined?1-e[el]/100:1;}
 function velMob(m){return (m.rapidoAte>W.time?m.d.spd*.6:m.d.spd)*(m.lentoAte>W.time?1.6:1);}
-function formula15(f){const L=S.level,ml=S.skills.magic.lv;return rnd(L/5+ml*f[0]+f[1],L/5+ml*f[2]+f[3]);}
+function formula15(f){const L=S.level,ml=skE('magic');return rnd(L/5+ml*f[0]+f[1],L/5+ml*f[2]+f[3]);}
 function danoMagia15(m,dmg,el,atraso,proc){if(!W.mobs.includes(m))return;ef15(me15(HIT15[el]),m.x,m.y,atraso);hitMob(m,Math.round(dmg*resist(m,el)),ELC[el]||'#fff',el==='phys',proc);}
 /* ---- procs de combate (efeitos do cliente 15.01) ----
    CRIT!  crítico: chance do imbuement Strike na arma, +50% de dano
@@ -1317,10 +1368,10 @@ function magia15(sp,s){const p=W.p,T=W.time,tg=p.target;
   W.cd.atk=T+sp.gcd;W.cd[sp.id]=T+sp.cd;if(sp.focus)W.cd.focus=T+sp.focus;return true;}
 function danoJogador15(m,tipo,v,atraso,tg){const p=tg||W.p;
   if(tg&&tg!==W.p){if(tipo==='manadrain'){const d=Math.min(tg.mp,v);tg.mp-=d;ef15(me15('loseenergy'),p.x,p.y,atraso);if(d)fxt(p.x,p.y,String(d),'#5aa0ff');return;}tg.receber(v,tipo,atraso,m);return;}   /* party: lutador remoto como alvo */
-  if(tipo==='manadrain'){const d=Math.min(S.mp,v);S.mp-=d;ef15(me15('loseenergy'),p.x,p.y,atraso);if(d)fxt(p.x,p.y,String(d),'#5aa0ff');return;}
-  ef15(me15(HIT15[tipo]||'drawblood'),p.x,p.y,atraso);hurtPlayer(v,tipo!=='phys',m);}
+  if(tipo==='manadrain'){const d=Math.min(S.mp,accDano(v,'manadrain',1));S.mp-=d;ef15(me15('loseenergy'),p.x,p.y,atraso);if(d)fxt(p.x,p.y,String(d),'#5aa0ff');return;}
+  ef15(me15(HIT15[tipo]||'drawblood'),p.x,p.y,atraso);hurtPlayer(v,tipo!=='phys',m,tipo);}
 /* ataques do monstro como no Canary: cada um com sua chance a cada 2 s (vários podem sair juntos) */
-function hurtAlvo(tg,raw,el,src,at){if(!tg||tg===W.p)return hurtPlayer(raw,el!=='phys',src);return tg.receber(raw,el,at||0,src);}
+function hurtAlvo(tg,raw,el,src,at){if(!tg||tg===W.p)return hurtPlayer(raw,el!=='phys',src,el);return tg.receber(raw,el,at||0,src);}
 function ataque15(m,d,tg){const p=tg||W.p,D=m.d;
   for(const a of D.atq15){
     if(a.name==='melee'){if(d<=1){const r=hurtAlvo(tg,rint(0,Math.abs(a.maxDamage||0)),'phys',m);ef15(me15(r>0?'drawblood':r===0?'poff':'blockhit'),p.x,p.y);}continue;}
@@ -1387,7 +1438,7 @@ function mods(L){const c=L.c,T=W.time,r={melee:1,dist:1,escudo:1,feito:1,recebid
     if(b.melee)r.melee*=b.melee/100;if(b.dist)r.dist*=b.dist/100;if(b.escudo)r.escudo*=b.escudo/100;if(b.feito)r.feito*=b.feito/100;if(b.recebido)r.recebido*=b.recebido/100;
     if(b.sem_defesa)r.semDef=true;if(b.haste)r.vel*=b.haste;if(b.lento_self)r.vel*=Math.max(.3,b.lento_self);if(b.pacifico)r.pacifico=true;}
   if(c.emp&&c.emp.ate>T&&Math.max(Math.abs(L.x-c.emp.x),Math.abs(L.y-c.emp.y))<=AVT15.emp.r)r.feito*=c.emp.f;   /* Divine Empowerment: +dano em cima do campo */
-  if(c.rapido&&c.rapido.ate>T)r.vel*=c.rapido.f;if(c.lento&&c.lento.ate>T)r.vel*=c.lento.f;if(L.eJog&&!W.arena)r.vel*=montaVel();return r;}   /* montaria: +velocidade do mounts.xml */
+  if(c.rapido&&c.rapido.ate>T)r.vel*=c.rapido.f;if(c.lento&&c.lento.ate>T)r.vel*=c.lento.f;if(L.eJog&&!W.arena)r.vel*=montaVel()*accVel();return r;}   /* montaria: +velocidade do mounts.xml */
 function valor15(L,m){if(!m.fn)return 0;const md=mods(L);let r;
   try{if(m.ftipo==='sk'){const sk=Math.round(L.skill*(L.voc==='knight'?md.melee:md.dist));r=m.fn(Object.assign({level:L.nivel,ml:L.ml},PL15),sk,L.atkArma,1);}
       else r=m.fn(Object.assign({level:L.nivel,ml:L.ml},PL15),L.nivel,L.ml);}catch(e){return 0;}
@@ -1406,7 +1457,7 @@ function receberLutador(L,v,el,at,fonte,puro){if(L.hp<=0)return 0;let d=v;const 
     if(el==='phys'){if(!md.semDef){const x=L.def*L.shielding*md.escudo,bc=Math.min(.25,x/(x+1500));   /* entre jogadores o bloqueio vai até 25% (nas caçadas, 55%) */if(Math.random()<bc){fxt(L.x,L.y,'bloqueou','#9ad');ef15(me15('blockhit'),L.x,L.y,at);return -1;}}
       const A=L.arm;d=Math.max(0,d-(A>3?rint(Math.floor(A/2),A-1):rint(0,A)));}
     else d*=1-Math.min(.25,L.arm/160);}
-  d=Math.round(d*md.recebido*(L.protecao?L.protecao():1));
+  d=Math.round(d*md.recebido*(L.protecao?L.protecao():1));if(L.accDano)d=L.accDano(d,el);
   if(d<=0){ef15(me15('poff'),L.x,L.y,at);fxt(L.x,L.y,'0','#aaa');return 0;}
   if(W.arena&&!W.arena.fim&&L.time!==undefined)W.arena.dano[1-L.time]+=d;   /* placar: dano causado pelo outro lado */
   ef15(me15(HIT15[el]||'drawblood'),L.x,L.y,at);
@@ -1418,16 +1469,16 @@ function condicaoLutador(L,t,d){const c=L.c;if(t==='dot'){c.dots=c.dots.filter(q
   else if(t==='debuff')c.buffs['db_'+d.id]=Object.assign({},d.buff,{ate:W.time+d.dur});}
 /* ---- o jogador como lutador (lê e escreve em S e W.p) ---- */
 const JOG={ehLutador:true,eJog:true,
-  get nome(){return S.name},get voc(){return S.voc},get nivel(){return S.level},get ml(){return S.skills.magic.lv},
-  get skill(){const k=mainSk();return S.skills[k==='magic'?'sword':k].lv},get atkArma(){return atk()},get arma(){return eqi('weapon')},
-  get wt(){return V().wt},get alcance(){return V().range},get dmgV(){return V().dmg||1},get arm(){return armor()},get def(){return def()},get shielding(){return S.skills.shielding.lv},
+  get nome(){return S.name},get voc(){return S.voc},get nivel(){return S.level},get ml(){return skE('magic')},
+  get skill(){const k=mainSk(),q=k==='magic'?'sword':k;return skE(q)},get atkArma(){return atk()},get arma(){return eqi('weapon')},
+  get wt(){return V().wt},get alcance(){return V().range},get dmgV(){return V().dmg||1},get arm(){return armor()},get def(){return def()},get shielding(){return skE('shielding')},
   get hp(){return S.hp},set hp(v){S.hp=v},get max(){return maxHp()},get mp(){return S.mp},set mp(v){S.mp=v},get maxMp(){return maxMp()},
   get x(){return W.p.x},get y(){return W.p.y},get dir(){return [2,1,0,3][W.p.face??0]},set dir(d){W.p.face=[2,1,0,3][d]},
   get c(){return W.pc||(W.pc={buffs:{},dots:[]})},get cd(){return W.cd},get bag(){return W.arena?W.arena.kitJ:S.bag},get slots(){return S.sets[S.set]||[]},
   get aliados(){return (W.aliados||[]).filter(a=>a.dono===JOG)},
   get procs(){return {crit:imbVal('strike'),critX:.5,fatal:(S.eq.weapon.t||0)*.015,ruse:(S.eq.armor.t||0)*.015,agonia:imbVal('agonia')};},
   get alvo(){const t=W.p.target;return t?(t.ehLutador?t:alvoMob(t)):null},
-  protecao(){return Math.max(.3,1-imbVal('prot')-charmV('def'))},
+  protecao(){return Math.max(.3,1-imbVal('prot')-charmV('def'))},accDano(d,el){return W.arena?d:accDano(d,el);},   /* acessórios só valem na caçada */
   receber(v,el,at,f,puro){return receberLutador(this,v,el,at,f,puro);},condicao(t,d){condicaoLutador(this,t,d);},resist(){return 1},vivo(){return S.hp>0}};
 /* inimigos de um lutador: na caçada, os monstros hostis; na arena, o outro lutador e as invocações dele */
 function inimigos15(L){if(W.arena){const T2=W.arena.times[1-L.time].filter(x=>x.hp>0);return [...T2,...(W.aliados||[]).filter(a=>T2.includes(a.dono)).map(alvoAliado)];}
@@ -1850,7 +1901,7 @@ function autoAttack(tg){
   const p=W.p,v=V();virarPara(tg);
   const md=mods(JOG);if(md.pacifico)return;
   if(v.wt==='wand'||v.wt==='rod'){const w=eqi('weapon');if(S.mp<w.mana)return;S.mp-=w.mana;train('magic',w.mana);const tf=1+.08*S.eq.weapon.t;proj(p,tg,v.wt==='wand'?ELC.energy:ELC.ice);hitMob(tg,rint(w.min,w.max)*tf*md.feito,'#ff4d4d',false,true);return;}
-  const mk=mainSk(),sk=S.skills[mk].lv*(mk==='distance'?md.dist:md.melee);if(v.range>1)proj(p,tg,'#c8a060');
+  const mk=mainSk(),sk=skE(mk)*(mk==='distance'?md.dist:md.melee);if(v.range>1)proj(p,tg,'#c8a060');
   train(mk,1);hitMob(tg,rnd(.3,1)*(0.085*atk()*sk*v.dmg+S.level/5)*md.feito,null,true,true);
 }
 function chooseTarget(){
@@ -2068,7 +2119,8 @@ function mobLogic(dt){
 
 /* ======================= LOOP ======================= */
 function regen(dt){W.reg+=dt;while(W.reg>=1000){W.reg-=1000;const v=V(),c=S.loc==='city';
-  S.hp=Math.min(maxHp(),S.hp+Math.max(1,Math.round(maxHp()*(c?.05:v.hpReg))));S.mp=Math.min(maxMp(),S.mp+Math.max(1,Math.round(maxMp()*(c?.05:v.mpReg))));}}
+  const ca=!c&&S.loc!=='arena'&&S.loc!=='treino';   /* Life Ring / Ring of Healing: regen extra só caçando */
+    S.hp=Math.min(maxHp(),S.hp+Math.max(1,Math.round(maxHp()*(c?.05:v.hpReg*(1+(ca?accRg(0):0))))));S.mp=Math.min(maxMp(),S.mp+Math.max(1,Math.round(maxMp()*(c?.05:v.mpReg*(1+(ca?accRg(1):0))))));}}
 function update(dt){
   if(!S||!W)return;W.time+=dt;
   if(PT.hunt&&PT.hunt.papel==='membro'&&S.loc!=='city'&&S.loc!=='arena'){ptMembro(dt);return;}   /* party: o líder simula a caçada */
@@ -2077,7 +2129,7 @@ function update(dt){
   if(S.loc==='treino'){treinoLogic(dt);return;}
   if(S.loc==='city'){S.stamina=Math.min(STAM_MAX,S.stamina+dt/3);const p=W.p;p.mt=Math.min(1+dt/p.stepMs,p.mt+dt/p.stepMs);andarMao();cidTick();cityLogic();return;}
   S.sess.t+=dt;S.stamina-=dt;if(W.rec&&!W.rec.fim)medirRecorde();
-  for(const arr of Object.values(S.imb))for(const im of arr)if(im&&im.ms>0)im.ms-=dt;
+  for(const arr of Object.values(S.imb))for(const im of arr)if(im&&im.ms>0)im.ms-=dt;accTick(dt);
   preyTick(dt);wcTempo(dt);
   for(let i=W.respawns.length-1;i>=0;i--){const r=W.respawns[i];if(W.time>=r.t&&cheb(W.p,r.sp)>7){W.respawns.splice(i,1);spawnMob(r.sp,r.sp.mob||pickMob(HUNTS[S.loc]));}}
   mobLogic(dt);if(S.hp<=0){die();return;}
@@ -2103,8 +2155,9 @@ function autoChecks(){
 }
 function die(){
   S.deaths++;const loss=S.bless?.03:.1;S.exp=Math.floor(S.exp*(1-loss));while(S.level>1&&S.exp<expFor(S.level))S.level--;
-  let lost=0;if(!S.bless){for(const k of Object.keys(S.bag))if(ITEMS[k]&&ITEMS[k].type==='loot'){lost+=S.bag[k];delete S.bag[k];}}
-  log('sys',`☠ Você morreu! Perdeu ${loss*100}% da experiência${S.bless?' (blessing protegeu seus itens)':lost?` e ${lost} itens de loot`:''}. Level atual: ${S.level}.`,'r');
+  const aol=S.eq.amulet.id==='amulet_of_loss';if(aol)S.eq.amulet={id:null,t:0};   /* Amulet of Loss: protege os itens (não a exp) e some ao morrer, com ou sem blessing */
+  let lost=0;if(!S.bless&&!aol){for(const k of Object.keys(S.bag))if(ITEMS[k]&&ITEMS[k].type==='loot'){lost+=S.bag[k];delete S.bag[k];}}
+  log('sys',`☠ Você morreu! Perdeu ${loss*100}% da experiência${aol?' (Amulet of Loss protegeu seus itens e foi consumido)':S.bless?' (blessing protegeu seus itens)':lost?` e ${lost} itens de loot`:''}. Level atual: ${S.level}.`,'r');
   toast('☠ Você morreu!');S.bless=false;S.hp=maxHp();S.mp=maxMp();
   travel('city',S.rules.backAfterDeath&&!PT.hunt?{t:0,step:0}:null);
 }
@@ -2131,7 +2184,7 @@ function cityLogic(){
   const r=W.routine;if(!r||W.time<r.t)return;
   if(r.step===0){if(S.rules.autoSell)quickSell(true);r.step=1;r.t=W.time+1200;}
   else if(r.step===1){refill();r.step=2;r.t=W.time+1200;}
-  else if(r.step===2){if(S.rules.autoBless&&!S.bless)buyBless(true);r.step=3;r.t=W.time+1500;}
+  else if(r.step===2){if(S.rules.autoBless&&!S.bless)buyBless(true);if(S.rules.autoAol)buyAol();r.step=3;r.t=W.time+1500;}
   else{W.routine=null;
     if(!S.rules.autoBack||!S.lastHunt)return;
     if(S.stamina<30*MIN){log('sys','Stamina baixa: descansando na cidade.','o');return;}
@@ -2147,7 +2200,7 @@ function bestHunt(){let b=Object.keys(HUNTS)[0];for(const [k,h] of Object.entrie
 /* ======================= ECONOMIA ======================= */
 function quickSell(auto){
   let tot=0,n=0;for(const [k,c] of Object.entries(S.bag)){const it=ITEMS[parseKey(k).id];if(!it)continue;
-    const ok=it.type==='loot'?!(S.rules.keepMats&&MATS.has(k)):it.type==='eq'&&S.rules.sellEq;
+    const ok=it.type==='loot'?!(S.rules.keepMats&&MATS.has(k)):it.type==='eq'&&S.rules.sellEq&&!it.keep;
     if(ok&&it.v>0){tot+=it.v*c;n+=c;delete S.bag[k];}}
   if(tot){S.gold+=tot;log('sys',`Venda rápida: ${n} itens vendidos por ${fmt(tot)} gp.`,'y');}else if(!auto)log('sys','Nada para vender.','m');
   dirty.all=true;
@@ -2159,16 +2212,20 @@ function refill(){
   dirty.all=true;
 }
 const blessPrice=()=>S.level<=30?2000:2000+200*(S.level-30);
+function buyAol(){const a=ITEMS.amulet_of_loss;if(S.eq.amulet.id===a.id)return;if(!S.bag[a.id]){if(S.gold<a.price)return;S.gold-=a.price;S.bag[a.id]=1;log('sys',`Comprou ${a.n} por ${fmt(a.price)} gp.`,'y');}equip(a.id);}
 function buyBless(auto){const p=blessPrice();if(S.bless)return;if(S.gold<p){if(!auto)toast('Gold insuficiente');return;}S.gold-=p;S.bless=true;log('sys',`Você recebeu as blessings (${fmt(p)} gp).`,'y');dirty.all=true;}
+const canEquip0=(it,o)=>!it.voc||it.voc.includes(o.voc);   /* validação de save: só a vocação */
 function canEquip(it){if(it.type!=='eq')return false;if(S.level<it.lv)return false;if(it.slot==='weapon'&&!okWt(S.voc,it.wt))return false;if(it.voc&&!it.voc.includes(S.voc))return false;return true;}
 function bagKey(id,t){return t?id+'#'+t:id;}
 function parseKey(k){const [id,t]=String(k).split('#');return {id,t:+t||0};}
 function equip(key){const {id,t}=parseKey(key),it=ITEMS[id];if(!it||!canEquip(it))return;
   const old=S.eq[it.slot];S.bag[key]--;if(!S.bag[key])delete S.bag[key];
-  const ok=bagKey(old.id,old.t);S.bag[ok]=(S.bag[ok]||0)+1;S.eq[it.slot]={id,t};
+  if(old.id){const ok=bagKey(old.id,old.t);S.bag[ok]=(S.bag[ok]||0)+1;}S.eq[it.slot]={id,t:ACC.includes(it.slot)&&(it.dur||it.ch)?(t||it.dur||it.ch):t};
   log('sys',`Você equipou ${it.n}${t?' +'+t:''}.`,'b');dirty.all=true;}
+function unequip(slot){if(!ACC.includes(slot))return;const e=S.eq[slot];if(!e.id)return;const k=bagKey(e.id,e.t);S.bag[k]=(S.bag[k]||0)+1;log('sys',`Você guardou ${ITEMS[e.id].n} na mochila.`,'b');S.eq[slot]={id:null,t:0};dirty.all=true;}
 function buyItem(id,q){const it=ITEMS[id];const cost=it.price*q;if(S.gold<cost){toast('Gold insuficiente');return;}
-  if(it.type==='eq'){if(!canEquip(it)){toast('Não pode usar este item');return;}S.gold-=cost;const old=S.eq[it.slot],ok=bagKey(old.id,old.t);S.bag[ok]=(S.bag[ok]||0)+1;S.eq[it.slot]={id,t:0};log('sys',`Comprou e equipou ${it.n} por ${fmt(cost)} gp.`,'y');}
+  if(it.type==='eq'&&it.slot!=='backpack'&&ACC.includes(it.slot)&&S.eq[it.slot].id){if(!canEquip(it)){toast('Não pode usar este item');return;}if(capFree()<it.w){toast('Capacidade insuficiente');return;}S.gold-=cost;S.bag[id]=(S.bag[id]||0)+1;log('sys',`Comprou ${it.n} por ${fmt(cost)} gp (slot ocupado: foi para a mochila).`,'y');}   /* amuleto/anel: com o slot ocupado vai para a mochila */
+  else if(it.type==='eq'){if(!canEquip(it)){toast('Não pode usar este item');return;}S.gold-=cost;const old=S.eq[it.slot];if(old.id){const ok=bagKey(old.id,old.t);S.bag[ok]=(S.bag[ok]||0)+1;}S.eq[it.slot]={id,t:ACC.includes(it.slot)?(it.dur||it.ch||0):0};log('sys',`Comprou e equipou ${it.n} por ${fmt(cost)} gp.`,'y');}
   else{if(capFree()<it.w*q){toast('Capacidade insuficiente');return;}S.gold-=cost;S.bag[id]=(S.bag[id]||0)+q;log('sys',`Comprou ${q}x ${it.n} por ${fmt(cost)} gp.`,'y');}
   dirty.all=true;}
 function matCount(id){return (S.bag[id]||0)+(S.depot[id]||0);}
@@ -2192,7 +2249,7 @@ function offline(ms){
     for(const [id,n] of Object.entries(s.used)){S.bag[id]=Math.max(0,(S.bag[id]||0)-Math.round(n*f));if(!S.bag[id])delete S.bag[id];}}
   g=Math.round(g);S.gold=Math.max(0,S.gold+g);r.gold=g;
   S.stamina-=eff;S.stamina+=Math.max(0,ms-eff)/3;S.stamina=clamp(S.stamina,0,STAM_MAX);
-  for(const arr of Object.values(S.imb))for(const im of arr)if(im)im.ms-=eff;
+  for(const arr of Object.values(S.imb))for(const im of arr)if(im)im.ms-=eff;accOff(eff,f);
   r.wc=wcTempo(eff);preyTick(eff);
   S.sess=JSON.parse(snap);quiet=false;
   r.exp=gained;r.lv=S.level-L0;
@@ -2354,14 +2411,29 @@ function frame(){draw();requestAnimationFrame(frame);}
 
 /* ======================= UI ======================= */
 const dirty={all:true};let sigs={};
-function itemTip(it,t){const parts=[];if(it.atk)parts.push(`Ataque ${it.atk+2*(t||0)}`);if(it.min)parts.push(`Dano ${it.min}-${it.max} · ${it.mana} mana/tiro`);if(it.arm)parts.push(`Armadura ${it.arm+(t||0)}`);if(it.def)parts.push(`Defesa ${it.def+(t||0)}`);
-  if(it.type==='runa'){const r=RUNAS15[it.id];parts.push(`Runa · magic level ${it.ml}${r&&r.cargas>1?` · ${r.cargas} cargas`:''}`);}if(it.hp)parts.push(`Cura ${it.hp} HP`);if(it.mp)parts.push(`Recupera ${it.mp} mana`);if(it.lv)parts.push(`Level ${it.lv}`);if(it.type==='loot'&&MATS.has(it.id))parts.push('Material de imbuement');parts.push(`Peso ${it.w} oz${it.v?` · Vende por ${fmt(it.v)} gp`:''}`);return parts.join('\n');}
-function slotHTML(key,c,attrs=''){const {id,t}=parseKey(key),it=ITEMS[id];if(!it)return '';return `<div class="slot${it.raro?' raro':''}" ${attrs} title="${esc(it.n+(t?' +'+t:'')+'\n'+itemTip(it,t))}">${ii(it)}${t?`<span class="t">+${t}</span>`:''}${c>1?`<span class="n">${c>999?fmt(c):c}</span>`:''}</div>`;}
+const EL_AB={phys:'Físico',fire:'Fogo',earth:'Terra',energy:'Energia',ice:'Gelo',holy:'Sagrado',death:'Morte',lifedrain:'Drenar vida',manadrain:'Drenar mana',drown:'Afogamento'};
+const durTxt=sec=>sec>=60?Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0')+' min':sec+' s';
+/* texto dos efeitos de amuletos, anéis e mochilas; t = cargas/segundos que restam (0 = novo) */
+function accTxt(it,t){const a=[],ab=it.abs?Object.entries(it.abs):[];
+  if(it.aol)a.push('Ao morrer você não perde os itens da mochila (o amuleto é consumido; a perda de exp continua)');
+  const v0=ab.length&&ab[0][1];if(ab.length>=7&&ab.every(x=>x[1]===v0))a.push(`Absorve ${v0}% de todos os elementos`);
+  else{const p=ab.filter(x=>x[1]>0),n=ab.filter(x=>x[1]<0);if(p.length)a.push('Absorve: '+p.map(([k,v])=>`${EL_AB[k]} ${v}%`).join(' · '));if(n.length)a.push('Fraco a: '+n.map(([k,v])=>`${EL_AB[k]} ${-v}%`).join(' · '));}
+  if(it.sk)a.push(Object.entries(it.sk).map(([k,v])=>`${SKN[k]} ${v>0?'+':'−'}${Math.abs(v)}`).join(' · '));
+  if(it.spd)a.push(`Velocidade +${it.spd} (≈ +${Math.round(it.spd/2)}%)`);if(it.rg)a.push(`Regeneração caçando: +${Math.round(it.rg[0]*100)}% vida · +${Math.round(it.rg[1]*100)}% mana`);
+  if(it.ms)a.push('Escudo de mana: o dano gasta mana antes da vida');if(it.cap)a.push(`+${it.cap} oz de capacidade`);
+  if(it.ch)a.push(t?`Cargas: ${t}/${it.ch} (1 por golpe absorvido)`:`${it.ch} cargas (1 por golpe absorvido)`);
+  if(it.dur)a.push(t?`Resta ${durTxt(t)} de caçada`:`Dura ${durTxt(it.dur)} de caçada`);return a;}
+const accBadge=(it,t)=>!(it.dur||it.ch)||!t?'':it.dur?(t>=60?Math.ceil(t/60)+'m':t+'s'):String(t);
+function itemTip(it,t0){const acc=ACCS.includes(it.slot),t=acc?0:t0,parts=[];if(it.atk)parts.push(`Ataque ${it.atk+2*(t||0)}`);if(it.min)parts.push(`Dano ${it.min}-${it.max} · ${it.mana} mana/tiro`);if(it.arm)parts.push(`Armadura ${it.arm+(t||0)}`);if(it.def)parts.push(`Defesa ${it.def+(t||0)}`);
+  if(it.type==='runa'){const r=RUNAS15[it.id];parts.push(`Runa · magic level ${it.ml}${r&&r.cargas>1?` · ${r.cargas} cargas`:''}`);}if(it.hp)parts.push(`Cura ${it.hp} HP`);if(it.mp)parts.push(`Recupera ${it.mp} mana`);if(it.lv)parts.push(`Level ${it.lv}`);if(it.type==='loot'&&MATS.has(it.id))parts.push('Material de imbuement');if(acc)parts.push(...accTxt(it,t0));parts.push(`Peso ${it.w} oz${it.v?` · Vende por ${fmt(it.v)} gp`:''}`);return parts.join('\n');}
+function slotHTML(key,c,attrs=''){const {id,t}=parseKey(key),it=ITEMS[id];if(!it)return '';return `<div class="slot${it.raro?' raro':''}" ${attrs} title="${esc(it.n+(t&&!ACCS.includes(it.slot)?' +'+t:'')+'\n'+itemTip(it,t))}">${ii(it)}${t?`<span class="t">${ACCS.includes(it.slot)?accBadge(it,t):'+'+t}</span>`:''}${c>1?`<span class="n">${c>999?fmt(c):c}</span>`:''}</div>`;}
 function renderInv(){
   const sig=JSON.stringify([S.bag,S.eq,S.imb,S.gold,S.level]);if(sigs.inv===sig)return;sigs.inv=sig;
-  const L=['','helmet','','weapon','armor','shield','','legs','','','boots',''];
-  const eq=L.map(k=>{if(!k)return '<div class="slot empty"></div>';const e=S.eq[k],it=eqi(k),imb=(S.imb[k]||[]).some(x=>x&&x.ms>0);
-    return `<div class="slot${imb?' imb':''}" data-eq="${k}" title="${esc(it.n+(e.t?' +'+e.t:'')+'\n'+itemTip(it,e.t))}">${ii(it)}${e.t?`<span class="t">+${e.t}</span>`:''}</div>`;}).join('');
+  const L=['amulet','helmet','backpack','weapon','armor','shield','ring','legs','','','boots',''],VZ={amulet:['📿','Amuleto'],ring:['💍','Anel']};   /* layout do Tibia: amuleto / capacete / mochila, arma / armadura / escudo, anel / calça / (munição), botas */
+  const eq=L.map(k=>{if(!k)return '<div class="slot empty"></div>';const e=S.eq[k],ac=ACCS.includes(k),it=ac?eqa(k):eqi(k),imb=(S.imb[k]||[]).some(x=>x&&x.ms>0);
+    if(!it)return `<div class="slot empty acc" title="${VZ[k][1]}: vazio (equipe pela mochila)">${VZ[k][0]}</div>`;
+    return `<div class="slot${imb?' imb':''}" data-eq="${k}" title="${esc(it.n+(e.t&&!ac?' +'+e.t:'')+'\n'+itemTip(it,e.t))}">${ii(it)}${e.t?`<span class="t">${ac?accBadge(it,e.t):'+'+e.t}</span>`:''}</div>`;}).join('');
+  const bp=eqa('backpack');$('#bagHd').innerHTML=`${bp?ii(bp,'s24'):''} Mochila`;
   const bag=Object.entries(S.bag).map(([k,c])=>slotHTML(k,c,`data-bag="${k}"`)).join('')||'<div class="mut sm" style="grid-column:1/-1">Mochila vazia</div>';
   const cu=capUsed(),mc=maxCap();
   $('#eqBody').innerHTML=`<div class="eqrow"><div class="eqgrid">${eq}</div><div class="eqst"><div>Arm <b>${armor()}</b></div><div>Def <b>${def()}</b></div><div class="gold">${ico('Gold_Coin','💰','s24')}<b>${fmt(S.gold)}</b></div></div></div>
@@ -2643,14 +2715,17 @@ const MODALS={
   wiki:()=>wikiModal(),
   prep:(hk)=>prepModal(hk),
   shop:(tab='weapon')=>{
-    const tabs=[['weapon','Armas'],['armor','Equipamentos'],['pot','Poções'],['runa','Runas'],['other','Outros'],['treino','Treino']];const ord=['helmet','armor','legs','boots','shield'];
+    const tabs=[['weapon','Armas'],['armor','Equipamentos'],['acc','Acessórios'],['pot','Poções'],['runa','Runas'],['other','Outros'],['treino','Treino']];const ord=['helmet','armor','legs','boots','shield'];
     let list=[];
     if(tab==='weapon')list=Object.values(ITEMS).filter(i=>i.type==='eq'&&i.slot==='weapon'&&(S.voc==='knight'?!SHOPWT||i.wt===SHOPWT:i.wt===V().wt)&&okWt(S.voc,i.wt)&&i.price>0).sort((a,b)=>S.voc==='knight'?MELEE.indexOf(a.wt)-MELEE.indexOf(b.wt)||a.price-b.price:0);
-    if(tab==='armor')list=Object.values(ITEMS).filter(i=>i.type==='eq'&&i.slot!=='weapon'&&i.price>0).sort((a,b)=>ord.indexOf(a.slot)-ord.indexOf(b.slot)||a.price-b.price);
+    if(tab==='armor')list=Object.values(ITEMS).filter(i=>i.type==='eq'&&ord.includes(i.slot)&&i.price>0).sort((a,b)=>ord.indexOf(a.slot)-ord.indexOf(b.slot)||a.price-b.price);
+    if(tab==='acc')list=Object.values(ITEMS).filter(i=>i.type==='eq'&&ACCS.includes(i.slot)&&i.price>0).sort((a,b)=>ACCS.indexOf(a.slot)-ACCS.indexOf(b.slot)||a.price-b.price);
     if(tab==='pot')list=POTS.map(k=>ITEMS[k]);
     if(tab==='runa')list=Object.keys(RUNAS15).map(k=>ITEMS[k]).filter(i=>i&&RUNAS15[i.id].t!=='util').sort((a,b)=>a.lv-b.lv);
     if(tab==='other')list=[ITEMS.stamina_pot];
     const rows=list.map(it=>{const lock=S.level<(it.lv||0)||(it.voc&&!it.voc.includes(S.voc));
+      if(it.type==='eq'&&ACCS.includes(it.slot)){const cur=it.slot==='backpack'&&S.eq.backpack.id===it.id;
+        return `<div class="row"><div class="ic">${ii(it)}</div><div class="grow"><b>${it.n}</b> <span class="mut sm">${esc(accTxt(it).join(' · ')||'Visual')}</span><div class="sm ${lock?'red':'mut'}">${it.lv?'Level '+it.lv+' · ':''}${fmt(it.price)} gp${it.slot==='backpack'?'':' · você tem '+(S.bag[it.id]||0)}</div></div>${cur?'<span class="mut sm">Equipado</span>':rowBtn(it.slot==='backpack'||!S.eq[it.slot].id?'Comprar e equipar':'Comprar','buy',it.id+':1',lock||S.gold<it.price)}</div>`;}
       if(it.type==='eq'){const cur=S.eq[it.slot].id===it.id,ce=eqi(it.slot);const stat=it.atk?`Atk ${it.atk}`:it.min?`${it.min}-${it.max} dano`:it.arm!=null?`Arm ${it.arm}`:`Def ${it.def}`;const cs=ce.atk?ce.atk:ce.min?ce.max:ce.arm!=null?ce.arm:ce.def,ns=it.atk||it.max||(it.arm!=null?it.arm:it.def);
         return `<div class="row"><div class="ic">${ii(it)}</div><div class="grow"><b>${it.n}</b> <span class="mut sm">${stat}</span> ${ns>cs?'<span class="green sm">▲</span>':ns<cs?'<span class="red sm">▼</span>':''}<div class="sm ${lock?'red':'mut'}">Level ${it.lv} · ${fmt(it.price)} gp</div></div>${cur?'<span class="mut sm">Equipado</span>':rowBtn('Comprar e equipar','buy',it.id+':1',lock||S.gold<it.price)}</div>`;}
       return `<div class="row"><div class="ic">${ii(it)}</div><div class="grow"><b>${it.n}</b> <span class="mut sm">${itemTip(it).split('\n')[0]}</span><div class="sm ${lock?'red':'mut'}">${it.lv?'Level '+it.lv+' · ':''}${fmt(it.price)} gp · você tem ${S.bag[it.id]||0}</div></div>
@@ -2679,7 +2754,7 @@ const MODALS={
       <div class="mut sm">Desligado = você usa WASD/setas ou clica no mapa, F1–F12 nos slots da hotbar, Tab troca de alvo e Esc limpa. O ataque básico da arma no alvo atual sempre acontece. Offline (aba fechada) o progresso continua automático como sempre. Os mesmos botões ficam acima da hotbar.</div>
       <h3>Voltar para a cidade quando</h3>${chk('autoReturn','Ativar volta automática')}${num('cap','Capacidade usada ≥ (%)',10,100)}${num('minHp','Poções de vida da hotbar &lt;',0,999)}${num('minMp','Poções de mana da hotbar &lt;',0,999)}
       <div class="mut sm">Também volta quando sobram menos de 10 min de stamina, e foge quando o HP fica abaixo de 12% sem poções.</div>
-      <h3>Na cidade</h3>${chk('autoSell','Venda rápida automática')}${chk('keepMats','Não vender materiais de imbuement')}${chk('sellEq','Vender equipamentos da mochila na venda rápida')}${chk('autoBless','Comprar blessings automaticamente')}
+      <h3>Na cidade</h3>${chk('autoSell','Venda rápida automática')}${chk('keepMats','Não vender materiais de imbuement')}${chk('sellEq','Vender equipamentos da mochila na venda rápida')}${chk('autoBless','Comprar blessings automaticamente')}${chk('autoAol','Comprar e equipar Amulet of Loss automaticamente (50.000 gp)')}
       <div style="margin:8px 0">Reabastecer até:</div>${r.refill.map((f,i)=>`<div style="display:flex;gap:6px;margin:4px 0"><select data-refill="${i}" style="flex:1">${potOpts(f.id)}</select><input type="number" data-refillq="${i}" value="${f.q}" min="0" max="2000" style="width:80px"></div>`).join('')}
       ${chk('autoBack','Voltar para a caçada depois de reabastecer')}${chk('backAfterDeath','Voltar a caçar até depois de morrer')}
       <h3>IA de combate</h3><label style="display:flex;gap:8px;align-items:center;margin:6px 0"><input type="checkbox" data-rule="ia" ${r.ia!==false?'checked':''}> IA tática por vocação (kite, juntar monstros, runas de área, papéis na party)</label>
@@ -2700,7 +2775,7 @@ const MODALS={
       return `<h3>${ii(it,'s24')} ${it.n}</h3>${ss}`;}).join('');
     return {title:'✨ Imbuements',body:`<p class="mut">Use materiais de loot (da mochila ou do depot) para dar bônus ao equipamento. Cada imbuement dura 20 horas de caçada.</p>${out}`};},
   forge:()=>({title:'🔨 Forja',body:`<p class="mut">Melhore seus equipamentos até +5. Cada nível aumenta o ataque em 2 ou a armadura/defesa em 1. Como na forja do Tibia, cada nível da <b>arma</b> dá 1,5% de <b>Onslaught</b> (golpe FATAL, +60% de dano) e cada nível da <b>armadura</b> dá 1,5% de <b>Ruse</b> (DODGE, esquiva o golpe inteiro). A chance de sucesso cai a cada nível; se falhar, você perde o gold.</p>
-    ${Object.keys(S.eq).map(k=>{const e=S.eq[k],it=eqi(k);const cost=forgeCost(e),ch=100-e.t*15;return `<div class="row"><div class="ic">${ii(it)}</div><div class="grow"><b>${it.n}${e.t?' +'+e.t:''}</b><div class="mut sm">${e.t<5?`Próximo: +${e.t+1} · ${fmt(cost)} gp · ${ch}% de chance`:'Nível máximo'}</div></div>${e.t<5?rowBtn('Forjar','forge',k,S.gold<cost,'gold'):''}</div>`;}).join('')}`}),
+    ${EQ6.map(k=>{const e=S.eq[k],it=eqi(k);const cost=forgeCost(e),ch=100-e.t*15;return `<div class="row"><div class="ic">${ii(it)}</div><div class="grow"><b>${it.n}${e.t?' +'+e.t:''}</b><div class="mut sm">${e.t<5?`Próximo: +${e.t+1} · ${fmt(cost)} gp · ${ch}% de chance`:'Nível máximo'}</div></div>${e.t<5?rowBtn('Forjar','forge',k,S.gold<cost,'gold'):''}</div>`;}).join('')}`}),
   bless:()=>({title:'🙏 Blessings',sm:true,body:`<p>Com blessings, ao morrer você perde só <b>3%</b> da experiência (em vez de 10%) e não perde o loot da mochila. As blessings são consumidas na morte.</p>
     <div class="kv"><span>Status</span><b class="${S.bless?'green':'red'}">${S.bless?'Ativas':'Sem blessings'}</b><span>Preço</span><b class="gold">${fmt(blessPrice())} gp</b></div>
     <div style="margin-top:12px;text-align:right">${rowBtn('Comprar blessings','bless','',S.bless||S.gold<blessPrice(),'gold')}</div>`}),
@@ -3009,7 +3084,7 @@ const fmtTempo=ms=>{const m=Math.max(0,Math.ceil(ms/MIN));return m>=1440?`${Math
 const MK={tab:'itens',q:'',tipo:'todos',sel:null,lado:'c',qty:1,oq:1,op:0,hf:'todos',lim:150,vv:-1};
 const TIPOS_MK=[['todos','Tudo'],['eq','Equipamento'],['loot','Loot e material'],['pot','Poção'],['runa','Runa']];
 const TIPO_NOME={eq:'Equipamento',loot:'Loot / material',pot:'Poção',use:'Uso',runa:'Runa',coin:'Moeda'};
-const SLOT_NOME={weapon:'Arma',helmet:'Capacete',armor:'Armadura',legs:'Calça',boots:'Botas',shield:'Escudo'};
+const SLOT_NOME={weapon:'Arma',helmet:'Capacete',armor:'Armadura',legs:'Calça',boots:'Botas',shield:'Escudo',amulet:'Amuleto',ring:'Anel',backpack:'Mochila'};
 const ehTC=a=>a==='tc';
 const nomeAtivo=a=>ehTC(a)?'Tibia Coin':ITEMS[a].n;
 const iconeAtivo=(a,c)=>ehTC(a)?ICO_TC:ii(ITEMS[a],c);
@@ -3339,7 +3414,7 @@ function wkItemFicha(id){const it=ITEMS[id],dr=itemDrop()[id]||[],r=itemRar(id),
   if(it.slot)at.push(['Slot',SLOT_NOME[it.slot]]);if(it.wt)at.push(['Tipo de arma',{sword:'Espada',axe:'Machado',club:'Clava',distance:'Distância',wand:'Wand',rod:'Rod'}[it.wt]||it.wt]);
   if(it.atk)at.push(['Ataque',it.atk]);if(it.min!=null&&it.max)at.push(['Dano mágico',`${it.min} – ${it.max}`]);if(it.mana&&it.type==='eq')at.push(['Mana por ataque',it.mana]);
   if(it.def&&it.type==='eq')at.push(['Defesa',it.def]);if(it.arm&&it.type==='eq')at.push(['Armadura',it.arm]);
-  if(it.hp)at.push(['Cura vida','+'+it.hp]);if(it.mp)at.push(['Cura mana','+'+it.mp]);if(it.type==='runa'){at.push(['Nível mágico',it.ml||0]);const R=RUNAS15[id];if(R&&R.el)at.push(['Elemento',EL_NOME[R.el]||R.el]);}
+  if(ACCS.includes(it.slot))accTxt(it).forEach(x=>at.push(['Efeito',x]));if(it.hp)at.push(['Cura vida','+'+it.hp]);if(it.mp)at.push(['Cura mana','+'+it.mp]);if(it.type==='runa'){at.push(['Nível mágico',it.ml||0]);const R=RUNAS15[id];if(R&&R.el)at.push(['Elemento',EL_NOME[R.el]||R.el]);}
   if(it.lv)at.push(['Level mínimo',it.lv]);if(it.voc)at.push(['Vocações',it.voc.map(v=>VOC[v].n).join(', ')]);
   const drop=dr.slice(0,40).map(d=>{const mm=MOBS[d.m],r2=rar(d.c);return `<div class="wlr"><span class="lic">${mobAnim(d.m,28)}</span><a class="wkl" data-act="wkMob" data-arg="${d.m}">${esc(mm.n)}</a><span class="rar r${r2}">${RAR[r2][1]}</span><span class="pc">${pctTxt(d.c)}</span><span class="mx">${n0(mm.exp)} exp</span></div>`;}).join('');
   return `<div class="wkf"><div class="wkf-h"><div class="wkf-m it">${ii(it,'m64')}</div><div class="wkf-t"><h2>${esc(it.n)}</h2><div class="wkf-s">${TIPO_NOME[it.type]||''}${r>=0?` · raridade <span class="rar r${r}">${RAR[r][1]}</span>`:''}${it.naoDropa?' · não dropa':''}</div>
@@ -3378,14 +3453,14 @@ function wikiModal(){
 /* ---------- menu de contexto ---------- */
 function showCtx(e,key,from){
   const {id,t}=parseKey(key),it=ITEMS[id];if(!it)return;const city=S.loc==='city';let b='';
-  if(from==='eq'){b+=`<button disabled>Equipado</button>`;}
+  if(from==='eq'){b+=`<button disabled>Equipado</button>`;if(ACC.includes(it.slot))b+=`<button data-act="unequip" data-arg="${it.slot}">↩ Guardar na mochila</button>`;}
   else{
     if(it.type==='eq')b+=`<button data-act="equip" data-arg="${key}" ${canEquip(it)?'':'disabled'}>⚔️ Equipar</button>`;
     if(it.type==='pot'||it.type==='use')b+=`<button data-act="useItem" data-arg="${key}">🧪 Usar</button>`;
     if(it.v>0)b+=`<button data-act="sellItem" data-arg="${key}" ${city?'':'disabled'}>💰 Vender tudo (${fmt(it.v*(S.bag[key]||0))} gp)${city?'':' — só na cidade'}</button>`;
     b+=`<button data-act="dep" data-arg="${key}" ${city?'':'disabled'}>📦 Depositar${city?'':' — só na cidade'}</button>`;
     b+=`<button data-act="dropItem" data-arg="${key}">🗑️ Jogar fora</button>`;}
-  const c=$('#ctx');c.innerHTML=`<div class="ttl">${ii(it,'s24')} ${esc(it.n)}${t?' +'+t:''}</div><div class="info">${esc(itemTip(it,t))}</div>${b}`;c.classList.remove('hidden');
+  const c=$('#ctx');c.innerHTML=`<div class="ttl">${ii(it,'s24')} ${esc(it.n)}${t&&!ACCS.includes(it.slot)?' +'+t:''}</div><div class="info">${esc(itemTip(it,t))}</div>${b}`;c.classList.remove('hidden');
   const r=c.getBoundingClientRect();c.style.left=clamp(e.clientX,4,innerWidth-r.width-4)+'px';c.style.top=clamp(e.clientY,4,innerHeight-r.height-4)+'px';
 }
 function hideCtx(){$('#ctx').classList.add('hidden');}
@@ -3403,7 +3478,7 @@ document.addEventListener('click',e=>{
   const op=e.target.closest('[data-open]');if(op&&S){openModal(op.dataset.open);return;}
   const hs=e.target.closest('[data-hot]');if(hs&&S){if(hotLP){hotLP=0;return;}const hi=+hs.dataset.hot;if(hs.classList.contains('add')||e.shiftKey)openModal('hot',hi);else hotUsar(hi);return;}   /* clique = usar; shift/direito/segurar = configurar */
   const bg=e.target.closest('[data-bag]');if(bg&&S){showCtx(e,bg.dataset.bag,'bag');e.stopPropagation();return;}
-  const eqs=e.target.closest('[data-eq]');if(eqs&&S){showCtx(e,S.eq[eqs.dataset.eq].id,'eq');e.stopPropagation();return;}
+  const eqs=e.target.closest('[data-eq]');if(eqs&&S){const q=S.eq[eqs.dataset.eq];showCtx(e,ACCS.includes(eqs.dataset.eq)?bagKey(q.id,q.t):q.id,'eq');e.stopPropagation();return;}
   const b=e.target.closest('[data-act]');if(!b||b.disabled)return;
   act(b.dataset.act,b.dataset.arg);
 });
@@ -3462,6 +3537,7 @@ function act(a,arg){
     case 'trDum':trDummy(+arg);return;
     case 'buy':{const [id,q]=arg.split(':');buyItem(id,+q);openModal('shop',modalArg,true);return;}
     case 'equip':equip(arg);hideCtx();break;
+    case 'unequip':unequip(arg);hideCtx();break;
     case 'useItem':{const it=ITEMS[parseKey(arg).id];if(it.type==='use'){S.stamina=Math.min(STAM_MAX,S.stamina+H);log('sys','Stamina +1h.','g');}else{if(it.hp)S.hp=Math.min(maxHp(),S.hp+it.hp);if(it.mp)S.mp=Math.min(maxMp(),S.mp+it.mp);}
       S.bag[arg]--;if(!S.bag[arg])delete S.bag[arg];hideCtx();break;}
     case 'sellItem':{const it=ITEMS[parseKey(arg).id],c=S.bag[arg]||0;S.gold+=it.v*c;delete S.bag[arg];log('sys',`Vendeu ${c}x ${it.n} por ${fmt(it.v*c)} gp.`,'y');hideCtx();break;}
@@ -3867,7 +3943,10 @@ function carregarSave(d){try{if(!d||!VOC[d.voc])return null;const b=newState(d.n
   {const ds=d.skills||{},sk=Object.assign({},b.skills,ds),m=ds.melee;if(m)for(const k of MELEE)if(!ds[k])sk[k]={lv:m.lv,t:m.t};delete sk.melee;
     for(const k in sk){const x=sk[k];sk[k]={lv:clamp(Math.floor(+(x&&x.lv))||b.skills[k]&&b.skills[k].lv||0,0,3000),t:Math.max(0,+(x&&x.t)||0)};}o.skills=sk;
     const tr=o.sess&&o.sess.tries;if(tr&&tr.melee){const w=ITEMS[(o.eq.weapon||{}).id],tk=skW(o.voc,w&&w.wt);tr[tk]=(tr[tk]||0)+tr.melee;delete tr.melee;}}
-  for(const k of Object.keys(o.eq))if(!ITEMS[o.eq[k].id])o.eq[k]={id:k==='weapon'?STARTER[o.voc]:newState('x',o.voc).eq[k].id,t:0};
+  o.eq=Object.assign({amulet:{id:null,t:0},ring:{id:null,t:0},backpack:{id:'backpack',t:0}},o.eq);   /* saves antigos não têm amuleto, anel nem mochila */
+  for(const k of Object.keys(o.eq)){const q=o.eq[k],it=q&&ITEMS[q.id];if(ACC.includes(k)){if(!it||it.slot!==k||!canEquip0(it,o)){if(it&&it.slot===k&&q.id){o.bag[q.id]=(o.bag[q.id]||0)+1;}o.eq[k]={id:null,t:0};}else q.t=(it.dur||it.ch)?clamp(Math.floor(+q.t)||it.dur||it.ch,1,it.dur||it.ch):0;}
+    else if(k==='backpack'){if(!it||it.slot!==k)o.eq[k]={id:'backpack',t:0};else q.t=0;}
+    else if(!it)o.eq[k]={id:k==='weapon'?STARTER[o.voc]:newState('x',o.voc).eq[k].id,t:0};}
   for(const k of Object.keys(o.bag))if(!ITEMS[parseKey(k).id])delete o.bag[k];
   for(const k of Object.keys(o.depot||{}))if(!ITEMS[parseKey(k).id])delete o.depot[k];
   if(Array.isArray(o.chao)){o.depot=o.depot||{};for(const f of o.chao)if(f&&typeof f.k==='string'&&ITEMS[parseKey(f.k).id]&&f.n>0)o.depot[f.k]=(o.depot[f.k]||0)+Math.min(9999,f.n|0);if(o.chao.length)log('sys','Itens que estavam no chão da cidade voltaram para o seu depot.','o');}o.chao=[];   /* recarregou a página: o que estava no chão volta ao depot (nada se perde) */
@@ -4393,9 +4472,12 @@ function ptExp(){const HU=PT.hunt,mb=PT.mb,me=PR.pid,vs=[...new Set(mb.map(x=>x.
   r.ativa=true;r.flag='verde';r.motivo='Ativa.';return r;}
 const ptBonusTxt=r=>`${r.nv} vocaç${r.nv===1?'ão':'ões'}: +${Math.round(r.bonus*100)}% de exp`;
 /* ---- ficha do lutador ---- */
-function ptFicha(){const eq={},t={};for(const k of ['weapon','helmet','armor','legs','boots','shield']){eq[k]=S.eq[k].id;t[k]=S.eq[k].t||0;}
+/* absorção por elemento dos acessórios (%, já combinada) para o líder simular os golpes no membro; cargas e Energy Ring só valem na máquina do dono */
+function ptAb(){const ab={};for(const el of ELS_AB){let f=1;for(const k of ACC){const it=eqa(k);if(it&&it.abs&&it.abs[el])f*=1-it.abs[el]/100;}if(f!==1)ab[el]=Math.round((1-f)*100);}return ab;}
+const ELS_AB=['phys','fire','earth','energy','ice','holy','death','lifedrain','manadrain','drown'];
+function ptFicha(){const eq={},t={};for(const k of EQ6){eq[k]=S.eq[k].id;t[k]=S.eq[k].t||0;}
   const slots=(S.sets[S.set]||[]).map(x=>x&&{a:x.a,v:x.v,p:x.p}),bag={};for(const s of slots){if(!s)continue;const it=ITEMS[s.a];if(it&&(it.type==='pot'||it.type==='runa'))bag[s.a]=S.bag[s.a]|0;}
-  return {nome:prTxt(S.name,20),voc:S.voc,nivel:S.level,sk:{sword:S.skills.sword.lv,axe:S.skills.axe.lv,club:S.skills.club.lv,melee:S.skills[S.voc==='knight'?mainSk():'sword'].lv/* só para clientes p5 */,distance:S.skills.distance.lv,shielding:S.skills.shielding.lv,magic:S.skills.magic.lv},eq,t,procs:JOG.procs,slots,bag,
+  return {nome:prTxt(S.name,20),voc:S.voc,nivel:S.level,sk:{sword:skE('sword'),axe:skE('axe'),club:skE('club'),melee:skE(S.voc==='knight'?mainSk():'sword')/* só para clientes p5 */,distance:skE('distance'),shielding:skE('shielding'),magic:skE('magic')},eq,t,procs:JOG.procs,slots,bag,ab:ptAb(),
     outfit:outJog(),addon:S.addon??3,hp:Math.round(S.hp),mp:Math.round(S.mp),prot:JOG.protecao()};}
 function ptValFicha(f){try{if(!f||typeof f!=='object'||!VOC[f.voc])return null;const voc=f.voc,nivel=prNum(f.nivel,1,9999,0);if(!nivel)return null;
   const sk={};for(const k of ['sword','axe','club','distance','shielding','magic'])sk[k]=prNum(f.sk&&(f.sk[k]!==undefined?f.sk[k]:MELEE.includes(k)?f.sk.melee:undefined),1,3000,1);   /* ficha antiga (p5) só tem melee: vale para os três */
@@ -4406,7 +4488,7 @@ function ptValFicha(f){try{if(!f||typeof f!=='object'||!VOC[f.voc])return null;c
   const slots=new Array(16).fill(null),sl=Array.isArray(f.slots)?f.slots.slice(0,16):[];
   sl.forEach((x,i)=>{if(x&&typeof x==='object'&&typeof x.a==='string'&&(MAGIAS15[x.a]||RUNAS15[x.a]||(ITEMS[x.a]&&ITEMS[x.a].type==='pot')))slots[i]={a:x.a,v:prNum(x.v,0,100,0),p:prNum(x.p,1,3,2)};});
   const bag={};for(const s of slots){if(!s||bag[s.a]!==undefined)continue;const it=ITEMS[s.a];if(it&&(it.type==='pot'||it.type==='runa'))bag[s.a]=prNum(f.bag&&f.bag[s.a],0,5000,0);}
-  const pr=+f.prot;return {nome:prTxt(f.nome,20)||'Jogador',voc,nivel,sk,eq,t,procs,slots,bag,outfit:prOutfit(f.outfit),addon:prNum(f.addon,0,3,3),hp:prNum(f.hp,0,200000,1e9),mp:prNum(f.mp,0,200000,1e9),prot:Number.isFinite(pr)?clamp(pr,.3,1):1};}catch(e){return null;}}
+  const pr=+f.prot,ab={};if(f.ab&&typeof f.ab==='object')for(const el of ELS_AB)if(f.ab[el]!==undefined)ab[el]=prNum(f.ab[el],-50,90,0);return {nome:prTxt(f.nome,20)||'Jogador',voc,nivel,sk,eq,t,procs,slots,bag,ab,outfit:prOutfit(f.outfit),addon:prNum(f.addon,0,3,3),hp:prNum(f.hp,0,200000,1e9),mp:prNum(f.mp,0,200000,1e9),prot:Number.isFinite(pr)?clamp(pr,.3,1):1};}catch(e){return null;}}
 function ptFichaFalsa(x){const sk=skillsBot(x.voc,x.level),eq=equipBot(x.voc,x.level),slots=hotPadrao(x.voc,x.level,sk.magic),bag=kitArena(slots,x.voc),t={};
   for(const k in bag)bag[k]*=6;for(const k in eq)t[k]=rint(0,3);
   return {nome:x.nome,voc:x.voc,nivel:x.level,sk,eq,t,procs:procsBot(x.level),slots,bag,outfit:x.outfit,addon:3,hp:1e9,mp:1e9,prot:1};}
@@ -4477,7 +4559,7 @@ function ptCriarLut(pid,f){const HU=PT.hunt;if(!HU||HU.papel!=='lider'||!f)retur
   if(HU.lut.size>=PT_MAX-1)return;
   const R=SP15.roupas[f.voc],fo=f.outfit?null:(R&&(R[f.addon]||R[0])||null);
   const L=lutadorBot({nome:f.nome,voc:f.voc,nivel:f.nivel,outfit:f.outfit||undefined,sk:f.sk},{eq:f.eq,t:f.t,procs:f.procs,slots:f.slots,folha:fo});
-  L.bag=Object.assign({},f.bag);L.bag0=Object.assign({},f.bag);L.pid=pid;L.cacada=true;L.tgM=null;L.hp=Math.max(1,Math.min(L.max,f.hp));L.mp=Math.min(L.maxMp,f.mp);const pr=f.prot;L.protecao=()=>pr;
+  L.bag=Object.assign({},f.bag);L.bag0=Object.assign({},f.bag);L.pid=pid;L.cacada=true;L.tgM=null;L.hp=Math.max(1,Math.min(L.max,f.hp));L.mp=Math.min(L.maxMp,f.mp);const pr=f.prot,ab=f.ab||{};L.protecao=()=>pr;L.accDano=(d,el)=>Math.round(d*(1-(ab[el==='poison'?'earth':el]||0)/100));
   Object.defineProperty(L,'face',{get(){return [2,1,0,3][this.dir];}});Object.defineProperty(L,'level',{get(){return this.nivel;}});
   const q=ptLivreProx(W.p);L.x=L.fx=q[0];L.y=L.fy=q[1];L.dir=2;L.mt=1;L.t0=0;L.dur=0;HU.lut.set(pid,L);HU.tEnt[pid]=performance.now();W.pl.add(L.y*W.w+L.x);
   ef15(me15('teleport'),L.x,L.y);log('sys',`${f.nome} entrou na caçada.`,'y');}
@@ -4597,7 +4679,7 @@ function ptEstadoRec(m){const HU=PT.hunt;if(!HU||HU.papel!=='membro'||m.ep!==HU.
   HU.ia=Array.isArray(m.ia)?m.ia.filter(x=>typeof x==='string').slice(0,PT_MAX):[];
   if(m.an&&typeof m.an==='object'){const an={};for(const k in m.an){const a=m.an[k];if(Array.isArray(a)&&a.length===2)an[String(k).slice(0,64)]=[prNum(a[0],0,1e9,0),prNum(a[1],-1e9,1e9,0)];}HU.an=an;}}
 function ptMembro(dt){const HU=PT.hunt,s=S.sess;s.t+=dt;S.stamina-=dt;
-  for(const arr of Object.values(S.imb))for(const im of arr)if(im&&im.ms>0)im.ms-=dt;
+  for(const arr of Object.values(S.imb))for(const im of arr)if(im&&im.ms>0)im.ms-=dt;accTick(dt);
   preyTick(dt);wcTempo(dt);W.p.mt=1;W.chk+=dt;
   if(W.chk>=1000){W.chk=0;if(S.stamina<=0){S.stamina=0;returnCity('stamina esgotada',false);}}}
 /* ---- encerrar ---- */
