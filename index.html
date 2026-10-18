@@ -617,6 +617,16 @@ body.online #nuvem{display:grid}
 .hsum b{color:#fff}.hsum b.pr1{color:#ff9a5a}.hsum b.pr2{color:var(--gold)}.hsum b.pr3{color:#8ab4ff}
 .hbt{display:flex;justify-content:space-between;gap:8px;margin-top:auto;padding-top:12px}
 .hot .pri{position:absolute;left:2px;bottom:0;font-size:8px;line-height:1;color:#ff9a3a;text-shadow:1px 1px 0 #000,-1px 0 0 #000;z-index:1}.hot .pri.baixa{color:#8ab4ff}
+.hotm .mb{display:flex;flex-direction:column;gap:8px}.hotw{flex:1;min-height:0;height:auto}
+.hmini{display:flex;flex-direction:column;gap:3px;flex:none}.hmr{display:flex;flex-wrap:wrap;gap:3px}.hmh{font-size:10px;color:var(--mut)}
+.hms{position:relative;width:34px;height:34px;display:grid;place-items:center;background:#07080c;border:1px solid #000;box-shadow:inset 0 0 0 1px #2c3248;font-size:18px;cursor:pointer;touch-action:none;user-select:none}
+.hms img.sp{width:28px;height:28px}.hms.vz{opacity:.6;cursor:default}.hms.sel{box-shadow:inset 0 0 0 2px var(--gold)}.hms .fk{position:absolute;right:1px;bottom:0;font-size:7px;color:#aab;text-shadow:1px 1px 0 #000}.hms.hdtrash{margin-left:6px;border-style:dashed;cursor:default}
+.hcr{background:#0b0d14;border:1px solid #000;box-shadow:inset 1px 1px 0 #000,inset -1px -1px 0 #2c3248;border-radius:2px;padding:6px;margin-bottom:6px}.hcr1{display:flex;gap:4px;align-items:center;margin-bottom:4px}.hcr1 select{flex:1;min-width:0;background:#07080c;color:var(--txt);border:1px solid #000;padding:4px;border-radius:2px;font:inherit}
+.hcx{width:30px;padding:2px 0}.hcadd{width:100%;margin-top:2px}.hmodo button.on{color:var(--gold);background:linear-gradient(#3a3320,#1d1a10);box-shadow:inset 0 0 0 1px var(--gold)}
+#hdGhost{position:fixed;z-index:70;pointer-events:none;display:none;left:-99px;top:-99px;transform:translate(-50%,-50%) scale(1.15);opacity:.92;filter:drop-shadow(0 3px 6px #000)}#hdGhost .slot{position:relative;width:40px;height:40px;display:grid;place-items:center;background:#07080c;border:1px solid var(--gold)}#hdGhost.hdout .slot{border-color:#ff5a4a;box-shadow:0 0 8px #ff5a4a}
+.hdover{outline:2px solid #ffd84a!important;outline-offset:-2px;box-shadow:0 0 10px 2px #ffd84a99!important}.hdsrc{opacity:.35}body.hdDrag,body.hdDrag *{user-select:none;-webkit-user-select:none;cursor:grabbing!important}
+#toast div.hdu{pointer-events:auto}#toast .hdu button{margin-left:6px;background:#2a2f45;color:var(--gold);border:1px solid var(--gold);border-radius:2px;padding:1px 8px;cursor:pointer;font:inherit}
+.hot .cond{word-break:keep-all}[data-hot] img,.hc img{-webkit-user-drag:none}
 @media(max-width:760px){.mbox.wide.hotm{height:calc(100vh - 24px)}.hotm .mb{overflow:auto}.hotw{grid-template-columns:minmax(0,1fr);height:auto}.hotgrid{max-height:46vh;grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}.hotr{overflow:visible}.htabs button{min-width:60px;padding:6px 3px}.htabs button small{display:none}}
 
 button.lnk{background:none;border:0;color:var(--mut);text-decoration:underline;cursor:pointer;font-size:11px;padding:2px 0}
@@ -878,7 +888,7 @@ html.land #condCid{top:4px;left:calc((100vw - var(--mrw))/2)}
   <div id="hud">
     <div class="shHd"><i class="grab"></i><span>Hotbar e automático</span><button data-act="sheet" data-arg="" aria-label="Fechar">✕</button></div>
     <div id="autoTg"></div>
-    <div class="hfav"><button class="btn" data-act="favEdit" id="favBtn">☆ Escolher favoritos</button><span>Toque = usar · segure = configurar</span></div>
+    <div class="hfav"><button class="btn" data-act="favEdit" id="favBtn">☆ Escolher favoritos</button><span>Toque = usar · segure = configurar · segure e arraste = mover/trocar/limpar</span></div>
     <div class="bars">
       <div class="bar"><div id="bHp"></div><span id="sHp"></span></div>
       <div class="bar"><div id="bMp"></div><span id="sMp"></span></div>
@@ -1718,8 +1728,27 @@ function maisPerto(L,lista){let b=null,bd=1e9;for(const t of lista){const d=cheb
 function noTile(lista,tiles){return lista.filter(t=>tiles.some(q=>q[0]===t.x&&q[1]===t.y));}
 function anuncia(L,m){fxt(L.x,L.y-.5,m.palavras?m.palavras.replace(/\b\w/g,c=>c.toUpperCase()):m.nome,'#ffd84a');}
 function tiroArma(L){return L.voc==='knight'?ANI15.whirlwindsword:L.voc==='paladin'?ANI15.spear:0;}
-/* lança uma magia ou runa; s = slot da hotbar ({a, v}). Devolve true se lançou. */
-function lancar15(L,m,s,dry){const T=W.time,g=GRUPO15(m),v=s.v||0,hp=L.hp/L.max*100,mp=L.mp/L.maxMp*100;
+/* condições do slot (s.c = até 2, todas valem · E): {t:'mana'|'meuHp'|'alvoHp'|'n'|'boss', op:'>'(≥)|'<', v}. Slot sem s.c = regra antiga (s.v). Hotkey manual ignora as condições.
+   cv15 traduz as condições no v que o motor de cada tipo já lê (mana acima de, HP abaixo de, nº de alvos); condOk15 confere o resto (alvo, minha vida, chefe...) antes de o slot entrar na disputa. */
+const NCONS15=new Set(['onda','self','area','campo','avatar','empower','desafio','ofuscar']);
+function cv15(m,s){const f=(t,op)=>{const c=s.c.find(x=>x.t===t&&(!op||x.op===op));return c?c.v:undefined;};
+  if(m.t==='cura'||m.t==='regen')return f('meuHp','<')??100;
+  if((m.t==='alvo'||m.t==='dot')&&!m.runa)return f('mana','>')??0;
+  if(NCONS15.has(m.t))return f('n')??1;
+  if(m.t==='conjurar'||m.t==='invocar')return f('mana','>')??1;
+  return s.v||0;}
+const temAlvoHp15=s=>!!(s&&s.c&&s.c.some(c=>c.t==='alvoHp'));   /* regra explícita de vida do alvo: vale mais que a heurística da IA (SD só para terminar, reserva de combo) */
+function condOk15(L,s,m){if(!s.c)return true;const hp=L.hp/L.max*100,mp=L.mp/L.maxMp*100,tg=L.alvo&&L.alvo.vivo()?L.alvo:null;
+  for(const c of s.c){let x;
+    switch(c.t){case 'mana':x=mp;break;case 'meuHp':x=hp;break;
+      case 'alvoHp':if(!tg)return false;x=(tg.ehLutador?efetivo15(tg):tg.hp)/tg.max*100;break;
+      case 'n':if(m&&NCONS15.has(m.t))continue;x=inimigos15(L).filter(q=>cheb(L,q)<=6).length;break;
+      case 'boss':if(!inimigos15(L).some(q=>q.mob&&q.mob.chefe&&cheb(L,q)<=9))return false;continue;
+      default:continue;}
+    if(c.op==='<'?!(x<c.v):!(x>=c.v))return false;}
+  return true;}
+/* lança uma magia ou runa; s = slot da hotbar ({a, v, c?}). Devolve true se lançou. */
+function lancar15(L,m,s,dry){const T=W.time,g=GRUPO15(m),v=s.c?cv15(m,s):(s.v||0),hp=L.hp/L.max*100,mp=L.mp/L.maxMp*100;
   if(m.runa){if(!(L.bag[s.a]>0)||L.ml<m.ml||L.nivel<m.lv)return false;}
   else if(L.mp<m.mana||L.nivel<m.lv||(m.aprender&&L.nivel<300))return false;
   if((L.cd[g]||0)>T||(L.cd[m.id]||0)>T||(m.focus&&(L.cd.focus||0)>T))return false;
@@ -1820,9 +1849,9 @@ function lentoOk15(L,t){const A=W.arena,T=W.time;if(!t||(L.cd.paralyze||0)>T)ret
   return !!t.ehLutador&&!(t.c.lento&&t.c.lento.ate>T)&&t.voc==='knight'&&cheb(L,t)<=3;}
 /* entre os slots de ataque elegíveis, o de MAIOR dano esperado agora; área com 2+ alvos pode valer mais que a regra do slot (mata vários / atinge muitos) */
 function escolherAtaque15(L,lista,exec){const eq=W.arena&&W.arena.modo==='equipe',ia=iaTat15(L),solo=ia&&!PV.on&&W.mobs.filter(m=>m.aggro&&m.d.hostil&&cheb(L,m)<=6).length<=1;let best=null,bs=-1e9;   /* solo: um monstro só por perto */
-  for(const {m,s} of lista){if(eq&&reservado15(m)&&!exec)continue;
+  for(const {m,s} of lista){if(eq&&reservado15(m)&&!exec&&!temAlvoHp15(s))continue;
     const i=lancar15(L,m,s,true);if(!i)continue;
-    const sd=solo&&m.runa&&m.t==='alvo'&&reservado15(m);   /* IA nas caçadas, alvo único: SD só para terminar (alvo ≤40% ou a runa mata); com vários monstros, vale como tapa-buraco da área */
+    const sd=solo&&m.runa&&m.t==='alvo'&&reservado15(m)&&!temAlvoHp15(s);   /* IA nas caçadas, alvo único: SD só para terminar (alvo ≤40% ou a runa mata); com vários monstros, vale como tapa-buraco da área */
     if(sd&&!exec&&!(i.kills>0))continue;
     if(m.t==='lento'){if(!lentoOk15(L,L.alvo))continue;i.dano=1e7;}
     else if(m.t!=='campo'&&!(i.dano>0))continue;   /* imune: não gasta rune/mana à toa */
@@ -1834,7 +1863,7 @@ function escolherAtaque15(L,lista,exec){const eq=W.arena&&W.arena.modo==='equipe
    Cura e suporte seguem a ordem dos slots; o ataque escolhe o mais forte entre os elegíveis. */
 function usarHotbar15(L,fl){const usados={},atk=[],nc=fl&&fl.nc,na=fl&&fl.na;   /* fl: modo manual (nc = sem cura/suporte/poção automáticos, na = sem ataque automático com magias) */
   for(const s of L.slots.filter(Boolean).sort((a,b)=>(a.p||2)-(b.p||2))){   /* prioridade do slot (1 alta·2 normal·3 baixa; sem p = 2): sort estável mantém a ordem dos slots dentro da mesma prioridade */const m=MAGIAS15[s.a]||RUNAS15[s.a],it=ITEMS[s.a];
-    if(m){if(!m.runa&&!m.voc.includes(L.voc))continue;const g=GRUPO15(m);if(g==='atk'){if(!na)atk.push({m,s});continue;}if(nc||usados[g])continue;if(lancar15(L,m,s))usados[g]=1;continue;}
+    if(m){if(!m.runa&&!m.voc.includes(L.voc))continue;if(s.c&&!condOk15(L,s,m))continue;const g=GRUPO15(m);if(g==='atk'){if(!na)atk.push({m,s});continue;}if(nc||usados[g])continue;if(lancar15(L,m,s))usados[g]=1;continue;}
     if(it&&it.type==='pot'&&!nc&&!usados.pot&&usarPocao15(L,it,s))usados.pot=1;}
   if(!atk.length||(L.cd.atk||0)>W.time||(L===JOG&&W.lure&&W.lure.fase==='puxar'))return;   /* lure: puxando monstros, sem ataque pesado */
   const exec=execucao15(L);if(L.segura&&!exec)return;   /* segurando para o combo do time */
@@ -1977,7 +2006,7 @@ function outJogTime(){const A=arenaEstado();return S.outfit?{look:S.outfit.look,
 function lutadorJogador(){const eq={},t={};for(const k of ['weapon','helmet','armor','legs','boots','shield']){eq[k]=ITEMS[S.eq[k].id]||null;t[k]=S.eq[k].t||0;}
   const R=SP15.roupas[S.voc],f=R&&(R[S.addon??3]||R[0]);
   return lutadorBot({nome:S.name,voc:S.voc,nivel:S.level,outfit:S.outfit||undefined,sk:{sword:S.skills.sword.lv,axe:S.skills.axe.lv,club:S.skills.club.lv,distance:S.skills.distance.lv,shielding:S.skills.shielding.lv,magic:S.skills.magic.lv+((eq.shield&&eq.shield.sk&&eq.shield.sk.magic)||0)}},   /* o livro de magia conta no ML da arena (anéis e amuletos não) */
-    {eq,t,procs:JOG.procs,slots:(S.sets['Arena']||S.sets[S.set]||[]).map(x=>x&&{a:x.a,v:x.v,p:x.p}),folha:S.outfit?null:f});}   /* set 'Arena' (conjunto sugerido) tem prioridade */
+    {eq,t,procs:JOG.procs,slots:(S.sets['Arena']||S.sets[S.set]||[]).map(x=>x&&{a:x.a,v:x.v,p:x.p,c:x.c}),folha:S.outfit?null:f});}   /* set 'Arena' (conjunto sugerido) tem prioridade */
 /* ---- ataque básico de lutador (arma corpo a corpo, distância, wand/rod) ---- */
 function basico15(L,t){const T=W.time;if((L.cd.basico||0)>T||!t.vivo())return;const d=cheb(L,t),md=mods(L);if(d>L.alcance||md.pacifico)return;L.cd.basico=T+2000;virar15(L,t);
   if(L.wt==='wand'||L.wt==='rod'){const w=L.arma;if(!w||L.mp<(w.mana||0))return;L.mp-=w.mana||0;const el=L.wt==='wand'?'energy':'ice',at=tiro15(L.wt==='wand'?ANI15.energy:ANI15.smallice,L,t);t.receber(rint(w.min||5,w.max||10)*md.feito,el,at,L);return;}
@@ -2814,8 +2843,8 @@ function renderHot(){
     let cdp=0;if(W&&sp){const end=Math.max(W.cd[sp.id]||0,(sp.t==='heal'?W.cd.heal:W.cd.atk)||0);const tot=sp.t==='heal'?Math.max(1000,sp.cd):Math.max(2000,sp.cd);cdp=clamp((end-T)/tot,0,1);}
     else if(W&&it){cdp=clamp(((W.cd.pot||0)-T)/1000,0,1);}
     const cnt=it?(S.bag[it.id]||0):'';
-    const fv=fav.includes(i),key=[i,s.a,s.v,s.p,lock,cnt,fv].join('|');
-    return {k:key,cdp,i,fv,h:`<div class="slot${lock?' lock':''}${fv?' fv':''}" data-hot="${i}" title="${esc(a.n)}${sp?` · ${sp.mana} mana · Lv ${sp.lv}`:''}\nCondição: ${condTxt(s)}${s.p===1?' · prioridade alta':s.p===3?' · prioridade baixa':''}\nClique ou ${hotNome(i)}: usar agora · botão direito / segurar (toque) / Shift+clique: configurar">${sp?si(sp):ii(it)}<span class="cond">${condTxt(s)}</span>${s.p===1?'<span class="pri">▲</span>':s.p===3?'<span class="pri baixa">▼</span>':''}${it?`<span class="n">${cnt}</span>`:''}<span class="fk">${hotNome(i)}</span><div class="cd"></div></div>`};});
+    const fv=fav.includes(i),key=[i,s.a,s.v,s.p,lock,cnt,fv,s.c?JSON.stringify(s.c):''].join('|');
+    return {k:key,cdp,i,fv,h:`<div class="slot${lock?' lock':''}${fv?' fv':''}" data-hot="${i}" title="${esc(a.n)}${sp?` · ${sp.mana} mana · Lv ${sp.lv}`:''}\nCondição: ${condTxt(s)}${s.p===1?' · prioridade alta':s.p===3?' · prioridade baixa':''}\nClique ou ${hotNome(i)}: usar agora · botão direito / segurar (toque) / Shift+clique: configurar\nArraste para outro slot (troca) ou para o mapa (limpa)">${sp?si(sp):ii(it)}<span class="cond">${condTxt(s)}</span>${s.p===1?'<span class="pri">▲</span>':s.p===3?'<span class="pri baixa">▼</span>':''}${it?`<span class="n">${cnt}</span>`:''}<span class="fk">${hotNome(i)}</span><div class="cd"></div></div>`};});
   const sig=parts.map(p=>p.k).join(';');
   if(sigs.hot!==sig){sigs.hot=sig;$('#hot').innerHTML=parts.map(p=>p.h).join('');$('#hotFav').innerHTML=fav.map(i=>parts[i].h).join('');}   /* #hotFav: favoritos da faixa de ação do celular */
   for(const box of [$('#hot'),$('#hotFav')]){const els=box.children,ix=box.id==='hot'?parts.map((_,i)=>i):fav;ix.forEach((pi,i)=>{const cd=els[i]&&els[i].querySelector('.cd');if(cd)cd.style.height=((parts[pi].cdp||0)*100)+'%';});}
@@ -2884,7 +2913,7 @@ function conjuntoSugerido(modo,hk){const voc=S.voc,nv=S.level,ml=skE('magic'),ca
   const fixos=hotPadrao(voc,nv,ml,!caca).filter(sl=>{if(!sl)return false;const m=MAGIAS15[sl.a]||RUNAS15[sl.a];return !m||GRUPO15(m)!=='atk';});
   if(!caca&&voc==='druid'){const pk=runaPorNome('paralyze rune');if(pk&&ml>=RUNAS15[pk].ml&&nv>=RUNAS15[pk].lv)fixos.push({a:pk,v:0});}
   const out=[...fixos.slice(0,9),...ataques].filter((sl,i,a)=>a.findIndex(y=>y.a===sl.a)===i).slice(0,16);while(out.length<16)out.push(null);return out;}
-function condSug(sl){const m=MAGIAS15[sl.a]||RUNAS15[sl.a],it=ITEMS[sl.a];if(it&&it.type==='pot')return it.hp?`HP<${sl.v}%`:`MP<${sl.v}%`;if(!m)return '';
+function condSug(sl){const m=MAGIAS15[sl.a]||RUNAS15[sl.a],it=ITEMS[sl.a];if(sl.c&&m)return condBadges(sl.c);if(it&&it.type==='pot')return it.hp?`HP<${sl.v}%`:`MP<${sl.v}%`;if(!m)return '';
   if(m.t==='cura'||m.t==='regen')return `HP<${sl.v}%`;if(m.t==='alvo'||m.t==='dot')return sl.v?`MP≥${sl.v}%`:'';if(['onda','self','area'].includes(m.t))return `${sl.v}+ alvos`;if(m.t==='escudo')return `<${sl.v}%`;if(['avatar','empower'].includes(m.t))return `${sl.v}+ alvos`;if(m.t==='desafio'||m.t==='ofuscar')return `${sl.v}+ à distância`;if(m.t==='cura_amigo')return `Aliado<${sl.v}%`;if(m.t==='conjurar'||m.t==='invocar')return `MP≥${sl.v}%`;return '';}
 function sugestaoHTML(modo,hk,prep){const set=conjuntoSugerido(modo,hk).filter(Boolean),nome=modo==='caca'?'Caçada':'Arena';
   const ic=set.map(sl=>{const sp=SP[sl.a],it=ITEMS[sl.a],a=sp||it;if(!a)return '';return `<div class="slot" title="${esc(a.n)}\nCondição: ${esc(condSug(sl))}">${sp?si(sp):ii(it)}<span class="cond">${esc(condSug(sl))}</span></div>`;}).join('');
@@ -2981,7 +3010,7 @@ function desenharPrevia(){const c=$('#outPrev');if(!c||modal!=='outfit'||!outRas
 const HOT_ABAS=[['cura','💚','Cura'],['atk','⚔️','Ataque'],['sup','✨','Suporte'],['runa','🔮','Runas'],['pot','🧪','Poções']];
 const HOT_PRIO=[[1,'Alta'],[2,'Normal'],[3,'Baixa']];
 const HOT_TIPO={avatar:'Self · Avatar',empower:'Self · Campo',desafio:'Desafio',ofuscar:'Desafio',alvo:'Alvo',dot:'Alvo · DoT',onda:'Onda',self:'Área · Self',area:'Área',campo:'Campo',cura:'Self',regen:'Self · Regen',cura_cond:'Self',cura_amigo:'Aliado',escudo:'Self',buff:'Self',haste:'Self',conjurar:'Conjurar',invocar:'Invocar',familiar:'Invocar',debuff:'Área',lento:'Alvo',hp:'Poção HP',mp:'Poção Mana'};
-let HU={i:0,tab:'cura',q:'',a:null,v:50,p:2},HOTCAT={};
+let HU={i:0,tab:'cura',q:'',a:null,v:50,p:2,c:null},HOTCAT={};
 const hotKind=id=>{const m=MAGIAS15[id]||RUNAS15[id],it=ITEMS[id];return m?m.t:(it&&it.type==='pot'?(it.hp?'hp':'mp'):'');};
 /* o que o parâmetro v significa em cada tipo de ação (o motor lê o mesmo v em lancar15/usarPocao15) */
 function hotSpec(id){const m=MAGIAS15[id]||RUNAS15[id],k=hotKind(id),P=(lab,def,sum)=>({tp:'pct',lab,def,sum});
@@ -2999,6 +3028,43 @@ function hotSpec(id){const m=MAGIAS15[id]||RUNAS15[id],k=hotKind(id),P=(lab,def,
   if(k==='invocar')return P('Invocar quando a mana estiver acima de',50,v=>`sua mana estiver acima de ${v}%`);
   const t={haste:'Mantida sempre ativa',familiar:'Invoca nas caçadas e na arena',cura_cond:'Usada quando estiver com a condição (veneno, fogo...)',lento:'Usada no alvo que escapa',campo:'Usada no alvo',debuff:'Usada quando houver inimigo perto',alvo:'Usada no alvo'}[k]||'Uso automático, sem ajustes';
   return {tp:'none',lab:t,def:0,sum:()=>'for conveniente'};}
+/* ---- condições do slot (s.c): que tipos cada ação aceita, padrões, textos e o resumo ---- */
+const COND_LAB={mana:'Mana',meuHp:'Minha vida',alvoHp:'Vida do alvo',n:'Mínimo de monstros',boss:'Apenas em chefe'};
+const COND_PAD={mana:{op:'>',v:30},meuHp:{op:'>',v:90},alvoHp:{op:'<',v:40},n:{op:'>',v:2},boss:{op:'>',v:0}};
+function hotCondSpec(id){const m=MAGIAS15[id]||RUNAS15[id];if(!m)return null;const k=m.t,ATK=['mana','alvoHp','meuHp','n','boss'],SUP=['n','meuHp','boss','mana'];   /* poção, Exura Sio e Magic Shield seguem só com o controle simples */
+  if(k==='cura_amigo'||k==='escudo')return null;
+  if(k==='cura'||k==='regen')return {tipos:['meuHp','mana'],seed:v=>[{t:'meuHp',op:'<',v}]};
+  if((k==='alvo'||k==='dot')&&!m.runa)return {tipos:ATK,seed:v=>v?[{t:'mana',op:'>',v}]:[]};
+  if(['onda','self','area'].includes(k))return {tipos:ATK,seed:v=>[{t:'n',op:'>',v}]};
+  if(['avatar','empower','desafio','ofuscar'].includes(k))return {tipos:SUP,seed:v=>[{t:'n',op:'>',v}]};
+  if(k==='conjurar')return {tipos:['mana','meuHp'],seed:v=>[{t:'mana',op:'>',v}]};
+  if(k==='invocar')return {tipos:SUP,seed:v=>[{t:'mana',op:'>',v}]};
+  if(GRUPO15(m)==='atk')return {tipos:ATK,seed:()=>[]};
+  return {tipos:SUP,seed:()=>[]};}
+/* condições padrão ao atribuir um slot: finalizadores (SD e Executioner's Throw) só no alvo quase morto; o resto mantém a regra simples de sempre */
+function hotCondPad(id){const m=MAGIAS15[id]||RUNAS15[id];if(!m)return null;
+  if(m.runa&&m.t==='alvo'&&/sudden death/i.test(m.nome))return [{t:'alvoHp',op:'<',v:40}];
+  if(id==='exori_amp_kor')return [{t:'alvoHp',op:'<',v:30},{t:'mana',op:'>',v:30}];
+  return null;}
+function hotNovoSlot(id,p){const sp=hotSpec(id),s={a:id,v:sp.tp==='none'?0:sp.def,p:p||2},c=hotCondPad(id);if(c)s.c=c;return s;}
+const condPct=c=>c.t==='mana'||c.t==='meuHp'||c.t==='alvoHp';
+function condBadge(c){return c.t==='alvoHp'?`Alvo${c.op}${c.v}%`:c.t==='meuHp'?`Eu${c.op}${c.v}%`:c.t==='mana'?`MP${c.op==='>'?'≥':'<'}${c.v}%`:c.t==='n'?`${c.v}+ alvos`:'Chefe';}
+const condBadges=cs=>cs.length?cs.map(condBadge).join('·\u200b'):'Sempre';
+function condFrase(c,ele){return c.t==='alvoHp'?`${ele?'ele':'o alvo'} estiver com ${c.op==='<'?'menos':'mais'} de ${c.v}% de vida`:c.t==='meuHp'?`sua vida estiver ${c.op==='<'?'abaixo':'acima'} de ${c.v}%`:c.t==='mana'?`sua mana estiver ${c.op==='<'?'abaixo':'acima'} de ${c.v}%`:c.t==='n'?`houver ${c.v} ou mais monstros por perto`:'houver um chefe por perto';}
+function hotCondHTML(e){const cs=hotCondSpec(e.id);if(!cs)return '';
+  const tab=`<label class="hcl">Condições</label><div class="hpr hmodo"><button class="${!HU.c?'on':''}" data-act="hotModo" data-arg="p">Padrão</button><button class="${HU.c?'on':''}" data-act="hotModo" data-arg="c">Personalizado</button></div>`;
+  if(!HU.c)return tab;
+  const rows=HU.c.map((c,i)=>{const usados=HU.c.filter((_,j)=>j!==i).map(x=>x.t),pc=condPct(c),sel=`<select data-ci="${i}" title="Tipo de condição">${cs.tipos.filter(x=>x===c.t||!usados.includes(x)).map(x=>`<option value="${x}" ${x===c.t?'selected':''}>${COND_LAB[x]}</option>`).join('')}</select>`;
+    const op=pc?`<select data-co="${i}" title="Comparação"><option value=">" ${c.op==='>'?'selected':''}>acima de</option><option value="<" ${c.op==='<'?'selected':''}>abaixo de</option></select>`:'';
+    const val=pc?`<div class="hsl"><input type="range" class="hcv" data-cv="${i}" min="0" max="100" step="1" value="${c.v}"><b id="hcvN${i}">${c.v}%</b></div>`:c.t==='n'?`<div class="hstp"><button class="btn" data-act="hotCStep" data-arg="${i}:-1">−</button><b id="hcvN${i}">${c.v}</b><button class="btn" data-act="hotCStep" data-arg="${i}:1">+</button></div>`:'';
+    return `<div class="hcr"><div class="hcr1">${sel}${op}<button class="btn hcx" data-act="hotCDel" data-arg="${i}" title="Remover condição">✕</button></div>${val}</div>`;}).join('');
+  const livre=cs.tipos.filter(x=>!HU.c.some(c=>c.t===x));
+  return tab+(rows||`<div class="hcl hnone">Sem condições: usada sempre que for conveniente.</div>`)+(HU.c.length<2&&livre.length?`<button class="btn hcadd" data-act="hotCAdd">＋ Adicionar condição</button>`:'')+(HU.c.length>1?`<div class="mut sm" style="margin-top:4px">As duas condições precisam ser verdadeiras (E).</div>`:'');}
+function hotCondInp(i,t){const c=HU.c&&HU.c[i];if(!c)return;if(t){const P=COND_PAD[t];c.t=t;c.op=P.op;c.v=P.v;}hotRefresca('c');}
+function hotCondV(i,v){const c=HU.c&&HU.c[i];if(!c)return;c.v=condPct(c)?clamp(Math.round(v)||0,0,100):clamp(Math.round(v)||1,1,8);const n=$('#hcvN'+i);if(n)n.textContent=c.v+(condPct(c)?'%':'');const sm=$('#hSum');if(sm)sm.innerHTML=hotResumo();}
+function hotCarrega(i){const s=S.sets[S.set][i],e=s&&hotCatalogo().find(x=>x.id===s.a);HU.i=i;HU.a=null;HU.c=null;HU.v=50;HU.p=2;
+  if(e){const sp=hotSpec(e.id);HU.a=e.id;HU.tab=e.tab;HU.p=clamp(Math.round(+s.p)||2,1,3);HU.v=sp.tp==='n'?clamp(Math.round(s.v)||sp.def,1,8):sp.tp==='pct'?clamp(Math.round(s.v)||0,0,100):0;HU.c=Array.isArray(s.c)&&hotCondSpec(e.id)?condLimpa(s.c):null;}}
+function hotMiniHTML(){return S.sets[S.set].map((s,i)=>{const a=s&&(SP[s.a]||ITEMS[s.a]);return `<div class="hms${i===HU.i?' sel':''}${a?'':' vz'}" data-hdrop="${i}" data-act="hotIr" data-arg="${i}" title="Slot ${i+1} (${hotNome(i)})${a?': '+esc(a.n):' (vazio)'}">${a?(SP[s.a]?si(SP[s.a]):ii(ITEMS[s.a])):''}<span class="fk">${hotNome(i)}</span></div>`;}).join('')+'<div class="hms hdtrash" data-hdtrash title="Arraste um slot até aqui para limpar">🗑</div>';}
 function hotCatalogo(){const voc=S.voc;if(HOTCAT[voc])return HOTCAT[voc];const out=[];
   for(const m of Object.values(MAGIAS15)){if(!m.voc.includes(voc)||m.t==='util')continue;const g=GRUPO15(m);
     out.push({id:m.id,n:m.nome.replace(/(^|[\s-])\w/g,c=>c.toUpperCase()),pal:m.palavras,lv:m.aprender?Math.max(m.lv,300):m.lv,mana:m.mana,tab:g,t:m.t,el:m.el||m.dot_el||'',cd:m.cd,ico:SP[m.id]?si(SP[m.id]):''});}
@@ -3022,10 +3088,13 @@ function hotCfgHTML(){const e=HU.a&&hotCatalogo().find(x=>x.id===HU.a),s=S.sets[
   let ctl='';if(sp.tp==='pct')ctl=`<label class="hcl">${sp.lab}</label><div class="hsl"><input type="range" id="hVal" min="0" max="100" step="1" value="${HU.v}"><b id="hValN">${HU.v}%</b></div>`;
   else if(sp.tp==='n')ctl=`<label class="hcl">${sp.lab}</label><div class="hstp"><button class="btn" data-act="hotStep" data-arg="-1">−</button><b id="hValN">${HU.v}</b><button class="btn" data-act="hotStep" data-arg="1">+</button></div>`;
   else ctl=`<div class="hcl hnone">${sp.lab}</div>`;
+  if(HU.c)ctl='';   /* modo personalizado: as condições abaixo substituem o controle simples */
   return `<div class="hch"><div class="hci big">${e.ico}</div><div><b>${esc(e.n)}</b>${e.pal?`<em>${esc(e.pal)}</em>`:''}<div class="hct"><span class="tg lv">${e.ml?'ML '+e.ml:'Lv '+e.lv}</span>${e.mana?`<span class="tg mn">${e.mana} mana</span>`:''}${ec?`<span class="tg el" style="color:${ec};border-color:${ec}88">${EL_PT[e.el]}</span>`:''}<span class="tg ty">${HOT_TIPO[e.t]||e.t}</span></div></div></div>
-    ${ctl}<label class="hcl">Prioridade</label><div class="hpr">${HOT_PRIO.map(([k,n])=>`<button class="p${k}${HU.p===k?' on':''}" data-act="hotPrio" data-arg="${k}">${n}</button>`).join('')}</div>
+    ${ctl}${hotCondHTML(e)}<label class="hcl">Prioridade</label><div class="hpr">${HOT_PRIO.map(([k,n])=>`<button class="p${k}${HU.p===k?' on':''}" data-act="hotPrio" data-arg="${k}">${n}</button>`).join('')}</div>
     <div class="hsum" id="hSum">${hotResumo()}</div><div class="hbt">${rowBtn('Limpar slot','hotClear',HU.i,!s,'red')}${rowBtn('Salvar','hotSave',HU.i,false,'go')}</div>`;}
 function hotResumo(){const e=hotCatalogo().find(x=>x.id===HU.a);if(!e)return '';const sp=hotSpec(e.id),pr=['alta','normal','baixa'][HU.p-1];
+  if(HU.c){const m=MAGIAS15[e.id]||RUNAS15[e.id],atk=m&&GRUPO15(m)==='atk'&&['alvo','dot','campo','lento'].includes(m.t);
+    return `<b>${esc(e.n)}</b> será usada${atk?' no alvo':''} ${HU.c.length?'quando '+HU.c.map(c=>condFrase(c,atk)).join(' <b>E</b> '):'sempre que for conveniente'}, com prioridade <b class="pr${HU.p}">${pr}</b>.`;}
   return `<b>${esc(e.n)}</b> será usada quando ${sp.sum(HU.v)}, com prioridade <b class="pr${HU.p}">${pr}</b>.`;}
 function hotRefresca(w){const set=(id,h)=>{const el=$('#'+id);if(el)el.innerHTML=h;};if(w.includes('a'))set('hAbas',hotAbasHTML());if(w.includes('g'))set('hotGrid',hotGradeHTML());if(w.includes('c'))set('hCfg',hotCfgHTML());}
 function hotAjustaV(v){const sp=HU.a&&hotSpec(HU.a);if(!sp)return;HU.v=sp.tp==='n'?clamp(Math.round(v)||1,1,8):clamp(Math.round(v)||0,0,100);const n=$('#hValN');if(n)n.textContent=HU.v+(sp.tp==='pct'?'%':'');const r=$('#hVal');if(r&&+r.value!==HU.v)r.value=HU.v;const sm=$('#hSum');if(sm)sm.innerHTML=hotResumo();}
@@ -3147,9 +3216,8 @@ const MODALS={
   bless:()=>({title:'🙏 Blessings',sm:true,body:`<p>Com blessings, ao morrer você perde só <b>3%</b> da experiência (em vez de 10%) e não perde o loot da mochila. As blessings são consumidas na morte.</p>
     <div class="kv"><span>Status</span><b class="${S.bless?'green':'red'}">${S.bless?'Ativas':'Sem blessings'}</b><span>Preço</span><b class="gold">${fmt(blessPrice())} gp</b></div>
     <div style="margin-top:12px;text-align:right">${rowBtn('Comprar blessings','bless','',S.bless||S.gold<blessPrice(),'gold')}</div>`}),
-  hot:(i)=>{const s=S.sets[S.set][i],cat=hotCatalogo(),e=s&&cat.find(x=>x.id===s.a);HU={i,tab:'cura',q:'',a:null,v:50,p:2};
-    if(e){const sp=hotSpec(e.id);HU.a=e.id;HU.tab=e.tab;HU.p=clamp(Math.round(+s.p)||2,1,3);HU.v=sp.tp==='n'?clamp(Math.round(s.v)||sp.def,1,8):sp.tp==='pct'?clamp(Math.round(s.v)||0,0,100):0;}
-    return {wide:true,cls:'hotm',title:`🎯 Slot ${i+1} da hotbar`,body:`<div class="hotw"><div class="hotl"><div class="hbusca"><input type="search" id="hQ" placeholder="Buscar magia, runa ou palavras (ex.: exori, utani)" autocomplete="off"></div><div class="htabs" id="hAbas">${hotAbasHTML()}</div><div class="hotgrid" id="hotGrid">${hotGradeHTML()}</div></div><div class="hotr" id="hCfg">${hotCfgHTML()}</div></div>`};},
+  hot:(i)=>{HU={i,tab:'cura',q:'',a:null,v:50,p:2,c:null};hotCarrega(i);
+    return {wide:true,cls:'hotm',title:`🎯 Slot ${i+1} da hotbar`,body:`<div class="hmini"><div class="hmr" id="hMini">${hotMiniHTML()}</div><span class="hmh">Arraste uma magia da lista até um slot · arraste um slot sobre outro para trocar · 🗑 limpa. No celular: segure ~0,3 s e arraste.</span></div><div class="hotw"><div class="hotl"><div class="hbusca"><input type="search" id="hQ" placeholder="Buscar magia, runa ou palavras (ex.: exori, utani)" autocomplete="off"></div><div class="htabs" id="hAbas">${hotAbasHTML()}</div><div class="hotgrid" id="hotGrid">${hotGradeHTML()}</div></div><div class="hotr" id="hCfg">${hotCfgHTML()}</div></div>`};},
   cfg:()=>({title:'⚙️ Configurações',sm:true,body:`<p class="mut">${ON.modo==='online'?`O progresso é salvo na nuvem (conta ${esc((ON.user&&ON.user.email)||'')}) e também neste navegador, como cópia de segurança.`:'O progresso é salvo no navegador.'} Com a página fechada, o personagem continua caçando por até 12h (limitado pela stamina), com base na média da sua sessão de caça atual.</p>
     <p class="mut sm">Mapas: <b>tibia-map-data</b> (tibiamaps.io, licença MIT) — layout real de Thais e das hunts. Sprites: <b>TibiaWiki BR</b>. Tibia é uma marca da CipSoft GmbH; este é um projeto de fã.</p>
     <label style="display:flex;gap:8px;align-items:center;margin:8px 0 4px" title="Bots são personagens simulados (marcados com um robô) que dão vida à cidade, às zonas PvP e às caçadas e completam grupos ao procurar party. Existem só no seu cliente."><input type="checkbox" data-rule="bots" ${S.rules.bots!==false?'checked':''}> Mostrar bots ${botHTML(14)} <span class="mut sm">(cidade, zonas PvP, caçadas e busca de party)</span></label>
@@ -3956,11 +4024,16 @@ function act(a,arg){
       p.lib=true;log('sys',`Slot ${i+1} da prey liberado para sempre.`,'y');toast(`Slot ${i+1} da prey liberado`);openModal('prey',null,true);break;}
     case 'wcBuy':{const q=+arg,pr=wcPreco()*q;if(!(q>0)||S.gold<pr||S.wildcards+q>WC_MAX)break;S.gold-=pr;S.wildcards+=q;log('sys',`Você comprou ${q} prey wildcard${q>1?'s':''} por ${fmt(pr)} gp.`,'y');openModal('prey',null,true);break;}
     case 'hotTab':HU.tab=arg;hotRefresca('ag');return;
-    case 'hotPick':{const e=hotCatalogo().find(x=>x.id===arg);if(!e||hotTrava(e))return;const sp=hotSpec(arg),mesmo=HU.a===arg;HU.a=arg;if(!mesmo)HU.v=sp.def;hotRefresca('gc');return;}   /* magia bloqueada (level/ML) não é selecionável */
+    case 'hotPick':{const e=hotCatalogo().find(x=>x.id===arg);if(!e||hotTrava(e))return;const sp=hotSpec(arg),mesmo=HU.a===arg;HU.a=arg;if(!mesmo){HU.v=sp.def;HU.c=hotCondPad(arg);}hotRefresca('gc');return;}   /* magia bloqueada (level/ML) não é selecionável */
+    case 'hotModo':{const cs=HU.a&&hotCondSpec(HU.a);if(!cs)return;if(arg==='c'&&!HU.c){const sp=hotSpec(HU.a);HU.c=cs.seed(sp.tp==='none'?0:HU.v);}else if(arg==='p')HU.c=null;hotRefresca('c');return;}
+    case 'hotCAdd':{const cs=HU.a&&hotCondSpec(HU.a);if(!cs||!HU.c||HU.c.length>=2)return;const t=cs.tipos.find(x=>!HU.c.some(c=>c.t===x));if(!t)return;const m=MAGIAS15[HU.a]||RUNAS15[HU.a],P=Object.assign({},COND_PAD[t]);if(t==='meuHp'&&m&&(m.t==='cura'||m.t==='regen')){P.op='<';P.v=60;}HU.c.push({t,op:P.op,v:P.v});hotRefresca('c');return;}
+    case 'hotCDel':{if(HU.c)HU.c.splice(+arg,1);hotRefresca('c');return;}
+    case 'hotCStep':{const [i,d]=arg.split(':');const c=HU.c&&HU.c[+i];if(c)hotCondV(+i,c.v+(+d||0));return;}
+    case 'hotIr':if(+arg!==HU.i)openModal('hot',+arg);return;
     case 'hotPrio':HU.p=clamp(+arg||2,1,3);hotRefresca('c');return;
     case 'hotStep':hotAjustaV(HU.v+(+arg||0));return;
     case 'hotSave':{const i=+arg,e=HU.a&&hotCatalogo().find(x=>x.id===HU.a);if(!e||hotTrava(e))return;const r=$('#hVal');if(r)hotAjustaV(+r.value);
-      S.sets[S.set][i]={a:e.id,v:hotSpec(e.id).tp==='none'?0:HU.v,p:HU.p};closeModal();sigs.hot=null;break;}
+      {const ns={a:e.id,v:hotSpec(e.id).tp==='none'?0:HU.v,p:HU.p},c=HU.c&&hotCondSpec(e.id)?condLimpa(HU.c):null;if(c)ns.c=c;S.sets[S.set][i]=ns;}closeModal();sigs.hot=null;break;}
     case 'hotClear':S.sets[S.set][+arg]=null;closeModal();sigs.hot=null;break;
     case 'sideToggle':sheet('inv');return;
     case 'sideTab':$('#side').dataset.tab=arg;$$('#sideTabs button').forEach(b=>b.classList.toggle('on',b.dataset.arg===arg));if(MOB){document.documentElement.dataset.sheet=arg;syncDock();camInsets();}return;
@@ -3987,7 +4060,8 @@ document.addEventListener('change',e=>{
   save();
 });
 document.addEventListener('input',e=>{if(e.target.id==='hFind'){HF.q=e.target.value;refrescaGrade();}});
-document.addEventListener('input',e=>{const id=e.target.id;if(modal!=='hot')return;if(id==='hQ'){HU.q=e.target.value;hotRefresca('ag');}else if(id==='hVal')hotAjustaV(+e.target.value);});
+document.addEventListener('input',e=>{const id=e.target.id;if(modal!=='hot')return;if(id==='hQ'){HU.q=e.target.value;hotRefresca('ag');}else if(id==='hVal')hotAjustaV(+e.target.value);else if(e.target.dataset&&e.target.dataset.cv!==undefined)hotCondV(+e.target.dataset.cv,+e.target.value);});
+document.addEventListener('change',e=>{if(modal!=='hot'||!e.target.dataset)return;const d=e.target.dataset;if(d.ci!==undefined&&e.target.tagName==='SELECT')hotCondInp(+d.ci,e.target.value);else if(d.co!==undefined){const c=HU.c&&HU.c[+d.co];if(c){c.op=e.target.value==='<'?'<':'>';hotRefresca('c');}}});
 document.addEventListener('keydown',e=>{if(modal==='hot'&&e.key==='Enter'&&e.target.tagName!=='BUTTON'&&HU.a){e.preventDefault();act('hotSave',HU.i);}});   /* Enter salva o slot */
 const TECLAS={w:0,a:0,s:0,d:0},TECLA_DIR={w:[0,-1],a:[-1,0],s:[0,1],d:[1,0]};
 document.addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k in TECLAS&&!modal&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){TECLAS[k]=1;e.preventDefault();}});
@@ -4063,6 +4137,41 @@ function drawMarca(now){const m=W.marca;if(!m)return;const t=(now-m.b)/700;if(t>
 let hotLP=0,hotLPt=0;   /* toque: segurar um slot = configurar (tocar = usar); botão direito/shift+clique no PC */
 document.addEventListener('pointerdown',e=>{hotLP=0;clearTimeout(hotLPt);const hs=e.pointerType!=='mouse'&&S&&e.target.closest&&e.target.closest('[data-hot]');if(hs)hotLPt=setTimeout(()=>{hotLP=1;openModal('hot',+hs.dataset.hot);},550);});
 ['pointerup','pointercancel','pointermove'].forEach(t=>document.addEventListener(t,()=>clearTimeout(hotLPt)));
+/* ======== arrastar e soltar na hotbar (pointer events: mouse e toque) ========
+   card do catálogo → slot: atribui com as regras padrão · slot → slot: troca · slot → mapa (ou 🗑 no modal): limpa, com "Desfazer".
+   Mouse: arrastar mais de 5 px. Toque: segure ~250 ms e mova (antes disso a lista rola; parado até 550 ms abre a configuração, como sempre). Esc cancela. */
+const HD={c:null,d:null,ov:null,supp:0,arm:0};
+const hdSlotEl=el=>el&&el.closest&&el.closest('[data-hot],[data-hdrop]'),hdIdx=el=>+(el.dataset.hot!==undefined?el.dataset.hot:el.dataset.hdrop);
+function hdGhost(c){let g=$('#hdGhost');if(!g){g=document.createElement('div');g.id='hdGhost';document.body.appendChild(g);}
+  const n=(c.k==='cat'?c.el.querySelector('.hci')||c.el:c.el).cloneNode(true);n.querySelectorAll('.cd,.fk,.cond,.pri,.n,.hlk').forEach(x=>x.remove());['data-hot','data-hdrop','data-act','data-arg','title','id'].forEach(a=>n.removeAttribute(a));n.className='slot hdg';g.replaceChildren(n);}
+function hdIni(c){HD.d=c;HD.c=null;clearTimeout(hotLPt);clearTimeout(HD.arm);hotLP=0;c.el.classList.add('hdsrc');hdGhost(c);document.body.classList.add('hdDrag');hdMov(c.last);}
+function hdMov(e){const d=HD.d;if(!d)return;d.last=e;const g=$('#hdGhost');g.style.display='block';g.style.left=e.clientX+'px';g.style.top=e.clientY+'px';
+  const el=document.elementFromPoint(e.clientX,e.clientY),t=hdSlotEl(el),tr=d.k==='slot'&&el&&el.closest('[data-hdtrash]'),ok=t&&!(d.k==='slot'&&hdIdx(t)===d.i),nv=ok?t:tr||null;
+  if(HD.ov!==nv){if(HD.ov)HD.ov.classList.remove('hdover');HD.ov=nv;if(nv)nv.classList.add('hdover');}
+  g.classList.toggle('hdout',d.k==='slot'&&!t&&!tr&&el===cv);}
+function hdFim(){const d=HD.d;HD.d=null;HD.c=null;clearTimeout(HD.arm);if(d)d.el.classList.remove('hdsrc');if(HD.ov)HD.ov.classList.remove('hdover');HD.ov=null;const g=$('#hdGhost');if(g){g.style.display='none';g.classList.remove('hdout');}document.body.classList.remove('hdDrag');}
+function hdToast(msg,undo){const d=document.createElement('div');d.className='hdu';d.textContent=msg+' ';if(undo){const b=document.createElement('button');b.textContent='Desfazer';b.onclick=()=>{undo();d.remove();};d.appendChild(b);}$('#toast').appendChild(d);setTimeout(()=>d.remove(),5000);}
+function hdDepois(){sigs.hot=null;save();renderHot();if(modal==='hot'){const m=$('#hMini'),tb=HU.tab;hotCarrega(HU.i);HU.tab=tb;if(m)m.innerHTML=hotMiniHTML();hotRefresca('agc');}}
+function hdSoltar(d,j){const sl=S.sets[S.set];if(!sl||!(j>=0&&j<sl.length))return;
+  if(d.k==='cat'){const e=hotCatalogo().find(x=>x.id===d.id);if(!e)return;const tr=hotTrava(e);if(tr){toast('Bloqueada: '+tr);return;}const ant=sl[j];sl[j]=hotNovoSlot(d.id);hdDepois();
+    hdToast(`${e.n} no slot ${j+1} (${hotNome(j)}).`,()=>{sl[j]=ant;hdDepois();});return;}
+  if(d.i===j)return;const a=sl[d.i],b=sl[j];sl[d.i]=b||null;sl[j]=a;hdDepois();hdToast(b?`Slots ${d.i+1} e ${j+1} trocados.`:`Movido para o slot ${j+1}.`,()=>{sl[d.i]=a;sl[j]=b||null;hdDepois();});}
+function hdLimpa(i){const sl=S.sets[S.set],ant=sl[i];if(!ant)return;sl[i]=null;hdDepois();hdToast(`Slot ${i+1} limpo.`,()=>{if(!sl[i]){sl[i]=ant;hdDepois();}});}
+document.addEventListener('pointerdown',e=>{HD.c=null;clearTimeout(HD.arm);if(!S||HD.d||(e.pointerType==='mouse'&&e.button!==0)||!e.target.closest)return;let c=null;
+  const sl=e.target.closest('[data-hot]:not(.add),[data-hdrop]:not(.vz)');
+  if(sl){const i=hdIdx(sl);if(S.sets[S.set][i])c={k:'slot',i,el:sl};}else{const cd=e.target.closest('.hc[data-act=hotPick]');if(cd)c={k:'cat',id:cd.dataset.arg,el:cd};}
+  if(!c)return;Object.assign(c,{x:e.clientX,y:e.clientY,pid:e.pointerId,toque:e.pointerType!=='mouse',arm:false});HD.c=c;
+  if(c.toque)HD.arm=setTimeout(()=>{if(HD.c===c)c.arm=true;},250);});
+document.addEventListener('pointermove',e=>{if(HD.d){hdMov(e);return;}const c=HD.c;if(!c||e.pointerId!==c.pid)return;const dist=Math.hypot(e.clientX-c.x,e.clientY-c.y);
+  if(c.toque){if(dist<=8)return;if(c.arm){c.last=e;hdIni(c);}else{HD.c=null;clearTimeout(HD.arm);}}else if(dist>5){c.last=e;hdIni(c);}});
+document.addEventListener('pointerup',e=>{clearTimeout(HD.arm);const d=HD.d;HD.c=null;if(!d)return;HD.supp=performance.now();setTimeout(()=>{HD.supp=0;},80);
+  const el=document.elementFromPoint(e.clientX,e.clientY),t=hdSlotEl(el),tr=el&&el.closest('[data-hdtrash]');hdFim();if(!S)return;
+  if(t)hdSoltar(d,hdIdx(t));else if(d.k==='slot'&&(tr||el===cv))hdLimpa(d.i);});
+document.addEventListener('pointercancel',()=>{if(HD.d)hdFim();HD.c=null;clearTimeout(HD.arm);});
+document.addEventListener('touchmove',e=>{if(HD.d||(HD.c&&HD.c.arm))e.preventDefault();},{passive:false});
+document.addEventListener('click',e=>{if(HD.supp&&performance.now()-HD.supp<500){HD.supp=0;e.stopPropagation();e.preventDefault();}},true);   /* o clique que o solte gera não usa nem seleciona nada */
+document.addEventListener('dragstart',e=>{if(e.target.closest&&e.target.closest('.hc,[data-hot],[data-hdrop]'))e.preventDefault();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&HD.d){e.stopPropagation();e.preventDefault();hdFim();}},true);
 document.addEventListener('contextmenu',e=>{const hs=e.target.closest&&e.target.closest('[data-hot]');if(hs&&S){e.preventDefault();openModal('hot',+hs.dataset.hot);}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal&&!MODAL_FIXOS.includes(modal))closeModal();if(e.key==='Enter'&&modal==='create')act('create');
   else if(e.key==='Enter'&&/INPUT/.test((e.target||{}).tagName||'')){if(modal==='login')act(ENT.aba==='entrar'?'onEntrar':'onCriarConta');else if(modal==='novaSenha')act('onNovaSenha');else if(modal==='importar')act('onImportarOk');else if(modal==='apagarChar')act('onApagarOk',modalArg);}});
@@ -4332,8 +4441,14 @@ const ONACT={
 function save(){if(!S||ON.parado)return;if(ON.modo==='online'){ON.sujo=true;try{localStorage.setItem(KEY+':'+ON.pid,JSON.stringify(payload()));}catch(e){}return;}try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 function load(){try{const r=localStorage.getItem(KEY);if(!r)return null;return carregarSave(JSON.parse(r));}catch(e){return null;}}
 /* valida e migra um save (local ou da nuvem) e devolve o estado, ou null */
-function carregarSave(d){try{if(!d||!VOC[d.voc])return null;const b=newState(d.name,d.voc);
+/* runas removidas do jogo: o save converte para a equivalente (mesma quantidade) na mochila, depot, hotbars, fichas e onde mais o id aparecer */
+const RUNA_MIG={runa_21351:'runa_3175'};   /* Light Stone Shower Rune → Stone Shower Rune */
+function migraRunas(x,dep=0){if(!x||typeof x!=='object'||dep>8)return;
+  if(!Array.isArray(x))for(const k of Object.keys(x)){const n=RUNA_MIG[k];if(!n)continue;const v=x[k];delete x[k];if(typeof v==='number'&&typeof x[n]==='number')x[n]+=v;else if(x[n]===undefined)x[n]=v;}
+  for(const k of Object.keys(x)){const v=x[k];if(typeof v==='string'&&RUNA_MIG[v])x[k]=RUNA_MIG[v];else if(v&&typeof v==='object')migraRunas(v,dep+1);}}
+function carregarSave(d){try{if(!d||!VOC[d.voc])return null;migraRunas(d);const b=newState(d.name,d.voc);
   const o=Object.assign(b,d);o.rules=Object.assign(newState(d.name,d.voc).rules,d.rules);o.sess=Object.assign(newSess(null),d.sess);o.charms=Object.assign({dmg:0,exp:0,loot:0,def:0},d.charms);o.pull=d.pull||{};o.lootCfg=d.lootCfg||{};o.recordes=d.recordes||{};o.taxas=d.taxas&&typeof d.taxas==='object'?d.taxas:{};o.offLog=Array.isArray(d.offLog)?d.offLog.filter(e=>Array.isArray(e)&&Number.isFinite(+e[0])&&+e[1]>0).map(e=>[+e[0],+e[1]]).slice(-200):[];o.ui=d.ui||{};o.favs=d.favs||{};o.wildcards=clamp(Math.floor(+d.wildcards)||0,0,1000);o.wcAcc=+d.wcAcc||0;o.tc=+d.tc||0;o.pv=pvLimpa(d.pv);migraPrey(o);migraOutfits(o);
+  for(const set of Object.values(o.sets||{}))if(Array.isArray(set))for(const sl of set)if(sl&&sl.c!==undefined){const c=condLimpa(sl.c);if(c)sl.c=c;else delete sl.c;}   /* condições dos slots: valida o formato */
   o.imb=Object.assign(newState('x',o.voc).imb,d.imb||{});for(const [k,n] of Object.entries(IMB_SLOTS)){o.imb[k]=(o.imb[k]||[]).slice(0,n);while(o.imb[k].length<n)o.imb[k].push(null);}
   /* saves antigos tinham um skill 'melee' só: espada, machado e clava começam com o mesmo nível e tentativas dele (ninguém perde progresso); o 'melee' é descartado */
   {const ds=d.skills||{},sk=Object.assign({},b.skills,ds),m=ds.melee;if(m)for(const k of MELEE)if(!ds[k])sk[k]={lv:m.lv,t:m.t};delete sk.melee;
@@ -4370,6 +4485,11 @@ function tickLoop(){
 const PR={ativo:false,pid:null,tr:null,modo:null,remotos:new Map(),ult:null,tEnv:0,tBat:0,tFala:0,fala:null,sigPerfil:'',nTent:0,tReco:0,erro:null,ultN:-1,sigLista:'',falaRx:{}};
 const PR_MAX=60,PR_SUMIR=20000;
 const prNum=(v,a,b,d)=>{v=Math.round(+v);return Number.isFinite(v)?clamp(v,a,b):d;};
+/* condições de slot vindas de fora (ficha da party, save): no máximo 2, só tipos conhecidos (um de cada), valores dentro da faixa; inválido = descartado */
+const COND_T={mana:[0,100],meuHp:[0,100],alvoHp:[0,100],n:[1,8],boss:[0,0]};
+function condLimpa(c){if(!Array.isArray(c))return undefined;const o=[];
+  for(const x of c.slice(0,2)){if(!x||typeof x!=='object'||!COND_T[x.t]||o.some(y=>y.t===x.t))continue;const [lo,hi]=COND_T[x.t];o.push({t:x.t,op:x.t==='n'||x.t==='boss'||x.op!=='<'?'>':'<',v:x.t==='boss'?0:prNum(x.v,lo,hi,lo)});}
+  return o;}
 const prTxt=(v,n)=>String(v==null?'':v).replace(/[\u0000-\u001f\u007f<>]/g,' ').replace(/\s+/g,' ').trim().slice(0,n);
 function prOutfit(o){try{if(!o||typeof o!=='object')return null;const look=+o.look;if(!Number.isInteger(look)||!OUTF15[look])return null;
   if(!Array.isArray(o.cores)||o.cores.length!==4)return null;const cores=o.cores.map(c=>+c);if(cores.some(c=>!Number.isInteger(c)||c<0||c>132))return null;
@@ -4937,7 +5057,7 @@ function drawCid(now){if(!W.city||S.loc!=='city'||!W.cam)return;
    (o líder cria um lutador com a IA da arena) e só desenham o que o líder envia (4 Hz, num único broadcast com os eventos) e aplicam as recompensas.
    Canal da party: party:<pid do fundador>, mesmo padrão da presença (Supabase Realtime, ou BroadcastChannel com ?rede=local; ?rede=rt&perfil=N = Realtime real sem login, para testar).
    Convites ficam no canal da cidade (convite/resposta). Modo solo: PT.hunt e W.pl ficam vazios e nada muda. */
-const PARTY_HZ=4,PT_MAX=4,PT_CONVITE=60000,PT_SUMIR=15000,PT_INATIVO=120000,PT_BONUS=[0,.2,.3,.6,1],PT_VER='p7',PT_FILA_T=120000;
+const PARTY_HZ=4,PT_MAX=4,PT_CONVITE=60000,PT_SUMIR=15000,PT_INATIVO=120000,PT_BONUS=[0,.2,.3,.6,1],PT_VER='p8',PT_FILA_T=120000;
 const PT_EVS=['rost','sinal','entrar','sair','go','fim','ficha','estado','premio','kick','recusa','fila','pronto'];
 Object.assign(PT,{id:null,me:null,lider:null,mb:[],expOn:true,tr:null,conv:[],sent:{},pend:null,fichas:new Map(),conf:false,tEnt:0,nEnt:0,tSin:0,tEst:0,tPre:0,tAn:0,tSt:0,tMe:0,sig:'',flag:'off',huntInfo:null,fila:null,filaM:null,aceito:null,epAuto:null,seg:null,fim:{},pPend:null,st:'ok',verAv:{},fake:false,n:{env:0,rec:0,te:{},tr:{},res:{}}});
 const ptSou=()=>!!PT.id&&PT.lider===PR.pid;
@@ -5087,7 +5207,7 @@ const ptBonusTxt=r=>`${r.nv} vocaç${r.nv===1?'ão':'ões'}: +${Math.round(r.bon
 function ptAb(){const ab={};for(const el of ELS_AB){let f=1;for(const k of ACCD){const it=eqa(k);if(it&&it.abs&&it.abs[el])f*=1-it.abs[el]/100;}if(f!==1)ab[el]=Math.round((1-f)*100);}return ab;}
 const ELS_AB=['phys','fire','earth','energy','ice','holy','death','lifedrain','manadrain','drown'];
 function ptFicha(){const eq={},t={};for(const k of EQ6){eq[k]=S.eq[k].id;t[k]=S.eq[k].t||0;}
-  const slots=(S.sets[S.set]||[]).map(x=>x&&{a:x.a,v:x.v,p:x.p}),bag={};for(const s of slots){if(!s)continue;const it=ITEMS[s.a];if(it&&(it.type==='pot'||it.type==='runa'))bag[s.a]=S.bag[s.a]|0;}
+  const slots=(S.sets[S.set]||[]).map(x=>x&&{a:x.a,v:x.v,p:x.p,c:x.c}),bag={};for(const s of slots){if(!s)continue;const it=ITEMS[s.a];if(it&&(it.type==='pot'||it.type==='runa'))bag[s.a]=S.bag[s.a]|0;}
   return {nome:prTxt(S.name,20),voc:S.voc,nivel:S.level,sk:{sword:skE('sword'),axe:skE('axe'),club:skE('club'),melee:skE(S.voc==='knight'?mainSk():'sword')/* só para clientes p5 */,distance:skE('distance'),shielding:skE('shielding'),magic:skE('magic')},eq,t,procs:JOG.procs,slots,bag,ab:ptAb(),
     outfit:outJog(),addon:S.addon??3,hp:Math.round(S.hp),mp:Math.round(S.mp),prot:JOG.protecao()};}
 function ptValFicha(f){try{if(!f||typeof f!=='object'||!VOC[f.voc])return null;const voc=f.voc,nivel=prNum(f.nivel,1,9999,0);if(!nivel)return null;
@@ -5097,7 +5217,7 @@ function ptValFicha(f){try{if(!f||typeof f!=='object'||!VOC[f.voc])return null;c
   const p=f.procs||{},cl=(v,mx)=>{v=+v;return Number.isFinite(v)?clamp(v,0,mx):0;};
   const procs={crit:cl(p.crit,.5),critX:.5,fatal:cl(p.fatal,.15),ruse:cl(p.ruse,.15),agonia:cl(p.agonia,.3)};
   const slots=new Array(16).fill(null),sl=Array.isArray(f.slots)?f.slots.slice(0,16):[];
-  sl.forEach((x,i)=>{if(x&&typeof x==='object'&&typeof x.a==='string'&&(MAGIAS15[x.a]||RUNAS15[x.a]||(ITEMS[x.a]&&ITEMS[x.a].type==='pot')))slots[i]={a:x.a,v:prNum(x.v,0,100,0),p:prNum(x.p,1,3,2)};});
+  sl.forEach((x,i)=>{if(x&&typeof x==='object'&&typeof x.a==='string'&&(MAGIAS15[x.a]||RUNAS15[x.a]||(ITEMS[x.a]&&ITEMS[x.a].type==='pot'))){slots[i]={a:x.a,v:prNum(x.v,0,100,0),p:prNum(x.p,1,3,2)};const c=condLimpa(x.c);if(c)slots[i].c=c;}});
   const bag={};for(const s of slots){if(!s||bag[s.a]!==undefined)continue;const it=ITEMS[s.a];if(it&&(it.type==='pot'||it.type==='runa'))bag[s.a]=prNum(f.bag&&f.bag[s.a],0,5000,0);}
   const pr=+f.prot,ab={};if(f.ab&&typeof f.ab==='object')for(const el of ELS_AB)if(f.ab[el]!==undefined)ab[el]=prNum(f.ab[el],-50,90,0);return {nome:prTxt(f.nome,20)||'Jogador',voc,nivel,sk,eq,t,procs,slots,bag,ab,outfit:prOutfit(f.outfit),addon:prNum(f.addon,0,3,3),hp:prNum(f.hp,0,200000,1e9),mp:prNum(f.mp,0,200000,1e9),prot:Number.isFinite(pr)?clamp(pr,.3,1):1};}catch(e){return null;}}
 function ptFichaFalsa(x){const sk=skillsBot(x.voc,x.level),eq=equipBot(x.voc,x.level),slots=hotPadrao(x.voc,x.level,sk.magic),bag=kitArena(slots,x.voc),t={};
